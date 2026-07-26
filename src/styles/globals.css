@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-accent: #1EAEC4;
+}
+
+body {
+  background-color: #0E0F11;
+  color: #DDE0E4;
+}
+
+::selection {
+  background-color: var(--brand-accent);
+  color: #0E0F11;
+}
+
+.card {
+  @apply bg-graphite-800 border border-graphite-600 rounded-xl;
+}
+
+.input {
+  @apply bg-graphite-800 border border-graphite-600 rounded-lg px-3 py-2 text-sm text-graphite-100 placeholder:text-graphite-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent w-full;
+}
+
+.btn-primary {
+  @apply bg-accent text-accent-foreground font-medium rounded-lg px-4 py-2 text-sm hover:opacity-90 transition-opacity;
+}
+
+.btn-secondary {
+  @apply bg-graphite-700 border border-graphite-600 text-graphite-100 font-medium rounded-lg px-4 py-2 text-sm hover:bg-graphite-600 transition-colors;
+}
+
+/* Print / "Save as PDF" support for branded documents (estimates, invoices,
+   contracts). Elements outside a .print-document wrapper (sidebar, nav,
+   buttons) are hidden; the document itself switches to a white background
+   with dark text, since that's what people expect from a printed/PDF'd
+   business document, not the app's dark theme. Applied by wrapping the
+   document card in <div className="print-document"> - see PrintButton.tsx. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-document, .print-document * {
+    visibility: visible;
+  }
+  .print-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    color: #111 !important;
+    padding: 24px;
+  }
+  .print-document * {
+    background: transparent !important;
+    color: #111 !important;
+    border-color: #ccc !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

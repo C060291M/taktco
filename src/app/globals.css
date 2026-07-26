@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-accent: #3B82F6;
+}
+
+body {
+  background-color: #0E0F11;
+  color: #DDE0E4;
+}
+
+::selection {
+  background-color: var(--brand-accent);
+  color: #0E0F11;
+}
+
+.card {
+  @apply bg-graphite-800 border border-graphite-600 rounded-xl;
+}
+
+.input {
+  @apply bg-graphite-800 border border-graphite-600 rounded-lg px-3 py-2 text-sm text-graphite-100 placeholder:text-graphite-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent w-full;
+}
+
+.btn-primary {
+  @apply bg-accent text-accent-foreground font-medium rounded-lg px-4 py-2 text-sm hover:opacity-90 transition-opacity;
+}
+
+.btn-secondary {
+  @apply bg-graphite-700 border border-graphite-600 text-graphite-100 font-medium rounded-lg px-4 py-2 text-sm hover:bg-graphite-600 transition-colors;
+}
