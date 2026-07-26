@@ -88,7 +88,7 @@ export async function executeActions(
         data: {
           companyId,
           workflowId,
-          trigger: (context.trigger as string) || "LEAD_CREATED",
+          trigger: (context.trigger as never) || "LEAD_CREATED",
           status: "FAILED",
           summary: `Action ${action.type} failed: ${err instanceof Error ? err.message : "unknown error"}`,
           context: context as never
@@ -99,7 +99,7 @@ export async function executeActions(
   }
 
   await db.automationRunLog.create({
-    data: { companyId, workflowId, trigger: (context.trigger as string) || "LEAD_CREATED", status: "SUCCESS", summary: "Completed", context: context as never }
+    data: { companyId, workflowId, trigger: (context.trigger as never) || "LEAD_CREATED", status: "SUCCESS", summary: "Completed", context: context as never }
   });
 }
 

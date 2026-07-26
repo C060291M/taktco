@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 
-export const CUSTOMER_STATUSES = [
+const CUSTOMER_STATUSES = [
   "lead",
   "estimate_pending",
   "estimate_sent",
