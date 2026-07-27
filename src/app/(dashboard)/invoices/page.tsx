@@ -38,7 +38,9 @@ export default async function InvoicesPage() {
         <div>
           <h1 className="text-xl font-semibold text-white">Invoices</h1>
           <p className="text-sm text-graphite-400">
-            Payments here use a local dev stub. Wire in Stripe Connect before going live — see README.
+            {ctx.company.payoutsEnabled
+              ? "Customers pay online through the link on each invoice. \"Pay\" below is for marking cash/check payments received manually."
+              : "Verify payment collection in Settings to let customers pay online."}
           </p>
         </div>
         <NewInvoiceForm
