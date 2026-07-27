@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "@/styles/globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "NovaOS — A smarter way to build your business.",
-  description: "The business operating system for trade and service companies."
+  title: "TAKTCO | The Construction Business Operating System",
+  description: "TAKTCO is an AI-powered business operating system built for contractors to manage customers, projects, finances, and growth from one platform.",
+  icons: { icon: "/taktco-logo.png" }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

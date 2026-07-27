@@ -1,7 +1,7 @@
-import { db } from "@/lib/db";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { PipelineBoard } from "@/components/pipeline/PipelineBoard";
+import { PipelineBoard } from "@/features/pipeline/PipelineBoard";
 
 export default async function PipelinePage() {
   const ctx = await requireSession();
@@ -18,7 +18,8 @@ export default async function PipelinePage() {
     pipelineStage: l.pipelineStage,
     customerName: l.customer.name,
     customerId: l.customer.id,
-    notes: l.notes
+    notes: l.notes,
+    priority: l.priority
   }));
 
   return (

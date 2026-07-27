@@ -2,15 +2,10 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
+import type { SessionPayload } from "@/types";
 
 const SESSION_COOKIE = "novaos_session";
 const secretKey = () => new TextEncoder().encode(process.env.AUTH_SECRET || "dev-only-insecure-secret");
-
-export type SessionPayload = {
-  userId: string;
-  companyId: string;
-  role: string;
-};
 
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);

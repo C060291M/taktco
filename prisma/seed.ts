@@ -14,7 +14,7 @@ async function main() {
       subdomain: "demo",
       tradeType: "Fencing",
       brandAccentColor: "#3B82F6",
-      subscriptionTier: "growth",
+      subscriptionTier: "pro",
       users: {
         create: {
           email: "owner@demo.novaos.app",
@@ -104,6 +104,28 @@ async function main() {
       status: "UNPAID",
       dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
     }
+  });
+
+  await prisma.creditPackage.createMany({
+    data: [
+      { name: "Starter Pack", credits: 500, priceCents: 1500 },
+      { name: "Growth Pack", credits: 2000, priceCents: 5000 },
+      { name: "Pro Pack", credits: 5000, priceCents: 11000 },
+      { name: "Scale Pack", credits: 10000, priceCents: 20000 }
+    ],
+    skipDuplicates: true
+  });
+
+  await prisma.aiFeatureCost.createMany({
+    data: [
+      { feature: "quick_question", credits: 1 },
+      { feature: "email_draft", credits: 3 },
+      { feature: "estimate_builder", credits: 5 },
+      { feature: "contract_builder", credits: 5 },
+      { feature: "marketing_post", credits: 3 },
+      { feature: "business_analysis", credits: 5 }
+    ],
+    skipDuplicates: true
   });
 
   console.log("Seeded demo company: ace fence co. (subdomain: demo)");

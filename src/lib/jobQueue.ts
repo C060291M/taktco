@@ -13,7 +13,7 @@ export async function enqueueJob(params: {
   payload: Record<string, unknown>;
 }) {
   return db.jobQueueItem.create({
-    data: { companyId: params.companyId, type: params.type, payload: params.payload }
+    data: { companyId: params.companyId, type: params.type, payload: params.payload as never }
   });
 }
 

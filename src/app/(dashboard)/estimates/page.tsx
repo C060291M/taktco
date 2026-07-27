@@ -1,9 +1,9 @@
-import { db } from "@/lib/db";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
-import { NewEstimateForm } from "./NewEstimateForm";
+import { NewEstimateForm } from "@/features/estimates/NewEstimateForm";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -25,7 +25,11 @@ export default async function EstimatesPage() {
           <h1 className="text-xl font-semibold text-white">Estimates</h1>
           <p className="text-sm text-graphite-400">Build a quote, send it, get it approved.</p>
         </div>
-        <NewEstimateForm customers={customers.map((c) => ({ id: c.id, name: c.name }))} />
+        <NewEstimateForm
+          customers={customers.map((c) => ({ id: c.id, name: c.name }))}
+          defaultWarranty={ctx.company.defaultWarrantyText}
+          defaultTerms={ctx.company.defaultEstimateTerms}
+        />
       </div>
 
       <div className="card overflow-hidden">

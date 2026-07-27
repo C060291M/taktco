@@ -1,7 +1,12 @@
-import { db } from "@/lib/db";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
-import { EstimateActions } from "./EstimateActions";
+import { EstimateActions } from "@/features/estimates/EstimateActions";
+import { CopyPublicLink } from "@/features/estimates/CopyPublicLink";
+import { BrandedDocumentHeader } from "@/components/layout/BrandedDocumentHeader";
+import { PrintButton } from "@/components/ui/PrintButton";
+import { analyzeEstimate } from "@/lib/estimatingAdvisor";
+import { EstimatingAdvisor } from "@/features/estimates/EstimatingAdvisor";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -19,14 +24,26 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
 
   const lineItems = estimate.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number }[];
 
+  const advisorFindings = await analyzeEstimate({
+    companyId: ctx.company.id,
+    lineItems,
+    totalAmount: Number(estimate.totalAmount)
+  });
+
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Estimate for {estimate.customer.name}</h1>
-        <p className="text-sm text-graphite-400">Status: {estimate.status.replace("_", " ")}</p>
-      </div>
-
-      <div className="card p-5">
+      <div className="card p-5 print-document">
+        <BrandedDocumentHeader company={ctx.company} label="Estimate" />
+        <div className="pt-2 pb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-white">For {estimate.customer.name}</h1>
+            <p className="text-sm text-graphite-400">Status: {estimate.status.replace("_", " ")}</p>
+          </div>
+          <div className="flex gap-2">
+            <PrintButton />
+            <CopyPublicLink token={estimate.approvalToken} />
+          </div>
+        </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-graphite-400 border-b border-graphite-700">
@@ -49,7 +66,21 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
           <span className="text-graphite-300">Total</span>
           <span className="text-white text-lg font-semibold">{money(estimate.totalAmount)}</span>
         </div>
+        {estimate.warranty && (
+          <div className="pt-4">
+            <p className="text-xs text-graphite-400 uppercase tracking-wide">Warranty</p>
+            <p className="text-sm text-graphite-200 mt-1">{estimate.warranty}</p>
+          </div>
+        )}
+        {estimate.terms && (
+          <div className="pt-3">
+            <p className="text-xs text-graphite-400 uppercase tracking-wide">Terms</p>
+            <p className="text-sm text-graphite-200 mt-1">{estimate.terms}</p>
+          </div>
+        )}
       </div>
+
+      <EstimatingAdvisor findings={advisorFindings} />
 
       <EstimateActions estimateId={estimate.id} status={estimate.status} hasJob={!!estimate.job} />
     </div>

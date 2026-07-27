@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 
 const schema = z.object({
   name: z.string().min(1).optional(),
   logoUrl: z.string().url().optional().or(z.literal("")),
   brandPrimaryColor: z.string().optional(),
-  brandAccentColor: z.string().optional()
+  brandAccentColor: z.string().optional(),
+  dashboardTheme: z.enum(["solid", "gradient", "grid"]).optional()
 });
 
 export async function GET() {

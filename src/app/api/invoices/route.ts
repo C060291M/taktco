@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
+
+const lineItemSchema = z.object({
+  description: z.string().min(1),
+  qty: z.number().positive(),
+  unit: z.string().min(1),
+  unitPrice: z.number().nonnegative()
+});
 
 const schema = z.object({
   customerId: z.string(),
   jobId: z.string().optional(),
-  amount: z.number().positive(),
+  lineItems: z.array(lineItemSchema).optional(),
+  amount: z.number().positive().optional(), // manual/simple mode - back-compat with the earlier flow
+  taxAmount: z.number().nonnegative().optional(),
+  discountAmount: z.number().nonnegative().optional(),
+  paymentTerms: z.string().optional(),
+  notes: z.string().optional(),
   dueDate: z.string().optional()
 });
 
@@ -29,12 +41,29 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Invalid invoice data." }, { status: 400 });
 
+  const lineItemsTotal = (parsed.data.lineItems || []).reduce((sum, li) => sum + li.qty * li.unitPrice, 0);
+  const subtotal = parsed.data.amount ?? lineItemsTotal;
+  const tax = parsed.data.taxAmount ?? 0;
+  const discount = parsed.data.discountAmount ?? 0;
+  const total = subtotal + tax - discount;
+  if (total <= 0) return NextResponse.json({ error: "Invoice total must be greater than zero." }, { status: 400 });
+
+  const invoiceCount = await db.invoice.count({ where: { companyId: ctx.company.id } });
+  const invoiceNumber = `INV-${String(invoiceCount + 1).padStart(4, "0")}`;
+
   const invoice = await db.invoice.create({
     data: {
       companyId: ctx.company.id,
       customerId: parsed.data.customerId,
       jobId: parsed.data.jobId,
-      amount: parsed.data.amount,
+      invoiceNumber,
+      amount: total,
+      lineItems: parsed.data.lineItems || [],
+      taxAmount: tax,
+      discountAmount: discount,
+      paymentTerms: parsed.data.paymentTerms,
+      notes: parsed.data.notes,
+      status: "UNPAID",
       dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : undefined
     }
   });
