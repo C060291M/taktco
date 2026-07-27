@@ -8,17 +8,21 @@ type JobOption = { id: string; label: string };
 export function NewInvoiceForm({
   customers,
   jobs,
-  defaultDueDays
+  defaultDueDays,
+  hasDepositPercent
 }: {
   customers: { id: string; name: string }[];
   jobs: JobOption[];
   defaultDueDays?: number | null;
+  hasDepositPercent?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState("");
   const [jobId, setJobId] = useState("");
+  const [splitting, setSplitting] = useState(false);
+  const [splitError, setSplitError] = useState<string | null>(null);
   const [items, setItems] = useState<LineItem[]>([{ description: "", qty: 1, unit: "ea", unitPrice: 0 }]);
   const [taxAmount, setTaxAmount] = useState("0");
   const [dueDate, setDueDate] = useState(() => {
@@ -46,6 +50,21 @@ export function NewInvoiceForm({
     if (res.ok) {
       setCustomerId(data.customerId);
       if (data.lineItems?.length) setItems(data.lineItems);
+    }
+  }
+
+  async function splitIntoDepositAndBalance() {
+    if (!jobId) return;
+    setSplitting(true);
+    setSplitError(null);
+    const res = await fetch(`/api/jobs/${jobId}/deposit-invoices`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    setSplitting(false);
+    if (res.ok) {
+      setOpen(false);
+      router.refresh();
+    } else {
+      setSplitError(data.error || "Could not split into deposit + balance.");
     }
   }
 
@@ -89,16 +108,29 @@ export function NewInvoiceForm({
         <h2 className="text-white font-medium">New invoice</h2>
 
         {jobs.length > 0 && (
-          <div>
-            <label className="block text-xs text-graphite-300 mb-1">Pull from a job (optional)</label>
-            <select className="input" value={jobId} onChange={(e) => pullFromJob(e.target.value)}>
-              <option value="">Manual entry</option>
-              {jobs.map((j) => (
-                <option key={j.id} value={j.id}>{j.label}</option>
-              ))}
-            </select>
-            {pulling && <p className="text-xs text-graphite-400 mt-1">Pulling line items...</p>}
-          </div>
+          <>
+            <div>
+              <label className="block text-xs text-graphite-300 mb-1">Pull from a job (optional)</label>
+              <select className="input" value={jobId} onChange={(e) => pullFromJob(e.target.value)}>
+                <option value="">Manual entry</option>
+                {jobs.map((j) => (
+                  <option key={j.id} value={j.id}>{j.label}</option>
+                ))}
+              </select>
+              {pulling && <p className="text-xs text-graphite-400 mt-1">Pulling line items...</p>}
+            </div>
+            {jobId && hasDepositPercent && (
+              <div className="mt-2 p-3 rounded-lg border border-accent/30 bg-accent/5">
+                <p className="text-xs text-graphite-300 mb-2">
+                  This company has a default deposit % set - you can split this into two invoices instead of one.
+                </p>
+                <button type="button" className="btn-secondary text-xs" disabled={splitting} onClick={splitIntoDepositAndBalance}>
+                  {splitting ? "Creating..." : "Split into deposit + final balance"}
+                </button>
+                {splitError && <p className="text-xs text-red-400 mt-1">{splitError}</p>}
+              </div>
+            )}
+          </>
         )}
 
         <select className="input" value={customerId} onChange={(e) => setCustomerId(e.target.value)} required disabled={!!jobId}>

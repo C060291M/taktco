@@ -45,6 +45,7 @@ export default async function InvoicesPage() {
           customers={customers.map((c) => ({ id: c.id, name: c.name }))}
           jobs={jobs.map((j) => ({ id: j.id, label: `${j.customer.name} — ${money(j.quotedCost)}` }))}
           defaultDueDays={ctx.company.defaultInvoiceDueDays}
+          hasDepositPercent={Boolean(ctx.company.defaultDepositPercent)}
         />
       </div>
 

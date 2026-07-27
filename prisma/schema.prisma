@@ -78,6 +78,12 @@ enum JobStatus {
   ARCHIVED
 }
 
+enum InvoiceKind {
+  STANDARD
+  DEPOSIT
+  FINAL_BALANCE
+}
+
 enum InvoiceStatus {
   DRAFT
   SENT
@@ -454,6 +460,8 @@ model Invoice {
   issueDate        DateTime      @default(now())
   dueDate          DateTime?
   viewedAt         DateTime?
+  kind             InvoiceKind   @default(STANDARD)
+  pairedInvoiceId  String?
   paymentLinkToken String        @unique @default(cuid())
   createdAt        DateTime      @default(now())
 
