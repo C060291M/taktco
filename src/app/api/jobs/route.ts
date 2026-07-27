@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/database/client";
+import { db } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 
 export async function GET() {

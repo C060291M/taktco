@@ -51,10 +51,10 @@ export async function POST(req: NextRequest) {
       companyId: ctx.company.id,
       name: parsed.data.name,
       trigger: parsed.data.trigger,
-      conditions: parsed.data.conditions as never,
+      conditions: parsed.data.conditions,
       order: count,
       actions: {
-        create: parsed.data.actions.map((a, i) => ({ order: i, type: a.type, config: a.config as never }))
+        create: parsed.data.actions.map((a, i) => ({ order: i, type: a.type, config: a.config }))
       }
     },
     include: { actions: true }

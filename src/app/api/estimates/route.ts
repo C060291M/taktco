@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/database/client";
+import { db } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 
 const lineItemSchema = z.object({
@@ -12,10 +12,7 @@ const lineItemSchema = z.object({
 
 const schema = z.object({
   customerId: z.string(),
-  lineItems: z.array(lineItemSchema).min(1),
-  warranty: z.string().optional(),
-  terms: z.string().optional(),
-  aiGenerated: z.boolean().optional()
+  lineItems: z.array(lineItemSchema).min(1)
 });
 
 export async function GET() {
@@ -48,9 +45,6 @@ export async function POST(req: NextRequest) {
       customerId: customer.id,
       lineItems: parsed.data.lineItems,
       totalAmount: total,
-      warranty: parsed.data.warranty,
-      terms: parsed.data.terms,
-      aiGenerated: parsed.data.aiGenerated || false,
       status: "DRAFT"
     }
   });

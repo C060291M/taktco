@@ -1,7 +1,7 @@
-import { db } from "@/database/client";
+import { db } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { JobsBoard } from "@/features/jobs/JobsBoard";
+import { JobsBoard } from "./JobsBoard";
 
 export default async function JobsPage() {
   const ctx = await requireSession();

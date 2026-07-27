@@ -18,7 +18,7 @@ import Stripe from "stripe";
 export const stripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY);
 
 export const stripe = stripeConfigured
-  ? new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2025-02-24.acacia" })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2024-06-20" })
   : null;
 
 // Creates (or reuses) a Stripe Connect Express account for a company and

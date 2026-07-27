@@ -1,25 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/database/client";
+import { db } from "@/lib/db";
 import { hashPassword, createSession } from "@/lib/auth";
-import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 
 const schema = z.object({
   companyName: z.string().min(2),
   tradeType: z.string().min(2),
-  serviceArea: z.string().optional(),
-  businessPhone: z.string().optional(),
-  businessEmail: z.string().email().optional().or(z.literal("")),
-  businessAddress: z.string().optional(),
-  taxRate: z.string().optional(),
   name: z.string().min(2),
   email: z.string().email(),
-  password: z.string().min(8),
-  // Data URL (base64) from the drag-and-drop uploader on the signup page.
-  // Fine for local/dev - production should upload this to S3/R2 and store a real
-  // URL here instead, per the blueprint's file-upload TODO.
-  logoUrl: z.string().optional(),
-  brandAccentColor: z.string().optional()
+  password: z.string().min(8)
 });
 
 function slugify(input: string) {
@@ -31,34 +20,12 @@ function slugify(input: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const { allowed, retryAfterMs } = checkRateLimit(`signup:${clientIp(req)}`, 5, 15 * 60 * 1000);
-  if (!allowed) {
-    return NextResponse.json(
-      { error: "Too many signup attempts. Try again later." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
-    );
-  }
-
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Please fill in every field." }, { status: 400 });
   }
-  const {
-    companyName,
-    tradeType,
-    serviceArea,
-    businessPhone,
-    businessEmail,
-    businessAddress,
-    taxRate,
-    name,
-    email: rawEmail,
-    password,
-    logoUrl,
-    brandAccentColor
-  } = parsed.data;
-  const email = rawEmail.toLowerCase().trim();
+  const { companyName, tradeType, name, email, password } = parsed.data;
 
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) {
@@ -79,13 +46,6 @@ export async function POST(req: NextRequest) {
       name: companyName,
       subdomain,
       tradeType,
-      serviceArea,
-      businessPhone: businessPhone || undefined,
-      businessEmail: businessEmail || undefined,
-      businessAddress: businessAddress || undefined,
-      taxRate: taxRate ? Number(taxRate) : undefined,
-      logoUrl,
-      brandAccentColor: brandAccentColor || undefined,
       users: {
         create: { email, passwordHash, name, role: "OWNER" }
       }

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/database/client";
+import { db } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
-import { runTrigger } from "@/lib/automationEngine";
-import { notify } from "@/lib/notify";
 
 const schema = z.object({
   name: z.string().min(1),
@@ -13,38 +11,14 @@ const schema = z.object({
   source: z.string().optional()
 });
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const url = new URL(req.url);
-  const q = url.searchParams.get("q")?.trim();
-  const status = url.searchParams.get("status");
-  const tagId = url.searchParams.get("tagId");
-  const flaggedOnly = url.searchParams.get("flagged") === "true";
-  const vipOnly = url.searchParams.get("vip") === "true";
-
   const customers = await db.customer.findMany({
-    where: {
-      companyId: ctx.company.id,
-      deletedAt: null,
-      ...(status ? { status } : {}),
-      ...(flaggedOnly ? { flagged: true } : {}),
-      ...(vipOnly ? { vip: true } : {}),
-      ...(tagId ? { tags: { some: { tagId } } } : {}),
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { email: { contains: q, mode: "insensitive" } },
-              { phone: { contains: q, mode: "insensitive" } },
-              { address: { contains: q, mode: "insensitive" } }
-            ]
-          }
-        : {})
-    },
+    where: { companyId: ctx.company.id, deletedAt: null },
     orderBy: { createdAt: "desc" },
-    include: { leads: true, tags: { include: { tag: true } }, assignedUser: true }
+    include: { leads: true }
   });
   return NextResponse.json(customers);
 }
@@ -67,17 +41,6 @@ export async function POST(req: NextRequest) {
   await db.auditLog.create({
     data: { companyId: ctx.company.id, userId: ctx.user.id, action: "created", entityType: "customer", entityId: customer.id }
   });
-
-  await notify({
-    companyId: ctx.company.id,
-    category: "NEW_LEAD",
-    title: `New lead: ${customer.name}`,
-    body: customer.source || undefined,
-    linkUrl: `/customers/${customer.id}`
-  });
-
-  await runTrigger(ctx.company.id, "CUSTOMER_CREATED", { companyId: ctx.company.id, customerId: customer.id, trigger: "CUSTOMER_CREATED" });
-  await runTrigger(ctx.company.id, "LEAD_CREATED", { companyId: ctx.company.id, customerId: customer.id, trigger: "LEAD_CREATED" });
 
   return NextResponse.json(customer, { status: 201 });
 }

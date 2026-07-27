@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/database/client";
+import { db } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
-import { runEstimateApprovalWorkflow } from "@/lib/estimateWorkflow";
 
 const schema = z.object({
   status: z.enum(["DRAFT", "SENT", "VIEWED", "APPROVED", "DECLINED"])
@@ -20,8 +19,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json(estimate);
 }
 
-// Approving an estimate here also creates the Job, moves the Lead to Won, and
-// drafts a starter contract automatically - see lib/estimateWorkflow.ts.
+// Approving an estimate here also creates the Job automatically -
+// this is the "sales system hands off to project management" moment from the blueprint.
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,7 +40,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   });
 
   if (parsed.data.status === "APPROVED") {
-    await runEstimateApprovalWorkflow(estimate);
+    const existingJob = await db.job.findUnique({ where: { estimateId: estimate.id } });
+    if (!existingJob) {
+      await db.job.create({
+        data: {
+          companyId: ctx.company.id,
+          customerId: estimate.customerId,
+          estimateId: estimate.id,
+          quotedCost: estimate.totalAmount,
+          status: "SCHEDULED"
+        }
+      });
+    }
+    await db.lead.updateMany({
+      where: { companyId: ctx.company.id, customerId: estimate.customerId },
+      data: { pipelineStage: "WON" }
+    });
   }
 
   return NextResponse.json(updated);

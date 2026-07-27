@@ -1,18 +1,10 @@
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum VerificationStatus {
-  NOT_STARTED
-  PENDING
-  VERIFIED
-  REJECTED
 }
 
 enum UserRole {
@@ -25,34 +17,9 @@ enum UserRole {
 enum LeadStage {
   NEW_LEAD
   CONTACTED
-  APPOINTMENT_SCHEDULED
-  ESTIMATE_REQUESTED
   ESTIMATE_SENT
-  NEGOTIATION
   WON
   LOST
-  ARCHIVED
-}
-
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum FollowUpType {
-  CALL
-  EMAIL
-  SMS
-  SITE_VISIT
-  APPOINTMENT
-  REMINDER
-}
-
-enum FollowUpStatus {
-  PENDING
-  COMPLETED
-  CANCELED
 }
 
 enum EstimateStatus {
@@ -65,30 +32,15 @@ enum EstimateStatus {
 
 enum JobStatus {
   SCHEDULED
-  MATERIALS_ORDERED
-  READY_TO_START
   IN_PROGRESS
-  INSPECTION_REQUIRED
-  ON_HOLD
-  WAITING_ON_CUSTOMER
-  WEATHER_DELAY
-  PUNCH_LIST
   COMPLETE
-  CLOSED
-  ARCHIVED
 }
 
 enum InvoiceStatus {
-  DRAFT
-  SENT
-  VIEWED
   UNPAID
   PARTIALLY_PAID
   PAID
   OVERDUE
-  CANCELLED
-  VOID
-  ARCHIVED
 }
 
 enum CommunicationType {
@@ -102,49 +54,6 @@ enum PhotoType {
   BEFORE
   AFTER
   PROGRESS
-  INSPECTION
-  WARRANTY
-  MISC
-}
-
-enum ContractType {
-  SERVICE_AGREEMENT
-  CONSTRUCTION_CONTRACT
-  CHANGE_ORDER
-  WARRANTY
-  PAYMENT_AGREEMENT
-  MAINTENANCE_AGREEMENT
-}
-
-enum ContractStatus {
-  DRAFT
-  SENT
-  SIGNED
-  DECLINED
-}
-
-enum MarketingPlatform {
-  FACEBOOK
-  INSTAGRAM
-  GOOGLE_BUSINESS
-  LINKEDIN
-  X
-  TIKTOK
-  YOUTUBE
-  BLOG
-  NEWSLETTER
-  EMAIL
-  SMS
-}
-
-enum CampaignChannel {
-  EMAIL
-  SMS
-}
-
-enum CampaignStatus {
-  DRAFT
-  SENT
 }
 
 // A tenant. Every other table hangs off companyId.
@@ -154,44 +63,12 @@ model Company {
   subdomain            String   @unique
   logoUrl              String?
   brandPrimaryColor    String   @default("#0E0F11")
-  brandAccentColor     String   @default("#1EAEC4")
-  dashboardTheme       String   @default("solid") // solid | gradient | grid
+  brandAccentColor     String   @default("#3B82F6")
   tradeType             String?
-  serviceArea          String?
-  businessPhone        String?
-  businessEmail        String?
-  businessAddress      String?
-  taxRate              Decimal? @db.Decimal(5, 2) // percent, e.g. 8.25
-  subscriptionTier     String   @default("starter") // starter | pro | corporate
+  subscriptionTier     String   @default("starter") // starter | growth | pro
   stripeCustomerId     String?
-  stripeSubscriptionId String?
-  subscriptionStatus   String?  // trialing | active | past_due | canceled | unpaid
-  currentPeriodEnd     DateTime?
   stripeConnectAccountId String?
-  verificationStatus   VerificationStatus @default(NOT_STARTED)
-
-  // Estimate defaults - pre-fill new estimates instead of starting blank
-  defaultMarkupPercent Decimal? @db.Decimal(5, 2)
-  defaultLaborRate     Decimal? @db.Decimal(10, 2)
-  defaultWarrantyText  String?
-  defaultEstimateTerms String?
-
-  // Invoice defaults
-  defaultInvoiceDueDays Int?    @default(14)
-  defaultLateFeePercent Decimal? @db.Decimal(5, 2)
-  defaultDepositPercent Decimal? @db.Decimal(5, 2)
-  invoiceFooterText    String?
-
-  // Marketing profile - threaded into AI generation prompts
-  brandVoice           String?  // e.g. "Professional", "Friendly", "Technical", "Marketing"
-  targetAudience       String?
-  googleReviewLink     String?
-
-  // Appearance preference beyond brand color - sidebar density
-  sidebarStyle         String   @default("expanded") // expanded | compact | icons_only
-  legalBusinessName    String?
   payoutsEnabled       Boolean  @default(false)
-
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -202,39 +79,8 @@ model Company {
   estimates     Estimate[]
   jobs          Job[]
   invoices      Invoice[]
-  contracts     Contract[]
-  leadSources   LeadSource[]
-  tags          Tag[]
-  notes         Note[]
-  tasks         Task[]
-  followUps     FollowUp[]
-  attachments   Attachment[]
-  addresses     Address[]
   payments      Payment[]
   auditLogs     AuditLog[]
-  marketingContent MarketingContent[]
-  campaigns     Campaign[]
-  estimateTemplates EstimateTemplate[]
-  contractTemplates ContractTemplate[]
-  changeOrders  ChangeOrder[]
-  dailyLogs     DailyLog[]
-  punchListItems PunchListItem[]
-  milestones    Milestone[]
-  reviewRequests ReviewRequest[]
-  reviews       Review[]
-  referrals     Referral[]
-  automationWorkflows AutomationWorkflow[]
-  emailLogs     EmailLog[]
-  smsLogs       SmsLog[]
-  aiSettings    CompanyAiSettings?
-  aiCreditWallet AiCreditWallet?
-  aiUsageLogs   AiUsageLog[]
-  creditPurchases CreditPurchase[]
-  notifications  Notification[]
-  errorLogs      ErrorLog[]
-  jobQueueItems  JobQueueItem[]
-  workspaceProfiles WorkspaceProfile[]
-  insights       Insight[]
 }
 
 model User {
@@ -246,28 +92,12 @@ model User {
   name         String
   role         UserRole  @default(FIELD_TECH)
   phone        String?
-  isPlatformAdmin Boolean @default(false)
-  emailNotifications Boolean @default(true)
-  smsNotifications   Boolean @default(false)
-  // Per-category overrides layered on top of the two master switches above -
-  // {"NEW_LEAD": {"email": true, "sms": false}, ...}. A category not present
-  // here inherits the master switch. Kept as JSON rather than one column per
-  // category x channel to avoid a combinatorial schema explosion.
-  notificationCategoryPrefs Json @default("{}")
-  color        String?  // for crew/calendar visual distinction
   createdAt    DateTime  @default(now())
   lastLoginAt  DateTime?
 
   assignedLeads Lead[]        @relation("AssignedUser")
-  assignedCustomers Customer[] @relation("AssignedCustomer")
-  authoredNotes Note[]
-  ownedTasks    Task[]
-  ownedFollowUps FollowUp[]
-  uploadedAttachments Attachment[]
   communications Communication[]
   auditLogs     AuditLog[]
-  authoredDailyLogs DailyLog[]
-  assignedPunchListItems PunchListItem[]
 
   @@index([companyId])
 }
@@ -282,12 +112,6 @@ model Customer {
   address   String?
   source    String?
   status    String   @default("active")
-  flagged   Boolean  @default(false)
-  flagReason String?
-  vip       Boolean  @default(false)
-  assignedUserId String?
-  assignedUser   User? @relation("AssignedCustomer", fields: [assignedUserId], references: [id])
-  lastContactAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
@@ -297,19 +121,8 @@ model Customer {
   estimates      Estimate[]
   jobs           Job[]
   invoices       Invoice[]
-  contracts      Contract[]
-  addresses      Address[]
-  notes          Note[]
-  tasks          Task[]
-  followUps      FollowUp[]
-  attachments    Attachment[]
-  tags           CustomerTag[]
-  reviewRequests ReviewRequest[]
-  reviews        Review[]
-  referralsGiven Referral[] @relation("ReferringCustomer")
 
   @@index([companyId])
-  @@index([status])
 }
 
 model Lead {
@@ -322,21 +135,9 @@ model Lead {
   assignedUserId String?
   assignedUser   User?     @relation("AssignedUser", fields: [assignedUserId], references: [id])
   source         String?
-  leadSourceId   String?
-  leadSource     LeadSource? @relation(fields: [leadSourceId], references: [id])
   notes          String?
-  priority       Priority  @default(MEDIUM)
-  estimatedValue Decimal?  @db.Decimal(12, 2)
-  probability    Int?
-  expectedCloseDate DateTime?
   createdAt      DateTime  @default(now())
   nextFollowupAt DateTime?
-
-  tasks       Task[]
-  followUps   FollowUp[]
-  attachments Attachment[]
-  noteEntries Note[]
-  referralSource Referral?
 
   @@index([companyId])
   @@index([pipelineStage])
@@ -367,17 +168,11 @@ model Estimate {
   status         EstimateStatus @default(DRAFT)
   totalAmount    Decimal        @default(0) @db.Decimal(12, 2)
   lineItems      Json           @default("[]")
-  warranty       String?
-  terms          String?
-  aiGenerated    Boolean        @default(false)
   approvalToken  String         @unique @default(cuid())
   createdAt      DateTime       @default(now())
-  viewedAt       DateTime?
   approvedAt     DateTime?
 
   job Job?
-  notes       Note[]
-  attachments Attachment[]
 
   @@index([companyId])
 }
@@ -393,30 +188,13 @@ model Job {
   status          JobStatus @default(SCHEDULED)
   startDate       DateTime?
   endDate         DateTime?
-  targetCompletionDate DateTime?
-  actualCompletionDate DateTime?
-  projectAddress  String?
   assignedUserIds String[]  @default([])
-  projectManagerId String?
   quotedCost      Decimal   @default(0) @db.Decimal(12, 2)
   actualCost      Decimal   @default(0) @db.Decimal(12, 2)
-  category        String?   // for Portfolio filtering, e.g. "Fencing", "Roofing"
-  portfolioFeatured Boolean @default(false)
-  portfolioHidden Boolean   @default(false) // privacy control - exclude from Portfolio even if photos exist
   createdAt       DateTime  @default(now())
 
   photos   JobPhoto[]
   invoices Invoice[]
-  contracts Contract[]
-  changeOrders ChangeOrder[]
-  dailyLogs DailyLog[]
-  punchListItems PunchListItem[]
-  milestones Milestone[]
-  notes Note[]
-  attachments Attachment[]
-  tasks Task[]
-  reviewRequests ReviewRequest[]
-  marketingContent MarketingContent[]
 
   @@index([companyId])
 }
@@ -427,10 +205,8 @@ model JobPhoto {
   job        Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
   url        String
   type       PhotoType
-  caption    String?
   uploadedBy String?
   createdAt  DateTime  @default(now())
-  analysis   PhotoAnalysis?
 
   @@index([jobId])
 }
@@ -443,17 +219,9 @@ model Invoice {
   job              Job?          @relation(fields: [jobId], references: [id])
   customerId       String
   customer         Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  invoiceNumber    String?
   amount           Decimal       @db.Decimal(12, 2)
-  lineItems        Json          @default("[]")
-  taxAmount        Decimal       @default(0) @db.Decimal(12, 2)
-  discountAmount   Decimal       @default(0) @db.Decimal(12, 2)
-  paymentTerms     String?
-  notes            String?
-  status           InvoiceStatus @default(DRAFT)
-  issueDate        DateTime      @default(now())
+  status           InvoiceStatus @default(UNPAID)
   dueDate          DateTime?
-  viewedAt         DateTime?
   paymentLinkToken String        @unique @default(cuid())
   createdAt        DateTime      @default(now())
 
@@ -471,85 +239,12 @@ model Payment {
   amount                Decimal  @db.Decimal(12, 2)
   method                String   @default("manual") // card | ach | manual
   stripePaymentIntentId String?
-  stripeCheckoutSessionId String?
-  status                String   @default("succeeded") // pending | succeeded | failed | refunded | partially_refunded
-  refundedAmount        Decimal  @default(0) @db.Decimal(12, 2)
-  refundedAt            DateTime?
-  stripeRefundId        String?
+  status                String   @default("succeeded") // pending | succeeded | failed | refunded
   paidAt                DateTime @default(now())
   createdAt             DateTime @default(now())
 
   @@index([companyId])
   @@index([invoiceId])
-}
-
-// Fillable/editable contracts (service agreements, change orders, warranties, etc.)
-// plus an option to upload a company's own document instead of using a template.
-// signedByName/signedAt is a typed-name e-signature stub, same pattern as the
-// invoice payment stub - TODO before going live: swap for a real e-signature
-// provider (e.g. HelloSign/DocuSign) if legally binding signatures are required.
-model Contract {
-  id           String         @id @default(cuid())
-  companyId    String
-  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId   String
-  customer     Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  jobId        String?
-  job          Job?           @relation(fields: [jobId], references: [id])
-  type         ContractType
-  title        String
-  content      String?        // fillable/editable template body
-  fileUrl      String?        // uploaded document instead of (or alongside) the template - base64 for now, same storage TODO as logos
-  fileName     String?
-  status       ContractStatus @default(DRAFT)
-  signedByName String?
-  signedAt     DateTime?
-  ipAddress    String?        // captured server-side at signing - part of the typed-signature audit trail, see stub note above
-  createdAt    DateTime       @default(now())
-
-  notes       Note[]
-  attachments Attachment[]
-
-  @@index([companyId])
-}
-
-model MarketingContent {
-  id        String            @id @default(cuid())
-  companyId String
-  company   Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jobId     String?
-  job       Job?              @relation(fields: [jobId], references: [id])
-  platform  MarketingPlatform
-  prompt    String
-  content   String
-  createdAt DateTime          @default(now())
-
-  @@index([companyId])
-}
-
-enum CampaignAudienceType {
-  ALL_CUSTOMERS
-  ACTIVE_LEADS
-  PAST_CUSTOMERS
-}
-
-model Campaign {
-  id             String          @id @default(cuid())
-  companyId      String
-  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name           String
-  channel        CampaignChannel
-  audience       CampaignAudienceType @default(ALL_CUSTOMERS)
-  subject        String?
-  message        String
-  status         CampaignStatus  @default(DRAFT)
-  recipientCount Int             @default(0)
-  deliveredCount Int             @default(0)
-  failedCount    Int             @default(0)
-  sentAt         DateTime?
-  createdAt      DateTime        @default(now())
-
-  @@index([companyId])
 }
 
 model AuditLog {
@@ -564,810 +259,4 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([companyId])
-}
-
-model LeadSource {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name      String
-  createdAt DateTime @default(now())
-
-  leads Lead[]
-
-  @@unique([companyId, name])
-}
-
-model Tag {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name      String
-  color     String   @default("#3B82F6")
-  createdAt DateTime @default(now())
-
-  customers CustomerTag[]
-
-  @@unique([companyId, name])
-}
-
-model CustomerTag {
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  tagId      String
-  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([customerId, tagId])
-}
-
-// Unified notes for both Customers and Leads - exactly one of customerId/leadId is set,
-// enforced at the API layer (Prisma can't express "exactly one of" as a DB constraint).
-model Note {
-  id         String   @id @default(cuid())
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  jobId      String?
-  job        Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  leadId     String?
-  lead       Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  estimateId String?
-  estimate   Estimate? @relation(fields: [estimateId], references: [id], onDelete: Cascade)
-  contractId String?
-  contract   Contract? @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  content    String
-  pinned     Boolean  @default(false)
-  private    Boolean  @default(false)
-  authorId   String?
-  author     User?    @relation(fields: [authorId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@index([companyId])
-  @@index([customerId])
-  @@index([leadId])
-}
-
-model Task {
-  id         String   @id @default(cuid())
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  leadId     String?
-  lead       Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  jobId      String?
-  job        Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  title      String
-  dueDate    DateTime?
-  priority   Priority @default(MEDIUM)
-  ownerId    String?
-  owner      User?    @relation(fields: [ownerId], references: [id])
-  completed  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  @@index([companyId])
-  @@index([customerId])
-  @@index([leadId])
-}
-
-model FollowUp {
-  id         String         @id @default(cuid())
-  companyId  String
-  company    Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String?
-  customer   Customer?      @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  leadId     String?
-  lead       Lead?          @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  type       FollowUpType
-  dueDate    DateTime
-  priority   Priority       @default(MEDIUM)
-  status     FollowUpStatus @default(PENDING)
-  ownerId    String?
-  owner      User?          @relation(fields: [ownerId], references: [id])
-  notes      String?
-  createdAt  DateTime       @default(now())
-
-  @@index([companyId])
-  @@index([dueDate])
-}
-
-model Attachment {
-  id         String   @id @default(cuid())
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  jobId      String?
-  job        Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  leadId     String?
-  lead       Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  estimateId String?
-  estimate   Estimate? @relation(fields: [estimateId], references: [id], onDelete: Cascade)
-  contractId String?
-  contract   Contract? @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  url        String
-  fileName   String
-  fileType   String?
-  uploadedById String?
-  uploadedBy   User?  @relation(fields: [uploadedById], references: [id])
-  createdAt  DateTime @default(now())
-
-  @@index([companyId])
-}
-
-model Address {
-  id         String   @id @default(cuid())
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  label      String   @default("Service")
-  line1      String
-  city       String?
-  state      String?
-  zip        String?
-  createdAt  DateTime @default(now())
-
-  @@index([customerId])
-}
-
-enum ChangeOrderStatus {
-  DRAFT
-  SENT
-  APPROVED
-  DECLINED
-}
-
-model EstimateTemplate {
-  id                String   @id @default(cuid())
-  companyId         String
-  company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name              String
-  tradeType         String?
-  defaultLineItems  Json     @default("[]")
-  defaultWarranty   String?
-  defaultTerms      String?
-  createdAt         DateTime @default(now())
-
-  @@index([companyId])
-}
-
-model ContractTemplate {
-  id        String       @id @default(cuid())
-  companyId String
-  company   Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  type      ContractType
-  name      String
-  content   String
-  createdAt DateTime     @default(now())
-
-  @@index([companyId])
-}
-
-// Price/scope adjustments against an in-progress Job, separate from the general
-// Contract system since a change order needs to move the job's cost totals -
-// approving one updates Job.quotedCost, which a generic signed document shouldn't do.
-model ChangeOrder {
-  id           String            @id @default(cuid())
-  companyId    String
-  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jobId        String
-  job          Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  description  String
-  amountDelta  Decimal           @db.Decimal(12, 2)
-  status       ChangeOrderStatus @default(DRAFT)
-  signedByName String?
-  signedAt     DateTime?
-  createdAt    DateTime          @default(now())
-
-  @@index([companyId])
-  @@index([jobId])
-}
-
-enum PunchListStatus {
-  OPEN
-  IN_PROGRESS
-  DONE
-}
-
-enum PunchListPriority {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-model DailyLog {
-  id              String   @id @default(cuid())
-  companyId       String
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jobId           String
-  job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  date            DateTime @default(now())
-  weather         String?
-  crewPresent     String?  // comma-separated names, kept simple rather than a join table
-  hoursWorked     Decimal? @db.Decimal(5, 2)
-  workCompleted   String?
-  issues          String?
-  delays          String?
-  safetyNotes     String?
-  materialsDelivered String?
-  equipmentUsed   String?
-  internalNotes   String?
-  customerNotes   String?
-  authorId        String?
-  author          User?    @relation(fields: [authorId], references: [id])
-  createdAt       DateTime @default(now())
-
-  @@index([companyId])
-  @@index([jobId])
-}
-
-model PunchListItem {
-  id           String            @id @default(cuid())
-  companyId    String
-  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jobId        String
-  job          Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  description  String
-  priority     PunchListPriority @default(MEDIUM)
-  assignedUserId String?
-  assignedUser User?             @relation(fields: [assignedUserId], references: [id])
-  dueDate      DateTime?
-  status       PunchListStatus   @default(OPEN)
-  photoUrl     String?
-  createdAt    DateTime          @default(now())
-  completedAt  DateTime?
-
-  @@index([companyId])
-  @@index([jobId])
-}
-
-model Milestone {
-  id          String    @id @default(cuid())
-  companyId   String
-  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jobId       String
-  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  title       String
-  dueDate     DateTime?
-  completed   Boolean   @default(false)
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-
-  @@index([companyId])
-  @@index([jobId])
-}
-
-enum ReviewPlatform {
-  GOOGLE
-  FACEBOOK
-  YELP
-  CUSTOM
-}
-
-enum ReviewRequestStatus {
-  SENT
-  OPENED
-  COMPLETED
-  IGNORED
-}
-
-model ReviewRequest {
-  id         String               @id @default(cuid())
-  companyId  String
-  company    Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String
-  customer   Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  jobId      String?
-  job        Job?                 @relation(fields: [jobId], references: [id])
-  platform   ReviewPlatform
-  status     ReviewRequestStatus  @default(SENT)
-  sentAt     DateTime             @default(now())
-  respondedAt DateTime?
-
-  @@index([companyId])
-}
-
-model Review {
-  id         String         @id @default(cuid())
-  companyId  String
-  company    Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String?
-  customer   Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  platform   ReviewPlatform
-  rating     Int            // 1-5
-  content    String?
-  createdAt  DateTime       @default(now())
-
-  @@index([companyId])
-}
-
-enum ReferralStatus {
-  PENDING
-  CONTACTED
-  CONVERTED
-  DECLINED
-}
-
-model Referral {
-  id                 String         @id @default(cuid())
-  companyId          String
-  company            Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  referringCustomerId String
-  referringCustomer  Customer       @relation("ReferringCustomer", fields: [referringCustomerId], references: [id], onDelete: Cascade)
-  referredName       String
-  referredPhone      String?
-  referredEmail      String?
-  resultingLeadId    String?        @unique
-  resultingLead      Lead?          @relation(fields: [resultingLeadId], references: [id])
-  status             ReferralStatus @default(PENDING)
-  notes              String?
-  createdAt          DateTime       @default(now())
-
-  @@index([companyId])
-}
-
-// ---------- Automation Engine (rule-based; DB shape is canvas-ready) ----------
-// Trigger/condition/action are stored generically (type + JSON config) so a future
-// visual drag-and-drop builder is purely a new UI over this same schema and
-// lib/automationEngine.ts - no backend changes needed when that's built.
-
-enum AutomationTrigger {
-  LEAD_CREATED
-  CUSTOMER_CREATED
-  ESTIMATE_SENT
-  ESTIMATE_APPROVED
-  CONTRACT_SIGNED
-  PROJECT_STARTED
-  PROJECT_COMPLETED
-  INVOICE_SENT
-  INVOICE_PAID
-  REVIEW_RECEIVED
-  REFERRAL_RECEIVED
-  WARRANTY_EXPIRING
-  TASK_OVERDUE
-  PROJECT_DELAYED
-  INVOICE_OVERDUE
-}
-
-enum AutomationActionType {
-  SEND_EMAIL
-  SEND_SMS
-  CREATE_TASK
-  CREATE_FOLLOWUP
-  ASSIGN_EMPLOYEE
-  GENERATE_AI_CONTENT
-  NOTIFY_USER
-  MOVE_PIPELINE_STAGE
-  UPDATE_PROJECT
-  DELAY
-}
-
-enum AutomationRunStatus {
-  SUCCESS
-  FAILED
-  SKIPPED
-}
-
-model AutomationWorkflow {
-  id          String            @id @default(cuid())
-  companyId   String
-  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name        String
-  trigger     AutomationTrigger
-  conditions  Json              @default("[]") // [{ field, operator, value }]
-  enabled     Boolean           @default(true)
-  order       Int               @default(0)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-
-  actions     AutomationAction[]
-  runLogs     AutomationRunLog[]
-  scheduled   AutomationScheduledAction[]
-
-  @@index([companyId])
-  @@index([trigger])
-}
-
-model AutomationAction {
-  id         String               @id @default(cuid())
-  workflowId String
-  workflow   AutomationWorkflow   @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  order      Int
-  type       AutomationActionType
-  config     Json                 @default("{}") // shape depends on type, e.g. {"days": 7} for DELAY, {"message": "..."} for SEND_SMS
-  createdAt  DateTime             @default(now())
-
-  @@index([workflowId])
-}
-
-// A DELAY action can't block a web request, so it's persisted here and picked up
-// by a scheduled job (see /api/automations/process-scheduled - needs a real cron
-// trigger, e.g. Railway's cron plugin, to call it on an interval in production).
-model AutomationScheduledAction {
-  id           String             @id @default(cuid())
-  workflowId   String
-  workflow     AutomationWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  companyId    String
-  fromActionIndex Int             // resume the action list at this index once due
-  context      Json               // the trigger context, preserved for when it resumes
-  runAt        DateTime
-  processedAt  DateTime?
-  createdAt    DateTime           @default(now())
-
-  @@index([companyId])
-  @@index([runAt])
-}
-
-model AutomationRunLog {
-  id         String               @id @default(cuid())
-  companyId  String
-  workflowId String
-  workflow   AutomationWorkflow   @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  trigger    AutomationTrigger
-  status     AutomationRunStatus
-  summary    String?
-  context    Json                 @default("{}")
-  ranAt      DateTime             @default(now())
-
-  @@index([companyId])
-  @@index([workflowId])
-}
-
-enum DeliveryStatus {
-  QUEUED
-  SENT
-  DELIVERED
-  OPENED
-  CLICKED
-  FAILED
-}
-
-model EmailLog {
-  id         String         @id @default(cuid())
-  companyId  String
-  company    Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String?
-  toEmail    String
-  subject    String
-  kind       String         // estimate | contract | invoice | review_request | referral_request | campaign | followup
-  status     DeliveryStatus @default(QUEUED)
-  resendId   String?
-  errorMessage String?
-  createdAt  DateTime       @default(now())
-
-  @@index([companyId])
-}
-
-model SmsLog {
-  id         String         @id @default(cuid())
-  companyId  String
-  company    Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  customerId String?
-  toPhone    String
-  body       String
-  kind       String
-  status     DeliveryStatus @default(QUEUED)
-  twilioSid  String?
-  errorMessage String?
-  createdAt  DateTime       @default(now())
-
-  @@index([companyId])
-}
-
-// ---------- AI Credit System & BYOAI ----------
-
-enum AiMode {
-  NOVA_AI
-  BYOAI
-}
-
-enum AiProviderName {
-  ANTHROPIC
-  OPENAI
-  GOOGLE_GEMINI
-  XAI
-  AZURE_OPENAI
-}
-
-model CompanyAiSettings {
-  id              String          @id @default(cuid())
-  companyId       String          @unique
-  company         Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  mode            AiMode          @default(NOVA_AI)
-  byoaiProvider   AiProviderName?
-  byoaiModel      String?
-  // AES-256-GCM ciphertext (iv:authTag:ciphertext, all hex) - see lib/crypto.ts.
-  // Never store or log the plaintext key anywhere, including here.
-  encryptedApiKey String?
-  connectionStatus String?        @default("untested") // untested | connected | failed
-  lastTestedAt    DateTime?
-  updatedAt       DateTime        @updatedAt
-}
-
-model AiCreditWallet {
-  id               String   @id @default(cuid())
-  companyId        String   @unique
-  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  includedCredits  Int      @default(500) // reset to the tier's amount every cycle
-  purchasedCredits Int      @default(0)   // never expires, never reset
-  usedThisCycle    Int      @default(0)
-  cycleResetAt     DateTime
-  updatedAt        DateTime @updatedAt
-}
-
-model CreditPackage {
-  id         String  @id @default(cuid())
-  name       String
-  credits    Int
-  priceCents Int
-  active     Boolean @default(true)
-}
-
-// Admin-configurable credit cost per feature - "Credit values must be
-// configurable by Admin" from the spec. Platform-wide, not per-company.
-model AiFeatureCost {
-  id       String @id @default(cuid())
-  feature  String @unique // "quick_question" | "email_draft" | "estimate_builder" | "contract_builder" | "marketing_post" | "business_analysis"
-  credits  Int
-}
-
-model AiUsageLog {
-  id            String          @id @default(cuid())
-  companyId     String
-  company       Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  mode          AiMode
-  provider      AiProviderName
-  model         String
-  feature       String
-  creditsUsed   Int             @default(0) // 0 for BYOAI - the company pays their own provider directly
-  responseTimeMs Int?
-  status        String          // success | failed
-  errorMessage  String?
-  estimatedCostCents Int?       // Nova AI mode only - our estimated provider cost, for margin tracking
-  createdAt     DateTime        @default(now())
-
-  @@index([companyId])
-  @@index([createdAt])
-}
-
-model CreditPurchase {
-  id            String   @id @default(cuid())
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  packageId     String?
-  credits       Int
-  priceCents    Int
-  stripeCheckoutSessionId String?
-  status        String   @default("pending") // pending | completed | failed
-  createdAt     DateTime @default(now())
-
-  @@index([companyId])
-}
-
-// ---------- Global Notification Center ----------
-
-enum NotificationCategory {
-  NEW_LEAD
-  ESTIMATE_VIEWED
-  ESTIMATE_APPROVED
-  CONTRACT_SIGNED
-  INVOICE_SENT
-  INVOICE_PAID
-  INVOICE_OVERDUE
-  PROJECT_STATUS_CHANGED
-  CREW_ASSIGNMENT
-  FOLLOW_UP_DUE
-  REVIEW_RECEIVED
-  REFERRAL_RECEIVED
-  AI_RECOMMENDATION
-  SYSTEM_ANNOUNCEMENT
-}
-
-model Notification {
-  id          String               @id @default(cuid())
-  companyId   String
-  company     Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  category    NotificationCategory
-  title       String
-  body        String?
-  // Where clicking the notification should go, e.g. "/customers/abc123" -
-  // kept as a plain path rather than typed foreign keys so one model can
-  // point at any entity in the system without a union of nullable relations.
-  linkUrl     String?
-  read        Boolean              @default(false)
-  archived    Boolean              @default(false)
-  createdAt   DateTime             @default(now())
-
-  @@index([companyId])
-  @@index([companyId, read])
-}
-
-// ---------- Centralized Error Logging ----------
-
-enum ErrorSeverity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-enum ErrorModule {
-  API
-  AI
-  STRIPE
-  STORAGE
-  EMAIL
-  SMS
-  UNHANDLED
-  VALIDATION
-  PERMISSION
-}
-
-model ErrorLog {
-  id           String        @id @default(cuid())
-  companyId    String?
-  company      Company?      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId       String?
-  module       ErrorModule
-  severity     ErrorSeverity @default(MEDIUM)
-  message      String
-  stackTrace   String?
-  route        String?
-  recoveryAction String?     // what the app did in response - e.g. "fell back to local stub", "returned 502 to client"
-  resolved     Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-
-  @@index([companyId])
-  @@index([module])
-  @@index([severity])
-  @@index([createdAt])
-}
-
-// ---------- Background Job Queue ----------
-// DB-backed rather than Redis/BullMQ - consistent with the AutomationScheduledAction
-// pattern already in use (see lib/automationEngine.ts) and needs no new
-// infrastructure. Processed by a cron-callable endpoint, same as that system -
-// a real message broker is the right upgrade once volume justifies it, not before.
-
-enum JobQueueStatus {
-  QUEUED
-  RUNNING
-  COMPLETED
-  FAILED
-}
-
-enum JobQueueType {
-  EMAIL_DELIVERY
-  SMS_DELIVERY
-  REVIEW_REQUEST
-  REFERRAL_PROCESSING
-  CAMPAIGN_SEND
-  AI_GENERATION
-  REPORT_GENERATION
-  AUTOMATION_PROCESSING
-}
-
-model JobQueueItem {
-  id          String         @id @default(cuid())
-  companyId   String
-  company     Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  type        JobQueueType
-  payload     Json           @default("{}")
-  status      JobQueueStatus @default(QUEUED)
-  attempts    Int            @default(0)
-  maxAttempts Int            @default(3)
-  lastError   String?
-  runAt       DateTime       @default(now())
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime       @default(now())
-
-  @@index([companyId])
-  @@index([status])
-  @@index([runAt])
-}
-
-// ---------- Dashboard Customization & Workspace Profiles ----------
-// Real, shippable version of "dashboard customization": which widgets show,
-// per named profile, switchable with one click. NOT drag-and-drop/resize/pin -
-// that remains a deferred, larger UI investment (see README). This still
-// delivers the core value ("one click switches the entire dashboard").
-
-model WorkspaceProfile {
-  id          String   @id @default(cuid())
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId      String   // profiles are per-user, not shared across the company
-  name        String
-  visibleWidgets Json  @default("[]") // array of widget keys, e.g. ["revenue","pipeline","tasks"]
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-
-  @@index([companyId])
-  @@index([userId])
-}
-
-// ---------- Predictive Alerts / Smart Recommendations ----------
-// Rule-based, not ML - every insight is generated by an explainable business
-// rule (see lib/insightsEngine.ts), never a fabricated confidence percentage.
-// "ruleKey" + "ruleExplanation" together power the "Why am I seeing this?" UI.
-
-enum InsightSeverity {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum InsightCategory {
-  PROJECT_RISK
-  INVOICE_RISK
-  CUSTOMER_RISK
-  ESTIMATE_QUALITY
-  SALES_OPPORTUNITY
-  FINANCIAL
-}
-
-model Insight {
-  id          String          @id @default(cuid())
-  companyId   String
-  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  category    InsightCategory
-  severity    InsightSeverity @default(MEDIUM)
-  title       String
-  body        String?
-  ruleKey     String          // e.g. "invoice_due_soon", "project_past_target" - the exact rule that fired
-  ruleExplanation String      // plain-language explanation shown behind "Why am I seeing this?"
-  linkUrl     String?
-  recommendedAction String?
-  dismissed   Boolean         @default(false)
-  dismissedAt DateTime?
-  createdAt   DateTime        @default(now())
-
-  @@index([companyId])
-  @@index([companyId, dismissed])
-}
-
-// ---------- Photo Intelligence (architecture only - no computer vision yet) ----------
-// Reserved for future analysis types. Nothing populates `result` yet; this
-// exists so JobPhoto can point at an analysis record once real CV is added,
-// without a schema migration at that point.
-
-enum PhotoAnalysisType {
-  PROGRESS_COMPARISON
-  DAMAGE_DETECTION
-  QUALITY_CONTROL
-  SAFETY_OBSERVATION
-  MATERIAL_TRACKING
-}
-
-enum PhotoAnalysisStatus {
-  NOT_STARTED
-  QUEUED
-  COMPLETE
-  FAILED
-}
-
-model PhotoAnalysis {
-  id         String              @id @default(cuid())
-  jobPhotoId String              @unique
-  jobPhoto   JobPhoto            @relation(fields: [jobPhotoId], references: [id], onDelete: Cascade)
-  type       PhotoAnalysisType
-  status     PhotoAnalysisStatus @default(NOT_STARTED)
-  result     Json?               // shape depends on type - unpopulated until real CV exists
-  createdAt  DateTime            @default(now())
-}
-
-// ---------- Platform Finance (Admin-entered, TAKTCO's own business, not tenant data) ----------
-// Single row, manually maintained by a platform admin. Monthly operating
-// expenses aren't derivable from anything in the schema (server costs, API
-// spend, salaries aren't tracked anywhere) - rather than fabricate a number,
-// this is honestly labeled as admin-entered on the dashboard that shows it.
-model PlatformFinance {
-  id                  String   @id @default(cuid())
-  monthlyExpensesCents Int     @default(0)
-  updatedAt           DateTime @updatedAt
-  updatedBy           String?
 }
