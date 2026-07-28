@@ -241,6 +241,9 @@ model Company {
   jobQueueItems  JobQueueItem[]
   workspaceProfiles WorkspaceProfile[]
   insights       Insight[]
+  pricingCategories PricingCategory[]
+  pricingItems      PricingItem[]
+  estimatingQuestions EstimatingQuestion[]
 }
 
 model User {
@@ -1378,4 +1381,95 @@ model PlatformFinance {
   monthlyExpensesCents Int     @default(0)
   updatedAt           DateTime @updatedAt
   updatedBy           String?
+}
+
+// ---------- Pricing Matrix ----------
+// The company's own pricing database - the AI Estimate Builder is grounded
+// in this data and only this data (see lib/pricingMatrix.ts). It never
+// invents a price; if nothing here matches what's being estimated, it says
+// so instead of guessing.
+
+model PricingCategory {
+  id           String        @id @default(cuid())
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  color        String?       // hex, for the color-coded category UI
+  displayOrder Int           @default(0)
+  active       Boolean       @default(true)
+  items        PricingItem[]
+  createdAt    DateTime      @default(now())
+
+  @@index([companyId])
+}
+
+model PricingItem {
+  id             String                @id @default(cuid())
+  companyId      String
+  company        Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  categoryId     String
+  category       PricingCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  unit           String                // free text, not a locked enum - "unlimited unit types" per spec; UI offers common defaults
+  price          Decimal               @db.Decimal(12, 2)
+  cost           Decimal?              @db.Decimal(12, 2)
+  markupPercent  Decimal?              @db.Decimal(5, 2)
+  minCharge      Decimal?              @db.Decimal(12, 2)
+  maxCharge      Decimal?              @db.Decimal(12, 2)
+  taxable        Boolean               @default(true)
+  active         Boolean               @default(true)
+  favorite       Boolean               @default(false)
+  notes          String?
+  displayOrder   Int                   @default(0)
+  // Flexible key-value bag rather than a full field-type registry (text/
+  // number/dropdown/date/etc builder) - scoped down deliberately. Stores
+  // e.g. {"Manufacturer": "Behr", "SKU": "BX-4471"}. Still fully searchable
+  // and still passed to the AI.
+  customFields   Json                  @default("{}")
+  createdByName  String?
+  history        PricingItemHistory[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([companyId])
+  @@index([categoryId])
+}
+
+model PricingItemHistory {
+  id            String      @id @default(cuid())
+  pricingItemId String
+  pricingItem   PricingItem @relation(fields: [pricingItemId], references: [id], onDelete: Cascade)
+  companyId     String
+  oldPrice      Decimal?    @db.Decimal(12, 2)
+  newPrice      Decimal     @db.Decimal(12, 2)
+  changedByName String?
+  reason        String?
+  createdAt     DateTime    @default(now())
+
+  @@index([pricingItemId])
+}
+
+enum EstimatingAnswerType {
+  YES_NO
+  NUMBER
+  TEXT
+}
+
+model EstimatingQuestion {
+  id              String               @id @default(cuid())
+  companyId       String
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  question        String
+  answerType      EstimatingAnswerType @default(YES_NO)
+  // If answerType is YES_NO and the answer is yes, this item gets suggested
+  // to the AI as something to include. Optional - a question can just be
+  // context for the AI without auto-triggering a specific item.
+  triggerItemId   String?
+  active          Boolean              @default(true)
+  displayOrder    Int                  @default(0)
+  createdAt       DateTime             @default(now())
+
+  @@index([companyId])
 }

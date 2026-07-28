@@ -1,12 +1,13 @@
 import Link from "next/link";
 import {
-  Building2, Users, Bot, FileText, DollarSign, Bell, Megaphone, Lock, CreditCard, Tag, Wallet
+  Building2, Users, Bot, FileText, DollarSign, Bell, Megaphone, Lock, CreditCard, Tag, Wallet, Calculator
 } from "lucide-react";
 
 const SETTINGS_NAV = [
   { href: "/settings", label: "Company & Branding", icon: Building2 },
   { href: "/settings/team", label: "Team", icon: Users },
   { href: "/settings/ai", label: "TAKTCO AI", icon: Bot },
+  { href: "/settings/pricing", label: "Pricing Matrix", icon: Calculator },
   { href: "/settings/estimates", label: "Estimate Defaults", icon: FileText },
   { href: "/settings/invoices", label: "Invoice Defaults", icon: DollarSign },
   { href: "/settings/notifications", label: "Notifications", icon: Bell },

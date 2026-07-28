@@ -26,6 +26,9 @@ export function NewEstimateForm({
   const [aiDescription, setAiDescription] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<{ id: string; question: string; answerType: string }[]>([]);
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, string>>({});
+  const [aiFlags, setAiFlags] = useState<string[]>([]);
 
   const total = items.reduce((sum, li) => sum + (li.qty || 0) * (li.unitPrice || 0), 0);
 
@@ -42,6 +45,19 @@ export function NewEstimateForm({
     setAiMode(false);
     setAiDescription("");
     setAiError(null);
+    setQuestionAnswers({});
+    setAiFlags([]);
+  }
+
+  async function enterAiMode() {
+    setAiMode((m) => !m);
+    if (questions.length === 0) {
+      const res = await fetch("/api/pricing/questions");
+      if (res.ok) {
+        const data = await res.json();
+        setQuestions(data.filter((q: { active: boolean }) => q.active));
+      }
+    }
   }
 
   async function generateWithAi() {
@@ -51,7 +67,7 @@ export function NewEstimateForm({
     const res = await fetch("/api/estimates/ai-draft", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ description: aiDescription })
+      body: JSON.stringify({ description: aiDescription, questionAnswers })
     });
     const data = await res.json().catch(() => ({}));
     setAiLoading(false);
@@ -60,7 +76,10 @@ export function NewEstimateForm({
       setWarranty(data.warranty || "");
       setTerms(data.terms || "");
       setAiGenerated(true);
+      setAiFlags(data.flags || []);
       setAiMode(false); // drop into the editable manual view with fields pre-filled
+    } else if (data.error === "PRICING_MATRIX_EMPTY") {
+      setAiError(data.message);
     } else {
       setAiError(data.error || "AI generation failed.");
     }
@@ -98,7 +117,7 @@ export function NewEstimateForm({
           <button
             type="button"
             className={aiMode ? "btn-primary text-xs" : "btn-secondary text-xs"}
-            onClick={() => setAiMode((m) => !m)}
+            onClick={enterAiMode}
           >
             ✨ AI Builder
           </button>
@@ -116,6 +135,33 @@ export function NewEstimateForm({
               value={aiDescription}
               onChange={(e) => setAiDescription(e.target.value)}
             />
+            {questions.length > 0 && (
+              <div className="space-y-1.5 border-t border-graphite-700 pt-2">
+                <p className="text-[11px] text-graphite-500">A few quick questions before generating:</p>
+                {questions.map((q) => (
+                  <div key={q.id} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-graphite-300">{q.question}</span>
+                    {q.answerType === "YES_NO" ? (
+                      <select
+                        className="input w-24 text-xs py-1"
+                        value={questionAnswers[q.id] || ""}
+                        onChange={(e) => setQuestionAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      >
+                        <option value="">—</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    ) : (
+                      <input
+                        className="input w-24 text-xs py-1"
+                        value={questionAnswers[q.id] || ""}
+                        onChange={(e) => setQuestionAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
             {aiError && <p className="text-xs text-red-400">{aiError}</p>}
             <button type="button" className="btn-primary w-full" disabled={aiLoading || !aiDescription.trim()} onClick={generateWithAi}>
               {aiLoading ? "Generating..." : "Generate draft"}
@@ -125,6 +171,13 @@ export function NewEstimateForm({
           <>
             {aiGenerated && (
               <p className="text-[11px] text-accent">✨ Drafted by TAKTCO AI — review everything below before sending.</p>
+            )}
+            {aiFlags.length > 0 && (
+              <div className="p-2 rounded-lg border border-amber-500/40 bg-amber-500/5 space-y-0.5">
+                {aiFlags.map((flag, i) => (
+                  <p key={i} className="text-[11px] text-amber-300">⚠ {flag}</p>
+                ))}
+              </div>
             )}
             <select className="input" value={customerId} onChange={(e) => setCustomerId(e.target.value)} required>
               <option value="">Select customer</option>
