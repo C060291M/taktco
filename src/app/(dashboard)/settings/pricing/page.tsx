@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/database/client";
 import { PricingMatrixClient } from "@/features/settings/PricingMatrixClient";
+import { BusinessRulesForm } from "@/features/settings/BusinessRulesForm";
 
 export default async function PricingMatrixPage() {
   const ctx = await requireSession();
@@ -25,6 +26,16 @@ export default async function PricingMatrixPage() {
           Your own pricing database. The AI Estimate Builder only ever uses real prices from here - it never invents one.
         </p>
       </div>
+      <BusinessRulesForm
+        initial={{
+          minJobPrice: ctx.company.minJobPrice ? Number(ctx.company.minJobPrice) : null,
+          targetMarginPercent: ctx.company.targetMarginPercent ? Number(ctx.company.targetMarginPercent) : null,
+          mobilizationFee: ctx.company.mobilizationFee ? Number(ctx.company.mobilizationFee) : null,
+          fuelCharge: ctx.company.fuelCharge ? Number(ctx.company.fuelCharge) : null,
+          travelCharge: ctx.company.travelCharge ? Number(ctx.company.travelCharge) : null,
+          warrantyLengthMonths: ctx.company.warrantyLengthMonths
+        }}
+      />
       <PricingMatrixClient
         initialCategories={JSON.parse(JSON.stringify(categories))}
         initialQuestions={JSON.parse(JSON.stringify(questions))}

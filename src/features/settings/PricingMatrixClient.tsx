@@ -23,6 +23,10 @@ export function PricingMatrixClient({
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [bulkPercent, setBulkPercent] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<{ name: string; unit: string; categoryName: string }[] | null>(null);
+  const [selectedSuggestions, setSelectedSuggestions] = useState<Set<number>>(new Set());
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
 
   function refresh() {
     router.refresh();
@@ -38,6 +42,41 @@ export function PricingMatrixClient({
     } else {
       const data = await res.json().catch(() => ({}));
       toast.error(data.error || "Couldn't load template.");
+    }
+  }
+
+  async function requestAiSuggestions() {
+    setSuggestLoading(true);
+    setSuggestError(null);
+    const res = await fetch("/api/pricing/suggest", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({})
+    });
+    const data = await res.json().catch(() => ({}));
+    setSuggestLoading(false);
+    if (res.ok) {
+      setAiSuggestions(data.suggestions || []);
+      setSelectedSuggestions(new Set((data.suggestions || []).map((_: unknown, i: number) => i)));
+    } else if (data.error === "INSUFFICIENT_CREDITS") {
+      setSuggestError("Not enough AI credits for this. Check Settings -> TAKTCO AI.");
+    } else {
+      setSuggestError(data.error || "Couldn't get suggestions.");
+    }
+  }
+
+  async function approveSuggestions() {
+    if (!aiSuggestions) return;
+    const toApprove = aiSuggestions.filter((_, i) => selectedSuggestions.has(i));
+    if (toApprove.length === 0) return;
+    const res = await fetch("/api/pricing/suggest/approve", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ suggestions: toApprove })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      toast.success(`Added ${data.created} item${data.created === 1 ? "" : "s"} at $0 - set real prices before using them.`);
+      setAiSuggestions(null);
+      refresh();
+    } else {
+      toast.error("Couldn't add items");
     }
   }
 
@@ -197,6 +236,9 @@ export function PricingMatrixClient({
         {canManage && (
           <>
             <button className="btn-secondary text-xs flex items-center gap-1" onClick={addCategory}><Plus size={13} /> Category</button>
+            <button className="btn-secondary text-xs flex items-center gap-1" onClick={requestAiSuggestions} disabled={suggestLoading}>
+              {suggestLoading ? "Thinking..." : "✨ Improve with AI"}
+            </button>
             <button className="btn-secondary text-xs flex items-center gap-1" onClick={exportCsv}><Download size={13} /> Export CSV</button>
             <label className="btn-secondary text-xs flex items-center gap-1 cursor-pointer">
               <Upload size={13} /> Import CSV
@@ -205,6 +247,40 @@ export function PricingMatrixClient({
           </>
         )}
       </div>
+
+      {suggestError && <p className="text-xs text-red-400">{suggestError}</p>}
+
+      {aiSuggestions && (
+        <div className="card p-4 border-accent/40 bg-accent/5 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-white font-medium">AI-suggested items to add</p>
+            <button className="text-xs text-graphite-500 hover:text-white" onClick={() => setAiSuggestions(null)}>Dismiss</button>
+          </div>
+          <p className="text-[11px] text-graphite-500">
+            Names and units only — no prices are suggested. Approved items are added at $0; you set the real price.
+          </p>
+          <div className="space-y-1">
+            {aiSuggestions.map((s, i) => (
+              <label key={i} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selectedSuggestions.has(i)}
+                  onChange={() => setSelectedSuggestions((prev) => {
+                    const next = new Set(prev);
+                    next.has(i) ? next.delete(i) : next.add(i);
+                    return next;
+                  })}
+                />
+                <span className="text-graphite-200">{s.name}</span>
+                <span className="text-graphite-500 text-xs">({s.unit} — {s.categoryName})</span>
+              </label>
+            ))}
+          </div>
+          <button className="btn-primary text-xs" onClick={approveSuggestions} disabled={selectedSuggestions.size === 0}>
+            Add {selectedSuggestions.size} selected item{selectedSuggestions.size === 1 ? "" : "s"}
+          </button>
+        </div>
+      )}
 
       {selectedItems.size > 0 && canManage && (
         <div className="card p-3 flex items-center gap-2 border-accent/40 bg-accent/5">

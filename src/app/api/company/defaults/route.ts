@@ -15,7 +15,13 @@ const schema = z.object({
   brandVoice: z.string().nullable().optional(),
   targetAudience: z.string().nullable().optional(),
   googleReviewLink: z.string().nullable().optional(),
-  sidebarStyle: z.enum(["expanded", "compact", "icons_only"]).optional()
+  sidebarStyle: z.enum(["expanded", "compact", "icons_only"]).optional(),
+  minJobPrice: z.number().nullable().optional(),
+  targetMarginPercent: z.number().nullable().optional(),
+  mobilizationFee: z.number().nullable().optional(),
+  fuelCharge: z.number().nullable().optional(),
+  travelCharge: z.number().nullable().optional(),
+  warrantyLengthMonths: z.number().int().nullable().optional()
 });
 
 // One shared route for every "company default" setting (estimates, invoices,

@@ -12,7 +12,7 @@ const schema = z.object({
 
 type AiEstimateDraft = {
   title: string;
-  lineItems: { description: string; qty: number; unit: string; unitPrice: number }[];
+  lineItems: { description: string; qty: number; unit: string; unitPrice: number; cost?: number }[];
   warranty: string;
   terms: string;
   flags?: string[]; // things the AI wants to surface: missing pricing, unusual margin, etc.
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Describe the job first." }, { status: 400 });
 
-  const { hasAnyItems, pricingText, questions } = await getPricingMatrixForAI(ctx.company.id);
+  const { hasAnyItems, pricingText, questions, businessRulesText } = await getPricingMatrixForAI(ctx.company.id);
 
   if (!hasAnyItems) {
     return NextResponse.json({
@@ -38,7 +38,13 @@ export async function POST(req: NextRequest) {
     ? "\n\nAnswers to the company's estimating questions for this job:\n" +
       questions
         .filter((q) => parsed.data.questionAnswers?.[q.id] !== undefined)
-        .map((q) => `- ${q.question}: ${parsed.data.questionAnswers![q.id]}`)
+        .map((q) => {
+          const answer = parsed.data.questionAnswers![q.id];
+          const triggerNote = q.triggerItem && answer?.toLowerCase() === "yes"
+            ? ` -> the answer is Yes, so include "${q.triggerItem.name}" at its exact price of $${q.triggerItem.price} as a line item.`
+            : "";
+          return `- ${q.question}: ${answer}${triggerNote}`;
+        })
         .join("\n")
     : "";
 
@@ -54,15 +60,16 @@ You must build the estimate ONLY from this company's own Pricing Matrix below. N
 
 COMPANY PRICING MATRIX:
 ${pricingText}
+${businessRulesText}
 ${answeredContext}
 
 Given a plain-language job description, produce a realistic, itemized estimate draft as JSON matching this exact shape:
 {
   "title": string (short project title),
-  "lineItems": [ { "description": string, "qty": number, "unit": string, "unitPrice": number } ],
+  "lineItems": [ { "description": string, "qty": number, "unit": string, "unitPrice": number, "cost": number (optional - only include if the matching pricing item listed a [cost: $X], omit the field entirely otherwise, never guess a cost) } ],
   "warranty": string (1-2 sentences, realistic for this trade),
   "terms": string (1-2 sentences, standard payment/terms language),
-  "flags": string[] (anything unusual worth the estimator's attention - missing pricing items, an unusually large quantity, duplicate-looking items - empty array if nothing stands out)
+  "flags": string[] (anything unusual worth the estimator's attention - missing pricing items, an unusually large quantity, duplicate-looking items, total below the minimum job price, margin below target - empty array if nothing stands out)
 }
 Every unitPrice in lineItems must come directly from the Pricing Matrix above - copy the price exactly, only the quantity varies based on the job description. Use the exact item names and units from the matrix where they match. Return 3-8 line items.`;
 

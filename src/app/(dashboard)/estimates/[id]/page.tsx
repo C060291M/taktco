@@ -7,6 +7,7 @@ import { BrandedDocumentHeader } from "@/components/layout/BrandedDocumentHeader
 import { PrintButton } from "@/components/ui/PrintButton";
 import { analyzeEstimate } from "@/lib/estimatingAdvisor";
 import { EstimatingAdvisor } from "@/features/estimates/EstimatingAdvisor";
+import { JobCostingSummary } from "@/features/estimates/JobCostingSummary";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -22,7 +23,7 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
   });
   if (!estimate) notFound();
 
-  const lineItems = estimate.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number }[];
+  const lineItems = estimate.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number; cost?: number }[];
 
   const advisorFindings = await analyzeEstimate({
     companyId: ctx.company.id,
@@ -79,6 +80,8 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
           </div>
         )}
       </div>
+
+      <JobCostingSummary lineItems={lineItems} />
 
       <EstimatingAdvisor findings={advisorFindings} />
 

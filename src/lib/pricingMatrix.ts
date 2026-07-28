@@ -1,4 +1,5 @@
 import { db } from "@/database/client";
+import type { Company } from "@prisma/client";
 
 // Small, generic, clearly-a-starting-point templates - NOT authoritative
 // industry pricing. The spec is explicit that TAKTCO does not provide
@@ -62,22 +63,27 @@ export function pickStarterTemplate(tradeType: string | null | undefined) {
 // Fetches the company's active pricing items, grouped by category, formatted
 // as compact text for the AI system prompt. This is the ONLY pricing data
 // the AI Estimate Builder is allowed to reference - see the ai-draft route.
+// Includes cost (when set) so the AI can output real per-line-item cost for
+// job costing, and the company's Business Rules so estimates respect the
+// owner's own minimums/margins/fees instead of generic defaults.
 export async function getPricingMatrixForAI(companyId: string) {
-  const categories = await db.pricingCategory.findMany({
-    where: { companyId, active: true },
-    orderBy: { displayOrder: "asc" },
-    include: {
-      items: {
-        where: { active: true },
-        orderBy: { displayOrder: "asc" }
+  const [categories, questions, company] = await Promise.all([
+    db.pricingCategory.findMany({
+      where: { companyId, active: true },
+      orderBy: { displayOrder: "asc" },
+      include: {
+        items: {
+          where: { active: true },
+          orderBy: { displayOrder: "asc" }
+        }
       }
-    }
-  });
-
-  const questions = await db.estimatingQuestion.findMany({
-    where: { companyId, active: true },
-    orderBy: { displayOrder: "asc" }
-  });
+    }),
+    db.estimatingQuestion.findMany({
+      where: { companyId, active: true },
+      orderBy: { displayOrder: "asc" }
+    }),
+    db.company.findUnique({ where: { id: companyId } })
+  ]);
 
   const hasAnyItems = categories.some((c) => c.items.length > 0);
 
@@ -86,16 +92,42 @@ export async function getPricingMatrixForAI(companyId: string) {
     if (cat.items.length === 0) continue;
     lines.push(`## ${cat.name}`);
     for (const item of cat.items) {
-      const parts = [`- ${item.name}: $${Number(item.price)}/${item.unit}`];
+      const parts = [`- ${item.name}: $${Number(item.price)}/${item.unit} (id: ${item.id})`];
+      if (item.cost) parts.push(`[cost: $${Number(item.cost)}]`);
       if (item.minCharge) parts.push(`(min charge $${Number(item.minCharge)})`);
       if (item.notes) parts.push(`- ${item.notes}`);
       lines.push(parts.join(" "));
     }
   }
 
+  const questionsWithTriggers = await Promise.all(
+    questions.map(async (q) => {
+      let triggerItem: { name: string; price: number } | null = null;
+      if (q.triggerItemId) {
+        const item = await db.pricingItem.findUnique({ where: { id: q.triggerItemId } });
+        if (item) triggerItem = { name: item.name, price: Number(item.price) };
+      }
+      return { id: q.id, question: q.question, answerType: q.answerType, triggerItem };
+    })
+  );
+
   return {
     hasAnyItems,
     pricingText: lines.join("\n"),
-    questions: questions.map((q) => ({ id: q.id, question: q.question, answerType: q.answerType }))
+    questions: questionsWithTriggers,
+    businessRulesText: formatBusinessRules(company)
   };
+}
+
+function formatBusinessRules(company: Company | null): string {
+  if (!company) return "";
+  const rules: string[] = [];
+  if (company.defaultLaborRate) rules.push(`Default labor rate: $${Number(company.defaultLaborRate)}/hr - never price labor below this unless a pricing item explicitly overrides it.`);
+  if (company.minJobPrice) rules.push(`Minimum job price: $${Number(company.minJobPrice)} - if the estimate totals less than this, note it in flags rather than silently raising the price.`);
+  if (company.targetMarginPercent) rules.push(`Target gross margin: ${Number(company.targetMarginPercent)}% - if the estimate's margin (using item cost data) falls well below this, flag it.`);
+  if (company.mobilizationFee) rules.push(`Mobilization fee: $${Number(company.mobilizationFee)} - include as a line item if this job would reasonably require it.`);
+  if (company.fuelCharge) rules.push(`Fuel charge: $${Number(company.fuelCharge)} - include if relevant.`);
+  if (company.travelCharge) rules.push(`Travel charge: $${Number(company.travelCharge)} - include if relevant.`);
+  if (company.warrantyLengthMonths) rules.push(`Standard warranty length: ${company.warrantyLengthMonths} months.`);
+  return rules.length ? `\n\nCOMPANY BUSINESS RULES:\n${rules.map((r) => `- ${r}`).join("\n")}` : "";
 }

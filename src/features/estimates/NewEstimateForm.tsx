@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type LineItem = { description: string; qty: number; unit: string; unitPrice: number };
+type LineItem = { description: string; qty: number; unit: string; unitPrice: number; cost?: number };
 
 export function NewEstimateForm({
   customers,

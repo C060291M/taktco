@@ -7,7 +7,8 @@ const lineItemSchema = z.object({
   description: z.string().min(1),
   qty: z.number().positive(),
   unit: z.string().min(1),
-  unitPrice: z.number().nonnegative()
+  unitPrice: z.number().nonnegative(),
+  cost: z.number().nonnegative().optional() // only present when the AI matched a real Pricing Matrix item's cost - never fabricated
 });
 
 const schema = z.object({
