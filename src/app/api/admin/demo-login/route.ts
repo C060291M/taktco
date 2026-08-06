@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/database/client";
-import { requireSession, createSession } from "@/lib/auth";
+import { requireSession, createSession, setAdminReturnMarker } from "@/lib/auth";
 
 // Lets a platform admin jump into the seeded demo tenant account to test the
 // product as a customer would see it, without typing credentials. Gated on
@@ -17,6 +17,8 @@ export async function POST() {
     return NextResponse.json({ error: "Demo account not found - run npm run db:seed first." }, { status: 404 });
   }
 
+  const adminUserId = ctx.user.id;
   await createSession({ userId: demoUser.id, companyId: demoUser.companyId, role: demoUser.role });
+  await setAdminReturnMarker(adminUserId);
   return NextResponse.json({ ok: true });
 }

@@ -146,7 +146,9 @@ export async function GET() {
   let completionDetail = "No projects with a target date in the last 90 days yet.";
   if (jobsWithTarget.length > 0) {
     const onTime = jobsWithTarget.filter((j) =>
-      (j.status === "COMPLETE" || j.status === "CLOSED") && j.actualCompletionDate && j.actualCompletionDate <= (j.targetCompletionDate as Date)
+      (j.status === "COMPLETE" || j.status === "CLOSED") &&
+      j.actualCompletionDate &&
+      j.actualCompletionDate <= (j.targetCompletionDate as Date)
     ).length;
     const rate = (onTime / jobsWithTarget.length) * 100;
     completionScore = (rate / 100) * 10;
