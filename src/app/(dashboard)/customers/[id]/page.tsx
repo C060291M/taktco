@@ -3,6 +3,8 @@ import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { FlagToggle } from "@/features/customers/FlagToggle";
+import { EditContactInfo } from "@/features/customers/EditContactInfo";
+import { DeleteCustomerButton } from "@/features/customers/DeleteCustomerButton";
 import { LogCommunicationForm } from "@/features/customers/LogCommunicationForm";
 import { FollowUpControl } from "@/features/customers/FollowUpControl";
 import { CustomerNotesTasks } from "@/features/customers/CustomerNotesTasks";
@@ -64,6 +66,10 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
           <p className="text-sm text-graphite-400">
             {customer.phone || "No phone"} · {customer.email || "No email"} · {customer.address || "No address"}
           </p>
+          <div className="flex items-center gap-3 mt-1">
+            <EditContactInfo customerId={customer.id} name={customer.name} email={customer.email} phone={customer.phone} address={customer.address} />
+            <DeleteCustomerButton customerId={customer.id} customerName={customer.name} />
+          </div>
           {customer.address && (
             <a
               href={`https://maps.google.com/?q=${encodeURIComponent(customer.address)}`}

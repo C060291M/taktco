@@ -27,6 +27,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     where: {
       companyId: ctx.company.id,
       deletedAt: null,
+      ...(campaign.audience === "SPECIFIC_CUSTOMERS" ? { id: { in: campaign.recipientCustomerIds as unknown as string[] } } : {}),
       ...(campaign.audience === "ACTIVE_LEADS" ? { leads: { some: { pipelineStage: { notIn: ["WON", "LOST"] } } } } : {}),
       ...(campaign.audience === "PAST_CUSTOMERS" ? { jobs: { some: { status: { in: ["COMPLETE", "CLOSED"] } } } } : {})
     },

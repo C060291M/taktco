@@ -552,6 +552,7 @@ enum CampaignAudienceType {
   ALL_CUSTOMERS
   ACTIVE_LEADS
   PAST_CUSTOMERS
+  SPECIFIC_CUSTOMERS
 }
 
 model Campaign {
@@ -561,6 +562,11 @@ model Campaign {
   name           String
   channel        CampaignChannel
   audience       CampaignAudienceType @default(ALL_CUSTOMERS)
+  // Only used when audience is SPECIFIC_CUSTOMERS - a plain array of
+  // customer ids, chosen individually in the New Campaign form. Lets a
+  // campaign be sent to exactly one or two customers for real testing,
+  // instead of the whole audience every time.
+  recipientCustomerIds Json      @default("[]")
   subject        String?
   message        String
   status         CampaignStatus  @default(DRAFT)

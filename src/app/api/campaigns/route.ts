@@ -6,7 +6,8 @@ import { requireSession } from "@/lib/auth";
 const schema = z.object({
   name: z.string().min(1),
   channel: z.enum(["EMAIL", "SMS"]),
-  audience: z.enum(["ALL_CUSTOMERS", "ACTIVE_LEADS", "PAST_CUSTOMERS"]).optional(),
+  audience: z.enum(["ALL_CUSTOMERS", "ACTIVE_LEADS", "PAST_CUSTOMERS", "SPECIFIC_CUSTOMERS"]).optional(),
+  recipientCustomerIds: z.array(z.string()).optional(),
   subject: z.string().optional(),
   message: z.string().min(1)
 });
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
       name: parsed.data.name,
       channel: parsed.data.channel,
       audience: parsed.data.audience || "ALL_CUSTOMERS",
+      recipientCustomerIds: parsed.data.recipientCustomerIds || [],
       subject: parsed.data.subject,
       message: parsed.data.message,
       status: "DRAFT"
