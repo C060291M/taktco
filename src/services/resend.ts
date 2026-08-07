@@ -1,11 +1,12 @@
 // Real Resend integration for transactional email.
 //
-// STATUS: written against Resend's current SDK/API, never executed - no
-// internet in this sandbox. Verify before trusting it:
-// 1. `npm install resend` (already in package.json)
-// 2. Set RESEND_API_KEY and a verified sending domain/FROM address in .env
-// 3. Send one of each kind (estimate, contract, invoice, review request) to
-//    a real inbox and confirm delivery before relying on this.
+// STATUS: tested for real against live Resend. A real bug was found and
+// fixed here: the SDK can return a rejected send as { error: {...} }
+// instead of throwing, which this code originally didn't check for. Also
+// confirmed directly: Resend's shared resend.dev sending domain can only
+// deliver to the single email address your Resend account was signed up
+// with - sending to any other address is rejected. Verify a real domain
+// (Resend → Domains) before this can email real customers.
 import { Resend } from "resend";
 import { db } from "@/database/client";
 import { logError } from "@/lib/errorLog";
@@ -42,6 +43,36 @@ export async function sendTrackedEmail(params: {
 
   try {
     const result = await resend.emails.send({ from: FROM_ADDRESS, to: params.toEmail, subject: params.subject, html: params.html });
+
+    // The Resend SDK doesn't always throw on a rejected send - it can return
+    // { data: null, error: {...} } instead (this is exactly what happens
+    // when sending to an address other than your own account's email while
+    // using the shared resend.dev domain). Checking only try/catch missed
+    // this entirely and logged rejected sends as successful - real bug,
+    // caught by actually testing against live Resend rather than assuming
+    // the written code was correct.
+    if (result.error) {
+      await db.emailLog.create({
+        data: {
+          companyId: params.companyId,
+          customerId: params.customerId,
+          toEmail: params.toEmail,
+          subject: params.subject,
+          kind: params.kind,
+          status: "FAILED",
+          errorMessage: result.error.message || "Resend rejected the send."
+        }
+      });
+      await logError({
+        companyId: params.companyId,
+        module: "EMAIL",
+        severity: "LOW",
+        message: `Email send rejected by Resend: ${result.error.message}`,
+        recoveryAction: "Logged to EmailLog as FAILED. If using the shared resend.dev domain, note it can only deliver to the email address your Resend account was signed up with - verify a real domain for sending to other recipients."
+      });
+      return { sent: false, reason: result.error.message || "Resend rejected the send." };
+    }
+
     await db.emailLog.create({
       data: {
         companyId: params.companyId,
