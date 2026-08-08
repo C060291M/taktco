@@ -19,7 +19,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const campaign = await db.campaign.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
+  const campaign = await db.campaign.findFirst({ where: { id: params.id, companyId: ctx.company.id, deletedAt: null } });
   if (!campaign) return NextResponse.json({ error: "Not found." }, { status: 404 });
   if (campaign.status === "SENT") return NextResponse.json({ error: "This campaign was already sent." }, { status: 400 });
 

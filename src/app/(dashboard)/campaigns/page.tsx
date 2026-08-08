@@ -4,13 +4,14 @@ import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { NewCampaignForm } from "@/features/campaigns/NewCampaignForm";
 import { SendCampaignButton } from "@/features/campaigns/SendCampaignButton";
+import { DeleteCampaignButton } from "@/features/campaigns/DeleteCampaignButton";
 
 export default async function CampaignsPage() {
   const ctx = await requireSession();
   if (!ctx) redirect("/login");
 
   const campaigns = await db.campaign.findMany({
-    where: { companyId: ctx.company.id },
+    where: { companyId: ctx.company.id, deletedAt: null },
     orderBy: { createdAt: "desc" }
   });
 
@@ -60,7 +61,12 @@ export default async function CampaignsPage() {
                 <td className="px-4 py-3 text-emerald-400">{c.status === "SENT" ? c.deliveredCount : "—"}</td>
                 <td className="px-4 py-3 text-red-400">{c.status === "SENT" ? c.failedCount : "—"}</td>
                 <td className="px-4 py-3 text-right">
-                  {c.status === "DRAFT" && <SendCampaignButton campaignId={c.id} />}
+                  <div className="flex items-center justify-end gap-2">
+                    {c.status === "DRAFT" && <SendCampaignButton campaignId={c.id} />}
+                    {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+                      <DeleteCampaignButton campaignId={c.id} campaignName={c.name} />
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

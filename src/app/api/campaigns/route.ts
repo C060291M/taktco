@@ -17,7 +17,7 @@ export async function GET() {
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const campaigns = await db.campaign.findMany({
-    where: { companyId: ctx.company.id },
+    where: { companyId: ctx.company.id, deletedAt: null },
     orderBy: { createdAt: "desc" }
   });
   return NextResponse.json(campaigns);

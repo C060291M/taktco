@@ -598,6 +598,12 @@ model Campaign {
   deliveredCount Int             @default(0)
   failedCount    Int             @default(0)
   sentAt         DateTime?
+  // Soft delete, same consistent pattern as Customer/Job/Invoice/Estimate.
+  // Nothing else references a Campaign, so a hard delete would be
+  // technically safe here - kept soft anyway for a predictable, consistent
+  // admin experience, and because the send stats are worth keeping as
+  // real record-keeping history even after "deleting" one from active view.
+  deletedAt      DateTime?
   createdAt      DateTime        @default(now())
 
   @@index([companyId])
