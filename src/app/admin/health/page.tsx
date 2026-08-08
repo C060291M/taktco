@@ -1,7 +1,5 @@
 import { db } from "@/database/client";
 import { stripeConfigured } from "@/services/stripe";
-import { resendConfigured } from "@/services/resend";
-import { twilioConfigured } from "@/services/twilio";
 import { storageConfigured } from "@/lib/storage";
 import { Badge } from "@/components/ui/Badge";
 
@@ -17,12 +15,27 @@ function StatusRow({ name, configured, note }: { name: string; configured: boole
   );
 }
 
+function CountRow({ name, count, total, note }: { name: string; count: number; total: number; note: string }) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-graphite-700 last:border-0">
+      <div>
+        <p className="text-sm text-graphite-100">{name}</p>
+        <p className="text-xs text-graphite-500">{note}</p>
+      </div>
+      <span className="text-sm text-graphite-300">{count} of {total} companies</span>
+    </div>
+  );
+}
+
 export default async function AdminHealthPage() {
-  const [pendingJobs, failedJobs, recentErrors, dbOk] = await Promise.all([
+  const [pendingJobs, failedJobs, recentErrors, dbOk, totalCompanies, emailConnectedCount, twilioConnectedCount] = await Promise.all([
     db.jobQueueItem.count({ where: { status: "QUEUED" } }),
     db.jobQueueItem.count({ where: { status: "FAILED" } }),
     db.errorLog.count({ where: { createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
-    db.company.count().then(() => true).catch(() => false)
+    db.company.count().then(() => true).catch(() => false),
+    db.company.count(),
+    db.companyCommsSettings.count({ where: { OR: [{ smtpUser: { not: null } }, { encryptedResendApiKey: { not: null } }] } }),
+    db.companyCommsSettings.count({ where: { twilioAccountSid: { not: null } } })
   ]);
 
   return (
@@ -55,8 +68,8 @@ export default async function AdminHealthPage() {
         <h2 className="text-sm font-medium text-white mb-2">Integrations</h2>
         <StatusRow name="Stripe" configured={stripeConfigured} note="Payments, subscriptions, credit purchases" />
         <StatusRow name="Object storage (R2/S3)" configured={storageConfigured} note="Logos, job photos, contract documents" />
-        <StatusRow name="Resend" configured={resendConfigured} note="Transactional email + campaigns" />
-        <StatusRow name="Twilio" configured={twilioConfigured} note="SMS + campaigns" />
+        <CountRow name="Email connected" count={emailConnectedCount} total={totalCompanies} note="Gmail, Outlook, or Resend - each company connects their own, no platform-wide fallback" />
+        <CountRow name="Twilio connected" count={twilioConnectedCount} total={totalCompanies} note="Each company connects their own account and completes their own A2P 10DLC registration" />
       </div>
 
       <div className="card p-5">

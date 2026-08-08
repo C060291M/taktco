@@ -39,7 +39,7 @@ export default function TermsPage() {
         <p className="text-graphite-300">
           TAKTCO includes AI-assisted features (estimate drafting, marketing content generation, business
           insights). AI output should be reviewed before being sent to your customers or relied upon for business
-          decisions - AI can make mistakes, and you remain responsible for what you ultimately send or act on.
+          decisions — AI can make mistakes, and you remain responsible for what you ultimately send or act on.
         </p>
 
         <h2 className="text-white text-lg mt-8 mb-2">Limitation of liability</h2>

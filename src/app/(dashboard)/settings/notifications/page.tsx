@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { NotificationPreferencesForm } from "@/features/settings/NotificationPreferencesForm";
+import { CommsProviderPanel } from "@/features/settings/CommsProviderPanel";
 
 export default async function NotificationSettingsPage() {
   const ctx = await requireSession();
@@ -20,6 +21,7 @@ export default async function NotificationSettingsPage() {
         categoryPrefs={(ctx.user.notificationCategoryPrefs as Record<string, { email?: boolean; sms?: boolean }>) || {}}
         hasPhone={Boolean(ctx.user.phone)}
       />
+      {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && <CommsProviderPanel />}
     </div>
   );
 }

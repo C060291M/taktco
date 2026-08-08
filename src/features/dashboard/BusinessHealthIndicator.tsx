@@ -21,12 +21,30 @@ function scoreColor(score: number) {
 export function BusinessHealthIndicator() {
   const [data, setData] = useState<HealthData | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/business-health")
       .then((r) => r.json())
       .then(setData);
   }, []);
+
+  async function getAnalysis() {
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+    const res = await fetch("/api/insights/business-analysis", { method: "POST" });
+    const responseData = await res.json().catch(() => ({}));
+    setAnalysisLoading(false);
+    if (res.ok) {
+      setAnalysis(responseData.analysis);
+    } else if (responseData.error === "INSUFFICIENT_CREDITS") {
+      setAnalysisError("Not enough AI credits for this. Check Settings -> TAKTCO AI.");
+    } else {
+      setAnalysisError(responseData.error || "Couldn't generate analysis.");
+    }
+  }
 
   if (!data) return null;
 
@@ -74,6 +92,21 @@ export function BusinessHealthIndicator() {
               Context, not scored: ${data.pipelineValue.toLocaleString()} in {data.pipelineCount} open estimate{data.pipelineCount === 1 ? "" : "s"} (pipeline value).
             </p>
           )}
+
+          <div className="pt-2 border-t border-graphite-700">
+            {!analysis && (
+              <button className="btn-secondary text-xs" disabled={analysisLoading} onClick={getAnalysis}>
+                {analysisLoading ? "Analyzing..." : "✨ Get AI analysis of these numbers"}
+              </button>
+            )}
+            {analysisError && <p className="text-xs text-red-400 mt-1">{analysisError}</p>}
+            {analysis && (
+              <div className="text-xs text-graphite-200 whitespace-pre-wrap leading-relaxed">
+                <p className="text-[11px] text-graphite-500 mb-1">✨ AI analysis, based only on the real numbers above:</p>
+                {analysis}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

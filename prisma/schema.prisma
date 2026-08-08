@@ -254,6 +254,7 @@ model Company {
   pricingCategories PricingCategory[]
   pricingItems      PricingItem[]
   estimatingQuestions EstimatingQuestion[]
+  commsSettings  CompanyCommsSettings?
 }
 
 model User {
@@ -1097,6 +1098,34 @@ enum AiProviderName {
   GOOGLE_GEMINI
   XAI
   AZURE_OPENAI
+}
+
+// Lets a company use their OWN Resend/Twilio accounts instead of TAKTCO's
+// shared platform ones (same reasoning as BYOAI: on the shared setup, a
+// company's own AI provider key overrides the platform default). Same
+// AES-256-GCM encryption pattern as CompanyAiSettings.encryptedApiKey - see
+// lib/crypto.ts. Both providers are optional and independent of each other.
+model CompanyCommsSettings {
+  id                      String    @id @default(cuid())
+  companyId               String    @unique
+  company                 Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // Simplest path: direct Gmail/Outlook via SMTP + an app password - no
+  // separate Resend account needed. "GMAIL" or "OUTLOOK" picks the right
+  // SMTP host/port automatically; smtpUser is their real email address.
+  smtpProvider            String?   // GMAIL | OUTLOOK
+  smtpUser                String?
+  encryptedSmtpPassword   String?   // an app password, never their real login password
+  smtpFromName            String?
+  smtpConnectionStatus    String?   @default("untested")
+  // Advanced/alternate path for companies that already have their own Resend.
+  encryptedResendApiKey   String?
+  resendFromAddress       String?
+  resendConnectionStatus  String?   @default("untested")
+  twilioAccountSid        String?
+  encryptedTwilioAuthToken String?
+  twilioFromNumber        String?
+  twilioConnectionStatus  String?   @default("untested")
+  updatedAt               DateTime  @updatedAt
 }
 
 model CompanyAiSettings {

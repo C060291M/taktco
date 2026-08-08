@@ -1,19 +1,30 @@
-// Real Twilio integration for SMS.
-//
-// STATUS: written against Twilio's current SDK/API, never executed - no
-// internet in this sandbox. Verify before trusting it:
-// 1. `npm install twilio` (already in package.json)
-// 2. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER in .env
-// 3. Send a test SMS to your own phone and confirm delivery before relying on this.
+// Real Twilio integration for SMS - own-connect only, no platform-wide
+// fallback. Each company connects their own Twilio account in Settings ->
+// Notifications, and must complete their own A2P 10DLC brand + campaign
+// registration with Twilio before SMS actually delivers - that's a real US
+// carrier compliance requirement, the same process this platform's own
+// account went through, and it can't be shared or inherited between
+// companies.
 import twilio from "twilio";
 import { db } from "@/database/client";
 import { logError } from "@/lib/errorLog";
+import { decryptSecret } from "@/lib/crypto";
 
-export const twilioConfigured = Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER);
-const client = twilioConfigured ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN) : null;
+async function getTwilioClientForCompany(companyId: string): Promise<{ client: ReturnType<typeof twilio>; fromNumber: string } | null> {
+  const settings = await db.companyCommsSettings.findUnique({ where: { companyId } });
+  if (settings?.twilioAccountSid && settings?.encryptedTwilioAuthToken && settings?.twilioFromNumber) {
+    try {
+      const token = decryptSecret(settings.encryptedTwilioAuthToken);
+      return { client: twilio(settings.twilioAccountSid, token), fromNumber: settings.twilioFromNumber };
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
 // Same tracked-send pattern as sendTrackedEmail - always logs to SmsLog, even
-// on failure or when Twilio isn't configured, so delivery status is visible
+// on failure or when nothing's connected, so delivery status is visible
 // in-product either way.
 export async function sendTrackedSms(params: {
   companyId: string;
@@ -22,7 +33,8 @@ export async function sendTrackedSms(params: {
   body: string;
   kind: string;
 }) {
-  if (!twilioConfigured || !client) {
+  const resolved = await getTwilioClientForCompany(params.companyId);
+  if (!resolved) {
     await db.smsLog.create({
       data: {
         companyId: params.companyId,
@@ -31,16 +43,16 @@ export async function sendTrackedSms(params: {
         body: params.body,
         kind: params.kind,
         status: "FAILED",
-        errorMessage: "Twilio not configured (TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER missing)"
+        errorMessage: "No Twilio account connected - connect one in Settings -> Notifications."
       }
     });
-    return { sent: false, reason: "SMS isn't configured yet." };
+    return { sent: false, reason: "SMS isn't connected yet. Connect Twilio in Settings -> Notifications." };
   }
 
   try {
-    const message = await client.messages.create({
+    const message = await resolved.client.messages.create({
       to: params.toPhone,
-      from: process.env.TWILIO_FROM_NUMBER,
+      from: resolved.fromNumber,
       body: params.body
     });
     await db.smsLog.create({

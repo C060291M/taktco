@@ -8,11 +8,15 @@ import { CONTRACT_TYPES } from "@/lib/contractTemplates";
 export function NewContractForm({ customers, companyName }: { customers: { id: string; name: string }[]; companyName: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<"template" | "upload">("template");
+  const [mode, setMode] = useState<"template" | "ai" | "upload">("template");
   const [customerId, setCustomerId] = useState("");
   const [type, setType] = useState(CONTRACT_TYPES[0].value);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [aiDescription, setAiDescription] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiGenerated, setAiGenerated] = useState(false);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +37,28 @@ export function NewContractForm({ customers, companyName }: { customers: { id: s
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, selectedCustomerName, mode]);
 
+  async function generateContractDraft() {
+    if (!aiDescription.trim()) return;
+    setAiLoading(true);
+    setAiError(null);
+    const res = await fetch("/api/contracts/ai-draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description: aiDescription, contractType: CONTRACT_TYPES.find((t) => t.value === type)?.label || type })
+    });
+    const data = await res.json().catch(() => ({}));
+    setAiLoading(false);
+    if (res.ok) {
+      setContent(data.content || "");
+      setAiGenerated(true);
+      setDirty(true); // don't let the template auto-fill effect clobber the AI draft
+    } else if (data.error === "INSUFFICIENT_CREDITS") {
+      setAiError("Not enough AI credits for this. Check Settings -> TAKTCO AI.");
+    } else {
+      setAiError(data.error || "AI draft failed.");
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -44,7 +70,7 @@ export function NewContractForm({ customers, companyName }: { customers: { id: s
         customerId,
         type,
         title: title || CONTRACT_TYPES.find((t) => t.value === type)?.label,
-        content: mode === "template" ? content : undefined,
+        content: mode === "template" || mode === "ai" ? content : undefined,
         fileUrl: mode === "upload" ? fileUrl || undefined : undefined,
         fileName: mode === "upload" ? fileName || undefined : undefined
       })
@@ -81,6 +107,9 @@ export function NewContractForm({ customers, companyName }: { customers: { id: s
           <button type="button" onClick={() => setMode("template")} className={mode === "template" ? "btn-primary text-sm" : "btn-secondary text-sm"}>
             Fill in a template
           </button>
+          <button type="button" onClick={() => setMode("ai")} className={mode === "ai" ? "btn-primary text-sm" : "btn-secondary text-sm"}>
+            ✨ AI draft
+          </button>
           <button type="button" onClick={() => setMode("upload")} className={mode === "upload" ? "btn-primary text-sm" : "btn-secondary text-sm"}>
             Upload my own
           </button>
@@ -93,7 +122,7 @@ export function NewContractForm({ customers, companyName }: { customers: { id: s
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          {mode === "template" ? (
+          {mode === "template" || mode === "ai" ? (
             <select className="input" value={type} onChange={(e) => setType(e.target.value)}>
               {CONTRACT_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -104,7 +133,25 @@ export function NewContractForm({ customers, companyName }: { customers: { id: s
           )}
         </div>
 
-        {mode === "template" ? (
+        {mode === "ai" && (
+          <div className="space-y-2 border border-graphite-700 rounded-lg p-3">
+            <label className="block text-xs text-graphite-300">Describe the job in plain language</label>
+            <textarea
+              className="input text-xs"
+              rows={3}
+              placeholder="e.g. Install 180 feet of cedar privacy fence with one walk gate, remove existing chain link fence"
+              value={aiDescription}
+              onChange={(e) => setAiDescription(e.target.value)}
+            />
+            {aiError && <p className="text-xs text-red-400">{aiError}</p>}
+            <button type="button" className="btn-secondary text-xs" disabled={aiLoading} onClick={generateContractDraft}>
+              {aiLoading ? "Drafting..." : aiGenerated ? "Regenerate" : "Generate contract draft"}
+            </button>
+            {aiGenerated && <p className="text-[11px] text-accent">✨ Drafted below — review and edit before saving.</p>}
+          </div>
+        )}
+
+        {mode === "template" || (mode === "ai" && content) ? (
           <div>
             <label className="block text-xs text-graphite-300 mb-1">
               Contract text — edit anything in [brackets], or rewrite freely
@@ -119,16 +166,16 @@ export function NewContractForm({ customers, companyName }: { customers: { id: s
               }}
             />
           </div>
-        ) : (
+        ) : mode === "upload" ? (
           <DocumentDropzone onChange={(dataUrl, name) => { setFileUrl(dataUrl); setFileName(name); }} />
-        )}
+        ) : null}
 
         <LegalDisclaimer compact />
 
         {error && <p className="text-sm text-red-400">{error}</p>}
         <div className="flex gap-2 justify-end pt-2">
           <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
-          <button type="submit" disabled={loading} className="btn-primary">{loading ? "Saving..." : "Save contract"}</button>
+          <button type="submit" disabled={loading || (mode === "ai" && !content)} className="btn-primary">{loading ? "Saving..." : "Save contract"}</button>
         </div>
       </form>
     </div>

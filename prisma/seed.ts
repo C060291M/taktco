@@ -111,7 +111,7 @@ async function main() {
       { name: "Starter Pack", credits: 500, priceCents: 1500 },
       { name: "Growth Pack", credits: 2000, priceCents: 5000 },
       { name: "Pro Pack", credits: 5000, priceCents: 11000 },
-      { name: "Scale Pack", credits: 10000, priceCents: 20000 }
+      { name: "Scale Pack", credits: 7500, priceCents: 15500 }
     ],
     skipDuplicates: true
   });

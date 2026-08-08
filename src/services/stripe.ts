@@ -136,7 +136,7 @@ export function tierForPriceId(priceId: string): string | null {
   return map[priceId] || null;
 }
 
-export const TIER_INCLUDED_CREDITS: Record<string, number> = { starter: 500, pro: 2500, corporate: 10000 };
+export const TIER_INCLUDED_CREDITS: Record<string, number> = { starter: 500, pro: 2500, corporate: 5000 };
 
 export async function createSubscriptionCheckoutSession(params: {
   companyId: string;
