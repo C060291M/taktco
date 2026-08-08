@@ -12,8 +12,10 @@ const WORKFLOW_STEPS = [
 ];
 
 const AI_FEATURES = [
-  { title: "AI Estimate Builder", desc: "Type \"replace 220 feet of cedar fence\" and get a full line-item draft — labor, materials, warranty, terms — ready to edit and send." },
+  { title: "AI Estimate Builder, grounded in your real pricing", desc: "Type \"replace 220 feet of cedar fence\" and get a full line-item draft — priced only from your own Pricing Matrix, never a guessed number. If something's missing, it says so instead of making one up." },
   { title: "TAKTCO AI, grounded in your real data", desc: "Ask about revenue, overdue invoices, or your pipeline and get answers pulled from your actual numbers — never a guess." },
+  { title: "Business Health Score", desc: "One real number, 0–100, built from 8 disclosed metrics — revenue trend, margin, win rate, and more — with an AI-written analysis of exactly what to focus on next." },
+  { title: "AI Contract Builder", desc: "Describe the job, get a complete draft contract — scope, payment terms, timeline, your standard warranty — ready to review and send." },
   { title: "Automation Engine", desc: "Build rules with no code: \"Invoice paid → wait 7 days → ask for a review.\" Your business keeps working while you're on a job site." },
   { title: "Marketing AI", desc: "Turn a finished job into a Facebook post, Google Business update, or email — in your brand voice, in one click from your portfolio." },
   { title: "Daily insights, not a black box", desc: "Every alert TAKTCO surfaces — a stalled estimate, an invoice at risk — comes with the exact rule behind it. No mystery scores." }
@@ -21,10 +23,13 @@ const AI_FEATURES = [
 
 const FEATURES = [
   { title: "Customer Management", desc: "Manage relationships from first contact to repeat customer — leads, follow-ups, and flags for problem clients, all in one place." },
+  { title: "Your own Pricing Matrix", desc: "Build your real pricing by category — materials, labor, add-ons — with a starter template for your trade or a blank page to build from scratch." },
   { title: "Estimates & contracts", desc: "Build a quote, send it, get it approved — and it becomes a scheduled job automatically." },
   { title: "Project Management", desc: "Control every job from kickoff to completion — crew assignments, daily logs, and before/after photos." },
   { title: "Financial Management", desc: "Track revenue, invoices, payments, and profitability — pulled from real job numbers, not spreadsheets." },
+  { title: "Deposits made simple", desc: "Split any approved estimate into a deposit and final balance with one click — two real, linked invoices, same payment flow." },
   { title: "Native payments", desc: "Collect customer payments directly through your own branded invoice pages." },
+  { title: "Email and SMS from your own account", desc: "Connect your own Gmail, Outlook, or Twilio — your messages, your sending reputation, never shared with anyone else on the platform." },
   { title: "Your brand, not ours", desc: "Upload your logo, pick your colors, and TAKTCO looks like your software — not a rented tool." }
 ];
 
@@ -34,7 +39,7 @@ const FAQS = [
   { q: "What happens if I run out of AI credits?", a: "Nothing breaks. You can buy more credits, connect your own OpenAI/Anthropic/Gemini key and skip TAKTCO Credits entirely, or just wait for your monthly reset." },
   { q: "Can I use my own branding?", a: "Yes — upload your logo and pick your colors during setup. Your quotes, invoices, and dashboard all carry your brand, not TAKTCO's." },
   { q: "Do I need to already use QuickBooks or another tool?", a: "No. TAKTCO is a standalone system — it doesn't require or sync with outside software to work." },
-  { q: "What trades is this built for?", a: "Fencing, general contracting, electrical, HVAC, plumbing, landscaping, roofing, concrete, painting, and other construction and service-based trades." }
+  { q: "What trades is this built for?", a: "Fencing, roofing, HVAC, electrical, plumbing, painting, landscaping, home security, gutters, solar screens, siding, windows, doors, handyman services, cleaning, and general contracting — each with its own starter Pricing Matrix template. Any other trade works too; you just build your own pricing from scratch." }
 ];
 
 export default async function Home() {
@@ -149,7 +154,7 @@ export default async function Home() {
             <ul className="text-sm text-graphite-300 mt-4 space-y-2">
               <li>Everything unlocked</li>
               <li>Up to 10 users</li>
-              <li>10,000 TAKTCO Credits/mo</li>
+              <li>5,000 TAKTCO Credits/mo</li>
               <li>100 GB storage</li>
             </ul>
           </div>
