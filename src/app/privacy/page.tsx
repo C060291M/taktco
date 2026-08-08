@@ -31,8 +31,8 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-white text-lg mt-8 mb-2">Third parties we share data with</h2>
         <ul className="text-graphite-300">
           <li><strong>Stripe</strong> — payment processing and subscription billing. We do not store full card numbers.</li>
-          <li><strong>Resend</strong> — sending transactional email on behalf of businesses using TAKTCO.</li>
-          <li><strong>Twilio</strong> — sending transactional SMS on behalf of businesses using TAKTCO.</li>
+          <li><strong>Your own email and SMS provider</strong> — businesses using TAKTCO connect their own Gmail, Outlook, Resend, or Twilio account to send estimates, invoices, and other communications to their own customers. We do not use a shared account on a business's behalf; each business's sends go through infrastructure they control and are billed for separately.</li>
+          <li><strong>Resend (platform use only)</strong> — TAKTCO itself uses Resend for a small number of our own system emails (such as a welcome email when an account is created), separate from any business's customer communications.</li>
           <li><strong>AI providers</strong> (Anthropic, OpenAI, or another provider a business connects their own key to) — job and business descriptions are sent to generate AI-drafted content (estimates, marketing copy). Customer contact information is not included in these requests.</li>
           <li><strong>Cloud storage providers</strong> (Cloudflare R2 or AWS S3, where configured) — storing uploaded photos and documents.</li>
         </ul>
@@ -41,8 +41,9 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-white text-lg mt-8 mb-2">SMS and email communications</h2>
         <p className="text-graphite-300">
           Businesses using TAKTCO may send their own customers transactional SMS and email (invoices, appointment
-          updates, review requests). These messages relate to an existing service relationship between the
-          business and their customer. A customer who no longer wishes to receive SMS can reply STOP at any time.
+          updates, review requests) through their own connected email or SMS provider. These messages relate to
+          an existing service relationship between the business and their customer. A customer who no longer
+          wishes to receive SMS can reply STOP at any time.
         </p>
 
         <h2 className="text-white text-lg mt-8 mb-2">Data retention and deletion</h2>

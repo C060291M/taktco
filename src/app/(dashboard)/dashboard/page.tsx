@@ -10,6 +10,7 @@ import { MorningBriefing } from "@/features/insights/MorningBriefing";
 import { TodaysAgenda } from "@/features/dashboard/TodaysAgenda";
 import { BusinessHealthIndicator } from "@/features/dashboard/BusinessHealthIndicator";
 import { OnboardingChecklist } from "@/features/dashboard/OnboardingChecklist";
+import { EmailNotConnectedBanner } from "@/features/dashboard/EmailNotConnectedBanner";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -74,6 +75,7 @@ export default async function DashboardPage() {
         <p className="text-sm text-graphite-400">Here's how {ctx.company.name} is doing.</p>
       </div>
 
+      <EmailNotConnectedBanner />
       <OnboardingChecklist />
       <TodaysAgenda />
       <BusinessHealthIndicator />

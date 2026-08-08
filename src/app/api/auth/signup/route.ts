@@ -3,6 +3,8 @@ import { z } from "zod";
 import { db } from "@/database/client";
 import { hashPassword, createSession } from "@/lib/auth";
 import { checkRateLimit, clientIp } from "@/lib/rateLimit";
+import { sendPlatformSystemEmail } from "@/lib/platformEmail";
+import { welcomeEmail } from "@/emails/welcome-email";
 
 const schema = z.object({
   companyName: z.string().min(2),
@@ -95,6 +97,15 @@ export async function POST(req: NextRequest) {
 
   const owner = company.users[0];
   await createSession({ userId: owner.id, companyId: company.id, role: owner.role });
+
+  // Best-effort, never blocks signup - a missing welcome email should
+  // never be the reason someone can't create an account.
+  const email = welcomeEmail({
+    companyName: company.name,
+    ownerName: owner.name,
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
+  });
+  sendPlatformSystemEmail({ toEmail: owner.email, subject: email.subject, html: email.html, companyId: company.id }).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }
