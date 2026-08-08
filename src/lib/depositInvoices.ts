@@ -1,4 +1,5 @@
 import { db } from "@/database/client";
+import { claimNextInvoiceNumber } from "@/lib/documentNumbers";
 
 export async function generateDepositInvoicePair(params: { companyId: string; jobId: string; dueDays?: number }) {
   const [company, job] = await Promise.all([
@@ -18,14 +19,14 @@ export async function generateDepositInvoicePair(params: { companyId: string; jo
   const dueDays = params.dueDays ?? company.defaultInvoiceDueDays ?? 14;
   const dueDate = new Date(Date.now() + dueDays * 24 * 60 * 60 * 1000);
 
-  const invoiceCount = await db.invoice.count({ where: { companyId: params.companyId } });
+  const depositInvoiceNumber = await claimNextInvoiceNumber(params.companyId);
 
   const deposit = await db.invoice.create({
     data: {
       companyId: params.companyId,
       jobId: job.id,
       customerId: job.customerId,
-      invoiceNumber: `INV-${String(invoiceCount + 1).padStart(4, "0")}`,
+      invoiceNumber: depositInvoiceNumber,
       amount: depositAmount,
       lineItems: [{ description: `Deposit (${depositPercent}% of $${total.toLocaleString()})`, qty: 1, unit: "ea", unitPrice: depositAmount }],
       kind: "DEPOSIT",
@@ -34,12 +35,14 @@ export async function generateDepositInvoicePair(params: { companyId: string; jo
     }
   });
 
+  const finalBalanceInvoiceNumber = await claimNextInvoiceNumber(params.companyId);
+
   const finalBalance = await db.invoice.create({
     data: {
       companyId: params.companyId,
       jobId: job.id,
       customerId: job.customerId,
-      invoiceNumber: `INV-${String(invoiceCount + 2).padStart(4, "0")}`,
+      invoiceNumber: finalBalanceInvoiceNumber,
       amount: remainingAmount,
       lineItems: [{ description: `Remaining balance (after ${depositPercent}% deposit)`, qty: 1, unit: "ea", unitPrice: remainingAmount }],
       kind: "FINAL_BALANCE",

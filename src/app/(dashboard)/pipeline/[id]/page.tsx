@@ -68,6 +68,7 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
         customerEmail={lead.customer.email}
         assignedUserId={lead.assignedUserId}
         teamMembers={teamMembers}
+        canDelete={ctx.user.role === "OWNER" || ctx.user.role === "ADMIN"}
       />
 
       <LeadNotesTasks leadId={lead.id} notes={lead.noteEntries} tasks={lead.tasks} />

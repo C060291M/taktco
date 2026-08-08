@@ -66,6 +66,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Only owners and admins can delete leads." }, { status: 403 });
+  }
 
   const lead = await db.lead.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
   if (!lead) return NextResponse.json({ error: "Not found." }, { status: 404 });

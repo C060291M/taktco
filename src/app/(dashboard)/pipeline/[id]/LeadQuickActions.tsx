@@ -9,7 +9,8 @@ export function LeadQuickActions({
   customerPhone,
   customerEmail,
   assignedUserId,
-  teamMembers
+  teamMembers,
+  canDelete
 }: {
   leadId: string;
   customerId: string;
@@ -17,6 +18,7 @@ export function LeadQuickActions({
   customerEmail: string | null;
   assignedUserId: string | null;
   teamMembers: TeamMember[];
+  canDelete: boolean;
 }) {
   const router = useRouter();
   const [assignee, setAssignee] = useState(assignedUserId || "");
@@ -79,9 +81,11 @@ export function LeadQuickActions({
       <button className="btn-secondary text-xs" disabled={busy} onClick={archive}>
         Archive
       </button>
-      <button className="text-xs text-red-400 hover:text-red-300 ml-auto" disabled={busy} onClick={remove}>
-        Delete lead
-      </button>
+      {canDelete && (
+        <button className="text-xs text-red-400 hover:text-red-300 ml-auto" disabled={busy} onClick={remove}>
+          Delete lead
+        </button>
+      )}
     </div>
   );
 }

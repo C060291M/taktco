@@ -36,6 +36,7 @@ export default async function EstimatesPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-graphite-400 border-b border-graphite-700">
+              <th className="px-4 py-3 font-medium">Number</th>
               <th className="px-4 py-3 font-medium">Customer</th>
               <th className="px-4 py-3 font-medium">Amount</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -43,10 +44,11 @@ export default async function EstimatesPage() {
           </thead>
           <tbody>
             {estimates.length === 0 && (
-              <tr><td colSpan={3} className="px-4 py-8 text-center text-graphite-400">No estimates yet.</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-graphite-400">No estimates yet.</td></tr>
             )}
             {estimates.map((e) => (
               <tr key={e.id} className="border-b border-graphite-700 last:border-0 hover:bg-graphite-800/60">
+                <td className="px-4 py-3 text-graphite-400 text-xs">{e.estimateNumber || "—"}</td>
                 <td className="px-4 py-3">
                   <Link href={`/estimates/${e.id}`} className="text-graphite-100 hover:text-accent">{e.customer.name}</Link>
                 </td>

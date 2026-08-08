@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { BrandedDocumentHeader } from "@/components/layout/BrandedDocumentHeader";
 import { Badge } from "@/components/ui/Badge";
 import { PayButton } from "@/features/invoices/PayButton";
+import { DeleteInvoiceButton } from "@/features/invoices/DeleteInvoiceButton";
 import { CopyPublicLink } from "@/components/forms/CopyPublicLink";
 import { PrintButton } from "@/components/ui/PrintButton";
 
@@ -16,7 +17,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
   if (!ctx) redirect("/login");
 
   const invoice = await db.invoice.findFirst({
-    where: { id: params.id, companyId: ctx.company.id },
+    where: { id: params.id, companyId: ctx.company.id, deletedAt: null },
     include: { customer: true, job: true, payments: true }
   });
   if (!invoice) notFound();
@@ -40,6 +41,9 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
             <div className="flex gap-2">
               <PrintButton />
               <CopyPublicLink token={invoice.paymentLinkToken} basePath="invoice" />
+              {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+                <DeleteInvoiceButton invoiceId={invoice.id} invoiceNumber={invoice.invoiceNumber} />
+              )}
             </div>
           </div>
         </div>

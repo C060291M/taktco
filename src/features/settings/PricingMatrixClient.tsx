@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, Fragment } from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import { ChevronDown, ChevronRight, Star, Trash2, Copy, Plus, Download, Upload, Search, Pencil, GripVertical } from "lucide-react";
 import { ItemFormModal } from "@/features/settings/ItemFormModal";
@@ -18,7 +17,6 @@ type Question = { id: string; question: string; answerType: string; active: bool
 export function PricingMatrixClient({
   initialCategories, initialQuestions, canManage, tradeType
 }: { initialCategories: Category[]; initialQuestions: Question[]; canManage: boolean; tradeType: string | null }) {
-  const router = useRouter();
   const toast = useToast();
   const [categories, setCategories] = useState(initialCategories);
   const [questions, setQuestions] = useState(initialQuestions);
@@ -49,8 +47,20 @@ export function PricingMatrixClient({
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [suggestError, setSuggestError] = useState<string | null>(null);
 
-  function refresh() {
-    router.refresh();
+  // Deliberately NOT router.refresh() - that depends on Next.js re-running
+  // the server component and this component's props re-syncing correctly,
+  // which kept showing stale data after a save despite that sync being
+  // wired up correctly. This does a plain, direct client-side re-fetch of
+  // the real API and sets local state straight from the response - no
+  // dependency on Next's server-component refresh/caching layer at all,
+  // so there's nothing left to go stale.
+  async function refresh() {
+    const [catRes, qRes] = await Promise.all([
+      fetch("/api/pricing/categories"),
+      fetch("/api/pricing/questions")
+    ]);
+    if (catRes.ok) setCategories(await catRes.json());
+    if (qRes.ok) setQuestions(await qRes.json());
   }
 
   async function loadStarterTemplate() {

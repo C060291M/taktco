@@ -184,6 +184,14 @@ model Company {
 
   // Invoice defaults
   defaultInvoiceDueDays Int?    @default(14)
+  // Atomic counters for invoice/estimate numbering - incremented via
+  // Prisma's atomic `increment` operator (a real DB-level atomic op, not a
+  // read-then-write race). Replaces the old db.invoice.count()-based
+  // numbering, which could reissue a duplicate number once deletion
+  // exists (delete invoice #4, the next count-based number would collide
+  // with it again). These counters only ever go up, even across deletions.
+  nextInvoiceNumber  Int      @default(1)
+  nextEstimateNumber Int      @default(1)
   // Business Rules (Phase 9.5) - fed into the AI estimate prompt alongside
   // the Pricing Matrix. Deliberately a small, real set rather than a full
   // rate-multiplier engine (no commercial/residential/overtime/emergency
@@ -384,6 +392,7 @@ model Estimate {
   company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   customerId     String
   customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  estimateNumber String?
   status         EstimateStatus @default(DRAFT)
   totalAmount    Decimal        @default(0) @db.Decimal(12, 2)
   lineItems      Json           @default("[]")
@@ -464,6 +473,9 @@ model Invoice {
   customerId       String
   customer         Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
   invoiceNumber    String?
+  // Soft delete, same pattern as Customer.deletedAt - a financial record,
+  // never actually destroyed. Filtered out of active lists/counts once set.
+  deletedAt        DateTime?
   amount           Decimal       @db.Decimal(12, 2)
   lineItems        Json          @default("[]")
   taxAmount        Decimal       @default(0) @db.Decimal(12, 2)

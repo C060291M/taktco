@@ -18,7 +18,7 @@ export default async function InvoicesPage() {
   const companyId = ctx.company.id;
 
   const [invoices, customers, jobs] = await Promise.all([
-    db.invoice.findMany({ where: { companyId }, include: { customer: true }, orderBy: { createdAt: "desc" } }),
+    db.invoice.findMany({ where: { companyId, deletedAt: null }, include: { customer: true }, orderBy: { createdAt: "desc" } }),
     db.customer.findMany({ where: { companyId, deletedAt: null }, orderBy: { name: "asc" } }),
     db.job.findMany({ where: { companyId }, include: { customer: true }, orderBy: { createdAt: "desc" } })
   ]);

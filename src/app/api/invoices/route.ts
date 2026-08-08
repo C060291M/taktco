@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
+import { claimNextInvoiceNumber } from "@/lib/documentNumbers";
 
 const lineItemSchema = z.object({
   description: z.string().min(1),
@@ -27,7 +28,7 @@ export async function GET() {
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const invoices = await db.invoice.findMany({
-    where: { companyId: ctx.company.id },
+    where: { companyId: ctx.company.id, deletedAt: null },
     include: { customer: true, payments: true },
     orderBy: { createdAt: "desc" }
   });
@@ -48,8 +49,7 @@ export async function POST(req: NextRequest) {
   const total = subtotal + tax - discount;
   if (total <= 0) return NextResponse.json({ error: "Invoice total must be greater than zero." }, { status: 400 });
 
-  const invoiceCount = await db.invoice.count({ where: { companyId: ctx.company.id } });
-  const invoiceNumber = `INV-${String(invoiceCount + 1).padStart(4, "0")}`;
+  const invoiceNumber = await claimNextInvoiceNumber(ctx.company.id);
 
   const invoice = await db.invoice.create({
     data: {

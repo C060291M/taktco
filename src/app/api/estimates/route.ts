@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
+import { claimNextEstimateNumber } from "@/lib/documentNumbers";
 
 const lineItemSchema = z.object({
   description: z.string().min(1),
@@ -42,11 +43,13 @@ export async function POST(req: NextRequest) {
   if (!customer) return NextResponse.json({ error: "Customer not found." }, { status: 404 });
 
   const total = parsed.data.lineItems.reduce((sum, li) => sum + li.qty * li.unitPrice, 0);
+  const estimateNumber = await claimNextEstimateNumber(ctx.company.id);
 
   const estimate = await db.estimate.create({
     data: {
       companyId: ctx.company.id,
       customerId: customer.id,
+      estimateNumber,
       lineItems: parsed.data.lineItems,
       totalAmount: total,
       warranty: parsed.data.warranty,

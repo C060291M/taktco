@@ -38,6 +38,7 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
         <div className="pt-2 pb-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-white">For {estimate.customer.name}</h1>
+            {estimate.estimateNumber && <p className="text-xs text-graphite-500">#{estimate.estimateNumber}</p>}
             <p className="text-sm text-graphite-400">Status: {estimate.status.replace("_", " ")}</p>
           </div>
           <div className="flex gap-2">
