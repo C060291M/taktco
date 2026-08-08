@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 
@@ -31,6 +31,17 @@ export function AiSettingsPanel({
   const [testing, setTesting] = useState(false);
   const [status, setStatus] = useState(initial.connectionStatus);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Same fix as PricingMatrixClient - router.refresh() alone doesn't
+  // re-sync state that was only seeded from props on first mount.
+  // apiKey/model deliberately excluded - they're never sent back from the
+  // server (hasKeyStored is a boolean, not the real key), so they should
+  // stay whatever the user is actively typing, not get reset by a refresh.
+  useEffect(() => {
+    setMode(initial.mode);
+    setProvider(initial.byoaiProvider || "ANTHROPIC");
+    setStatus(initial.connectionStatus);
+  }, [initial]);
 
   const remaining = wallet ? wallet.includedCredits - wallet.usedThisCycle + wallet.purchasedCredits : 500;
   const total = wallet ? wallet.includedCredits + wallet.purchasedCredits : 500;

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 
@@ -17,6 +17,10 @@ export function VerificationPanel({ initial, isOwner }: { initial: CompanyPaymen
   const [legalBusinessName, setLegalBusinessName] = useState(initial.legalBusinessName || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Same fix as PricingMatrixClient - router.refresh() alone doesn't
+  // re-sync state that was only seeded from props on first mount.
+  useEffect(() => { setInfo(initial); setLegalBusinessName(initial.legalBusinessName || ""); }, [initial]);
 
   // When Stripe is configured server-side, the API returns a redirectUrl to
   // Stripe's real hosted onboarding - EIN/SSN and bank details are collected

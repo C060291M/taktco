@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 
@@ -16,6 +16,14 @@ export function MarketingProfileForm({
   const [audience, setAudience] = useState(initial.targetAudience || "");
   const [reviewLink, setReviewLink] = useState(initial.googleReviewLink || "");
   const [saving, setSaving] = useState(false);
+
+  // Same fix as PricingMatrixClient - router.refresh() alone doesn't
+  // re-sync state that was only seeded from props on first mount.
+  useEffect(() => {
+    setVoice(initial.brandVoice || "Professional");
+    setAudience(initial.targetAudience || "");
+    setReviewLink(initial.googleReviewLink || "");
+  }, [initial]);
 
   async function save() {
     setSaving(true);

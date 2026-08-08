@@ -1,8 +1,8 @@
 "use client";
-import { useState, Fragment } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
-import { ChevronDown, ChevronRight, Star, Trash2, Copy, Plus, Download, Upload, Search, Pencil } from "lucide-react";
+import { ChevronDown, ChevronRight, Star, Trash2, Copy, Plus, Download, Upload, Search, Pencil, GripVertical } from "lucide-react";
 import { ItemFormModal } from "@/features/settings/ItemFormModal";
 
 type Item = {
@@ -22,6 +22,16 @@ export function PricingMatrixClient({
   const toast = useToast();
   const [categories, setCategories] = useState(initialCategories);
   const [questions, setQuestions] = useState(initialQuestions);
+
+  // router.refresh() re-fetches the server component and gives this
+  // component fresh initialCategories/initialQuestions props - but since
+  // categories/questions are local state seeded ONLY on first mount,
+  // React never re-syncs them on its own when props change on a later
+  // render. Without this, every save (edit, add-on, favorite, price
+  // change, etc.) silently updated the database but left the screen
+  // showing stale data until a full manual page reload forced a remount.
+  useEffect(() => { setCategories(initialCategories); }, [initialCategories]);
+  useEffect(() => { setQuestions(initialQuestions); }, [initialQuestions]);
   const [modal, setModal] = useState<
     | { mode: "create"; categoryId: string }
     | { mode: "add-on"; categoryId: string; parentItemId: string; parentItemName: string }
@@ -116,6 +126,49 @@ export function PricingMatrixClient({
       next.has(itemId) ? next.delete(itemId) : next.add(itemId);
       return next;
     });
+  }
+
+  // Plain native HTML5 drag-and-drop, deliberately not a library - no new
+  // dependency, so no package-lock sync risk. Reordering is scoped to
+  // top-level items within a single category; dragging across categories
+  // or reordering add-ons isn't supported here.
+  const [draggedItem, setDraggedItem] = useState<{ categoryId: string; itemId: string } | null>(null);
+
+  function handleDragStart(categoryId: string, itemId: string) {
+    setDraggedItem({ categoryId, itemId });
+  }
+
+  async function handleDrop(categoryId: string, targetItemId: string) {
+    if (!draggedItem || draggedItem.categoryId !== categoryId || draggedItem.itemId === targetItemId) {
+      setDraggedItem(null);
+      return;
+    }
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category) { setDraggedItem(null); return; }
+
+    const itemIds = category.items.map((i) => i.id);
+    const fromIndex = itemIds.indexOf(draggedItem.itemId);
+    const toIndex = itemIds.indexOf(targetItemId);
+    if (fromIndex === -1 || toIndex === -1) { setDraggedItem(null); return; }
+
+    const reordered = [...itemIds];
+    reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, draggedItem.itemId);
+
+    // Optimistic local reorder so the UI updates instantly, then persist.
+    setCategories((prev) => prev.map((c) => {
+      if (c.id !== categoryId) return c;
+      const itemById = new Map(c.items.map((i) => [i.id, i]));
+      return { ...c, items: reordered.map((id) => itemById.get(id)!) };
+    }));
+    setDraggedItem(null);
+
+    const res = await fetch("/api/pricing/items/reorder", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categoryId, orderedItemIds: reordered })
+    });
+    if (res.ok) refresh();
+    else toast.error("Couldn't save the new order.");
   }
 
   async function updateItemPrice(item: Item, newPrice: number) {
@@ -358,17 +411,34 @@ export function PricingMatrixClient({
                               </button>
                             </td>
                             <td className="py-2 px-2 text-graphite-100">
-                              <span className="flex items-center gap-1">
-                                {item.addOns && item.addOns.length > 0 && (
-                                  <button onClick={() => toggleAddOnsExpanded(item.id)} className="text-graphite-500 hover:text-white">
-                                    {expandedAddOns.has(item.id) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                                  </button>
+                              <div>
+                                <span className="flex items-center gap-1">
+                                  {canManage && (
+                                    <span
+                                      draggable
+                                      onDragStart={() => handleDragStart(category.id, item.id)}
+                                      onDragOver={(e) => e.preventDefault()}
+                                      onDrop={() => handleDrop(category.id, item.id)}
+                                      className="text-graphite-600 hover:text-graphite-400 cursor-grab active:cursor-grabbing"
+                                      title="Drag to reorder"
+                                    >
+                                      <GripVertical size={13} />
+                                    </span>
+                                  )}
+                                  {item.addOns && item.addOns.length > 0 && (
+                                    <button onClick={() => toggleAddOnsExpanded(item.id)} className="text-graphite-500 hover:text-white">
+                                      {expandedAddOns.has(item.id) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                    </button>
+                                  )}
+                                  {item.name}
+                                  {item.addOns && item.addOns.length > 0 && (
+                                    <span className="text-graphite-500 text-[11px]">({item.addOns.length} add-on{item.addOns.length === 1 ? "" : "s"})</span>
+                                  )}
+                                </span>
+                                {item.description && (
+                                  <p className="text-[11px] text-graphite-500 pl-5 mt-0.5">{item.description}</p>
                                 )}
-                                {item.name}
-                                {item.addOns && item.addOns.length > 0 && (
-                                  <span className="text-graphite-500 text-[11px]">({item.addOns.length} add-on{item.addOns.length === 1 ? "" : "s"})</span>
-                                )}
-                              </span>
+                              </div>
                             </td>
                             <td className="py-2 px-2 text-graphite-400 text-xs">{item.unit}</td>
                             <td className="py-2 px-2 text-graphite-200 text-right">
