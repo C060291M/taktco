@@ -393,6 +393,11 @@ model Estimate {
   customerId     String
   customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   estimateNumber String?
+  // Soft delete, same pattern as Customer/Job/Invoice - an approved
+  // estimate can be linked to a Job with no cascade rule, so a hard delete
+  // would risk being blocked or destroying real downstream records.
+  // Filtered out of active lists/lookups once set.
+  deletedAt      DateTime?
   status         EstimateStatus @default(DRAFT)
   totalAmount    Decimal        @default(0) @db.Decimal(12, 2)
   lineItems      Json           @default("[]")

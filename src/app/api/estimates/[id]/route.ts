@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const estimate = await db.estimate.findFirst({
-    where: { id: params.id, companyId: ctx.company.id },
+    where: { id: params.id, companyId: ctx.company.id, deletedAt: null },
     include: { customer: true, job: true }
   });
   if (!estimate) return NextResponse.json({ error: "Not found." }, { status: 404 });
@@ -45,4 +45,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   return NextResponse.json(updated);
+}
+
+// Soft delete - see schema comment on Estimate.deletedAt. Owner/Admin only;
+// nothing about a linked Job or Contract is touched or destroyed.
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const ctx = await requireSession();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Only owners and admins can delete estimates." }, { status: 403 });
+  }
+
+  const estimate = await db.estimate.findFirst({ where: { id: params.id, companyId: ctx.company.id, deletedAt: null } });
+  if (!estimate) return NextResponse.json({ error: "Not found." }, { status: 404 });
+
+  await db.estimate.update({ where: { id: estimate.id }, data: { deletedAt: new Date() } });
+  return NextResponse.json({ ok: true });
 }

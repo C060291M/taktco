@@ -25,7 +25,7 @@ export async function GET() {
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const estimates = await db.estimate.findMany({
-    where: { companyId: ctx.company.id },
+    where: { companyId: ctx.company.id, deletedAt: null },
     include: { customer: true },
     orderBy: { createdAt: "desc" }
   });

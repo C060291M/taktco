@@ -2,6 +2,7 @@ import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { EstimateActions } from "@/features/estimates/EstimateActions";
+import { DeleteEstimateButton } from "@/features/estimates/DeleteEstimateButton";
 import { CopyPublicLink } from "@/features/estimates/CopyPublicLink";
 import { BrandedDocumentHeader } from "@/components/layout/BrandedDocumentHeader";
 import { PrintButton } from "@/components/ui/PrintButton";
@@ -18,7 +19,7 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
   if (!ctx) redirect("/login");
 
   const estimate = await db.estimate.findFirst({
-    where: { id: params.id, companyId: ctx.company.id },
+    where: { id: params.id, companyId: ctx.company.id, deletedAt: null },
     include: { customer: true, job: true }
   });
   if (!estimate) notFound();
@@ -44,6 +45,9 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
           <div className="flex gap-2">
             <PrintButton />
             <CopyPublicLink token={estimate.approvalToken} />
+            {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+              <DeleteEstimateButton estimateId={estimate.id} estimateNumber={estimate.estimateNumber} />
+            )}
           </div>
         </div>
         <table className="w-full text-sm">
