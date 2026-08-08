@@ -192,6 +192,7 @@ model Company {
   // with it again). These counters only ever go up, even across deletions.
   nextInvoiceNumber  Int      @default(1)
   nextEstimateNumber Int      @default(1)
+  nextLeadNumber     Int      @default(1)
   // Business Rules (Phase 9.5) - fed into the AI estimate prompt alongside
   // the Pricing Matrix. Deliberately a small, real set rather than a full
   // rate-multiplier engine (no commercial/residential/overtime/emergency
@@ -342,6 +343,7 @@ model Customer {
 
 model Lead {
   id             String    @id @default(cuid())
+  leadNumber     Int
   companyId      String
   company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   customerId     String
@@ -361,6 +363,8 @@ model Lead {
   nextFollowupAt DateTime?
 
   tasks       Task[]
+
+  @@unique([companyId, leadNumber])
   followUps   FollowUp[]
   attachments Attachment[]
   noteEntries Note[]
@@ -1559,3 +1563,12 @@ model EstimatingQuestion {
 
   @@index([companyId])
 }
+
+
+
+
+
+
+
+
+

@@ -4,6 +4,7 @@ import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { runTrigger } from "@/lib/automationEngine";
 import { notify } from "@/lib/notify";
+import { claimNextLeadNumber } from "@/lib/documentNumbers";
 
 const schema = z.object({
   name: z.string().min(1),
@@ -56,11 +57,13 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Invalid customer data." }, { status: 400 });
 
+  const leadNumber = await claimNextLeadNumber(ctx.company.id);
+
   const customer = await db.customer.create({
     data: {
       companyId: ctx.company.id,
       ...parsed.data,
-      leads: { create: { companyId: ctx.company.id, pipelineStage: "NEW_LEAD", source: parsed.data.source } }
+      leads: { create: { companyId: ctx.company.id, leadNumber, pipelineStage: "NEW_LEAD", source: parsed.data.source } }
     }
   });
 
@@ -81,3 +84,6 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(customer, { status: 201 });
 }
+
+
+

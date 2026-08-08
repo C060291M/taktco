@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
+import { claimNextLeadNumber } from "@/lib/documentNumbers";
 
 const STAGES = [
   "NEW_LEAD",
@@ -51,9 +52,12 @@ export async function POST(req: NextRequest) {
   const customer = await db.customer.findFirst({ where: { id: parsed.data.customerId, companyId: ctx.company.id } });
   if (!customer) return NextResponse.json({ error: "Customer not found." }, { status: 404 });
 
+  const leadNumber = await claimNextLeadNumber(ctx.company.id);
+
   const lead = await db.lead.create({
     data: {
       companyId: ctx.company.id,
+      leadNumber,
       customerId: customer.id,
       source: parsed.data.source,
       notes: parsed.data.notes,
@@ -98,3 +102,5 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json(updated);
 }
+
+

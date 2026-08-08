@@ -4,6 +4,7 @@ import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { runTrigger } from "@/lib/automationEngine";
 import { notify } from "@/lib/notify";
+import { claimNextLeadNumber } from "@/lib/documentNumbers";
 
 const schema = z.object({
   referringCustomerId: z.string(),
@@ -25,6 +26,8 @@ export async function POST(req: NextRequest) {
   const referrer = await db.customer.findFirst({ where: { id: parsed.data.referringCustomerId, companyId: ctx.company.id } });
   if (!referrer) return NextResponse.json({ error: "Customer not found." }, { status: 404 });
 
+  const leadNumber = await claimNextLeadNumber(ctx.company.id);
+
   const newCustomer = await db.customer.create({
     data: {
       companyId: ctx.company.id,
@@ -32,7 +35,7 @@ export async function POST(req: NextRequest) {
       phone: parsed.data.referredPhone,
       email: parsed.data.referredEmail || undefined,
       source: `Referral from ${referrer.name}`,
-      leads: { create: { companyId: ctx.company.id, pipelineStage: "NEW_LEAD", source: `Referral from ${referrer.name}` } }
+      leads: { create: { companyId: ctx.company.id, leadNumber, pipelineStage: "NEW_LEAD", source: `Referral from ${referrer.name}` } }
     },
     include: { leads: true }
   });
@@ -59,3 +62,6 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(referral, { status: 201 });
 }
+
+
+

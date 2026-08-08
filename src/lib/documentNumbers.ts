@@ -25,3 +25,12 @@ export async function claimNextEstimateNumber(companyId: string): Promise<string
   const claimed = company.nextEstimateNumber - 1;
   return `EST-${String(claimed).padStart(4, "0")}`;
 }
+
+export async function claimNextLeadNumber(companyId: string): Promise<number> {
+  const company = await db.company.update({
+    where: { id: companyId },
+    data: { nextLeadNumber: { increment: 1 } },
+    select: { nextLeadNumber: true }
+  });
+  return company.nextLeadNumber - 1;
+}

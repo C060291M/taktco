@@ -40,6 +40,7 @@ async function main() {
       leads: {
         create: {
           companyId: company.id,
+          leadNumber: 1,
           pipelineStage: "ESTIMATE_SENT",
           assignedUserId: owner.id,
           source: "Website form",
@@ -60,6 +61,7 @@ async function main() {
       leads: {
         create: {
           companyId: company.id,
+          leadNumber: 2,
           pipelineStage: "NEW_LEAD",
           assignedUserId: owner.id,
           source: "Referral"
@@ -140,3 +142,6 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
+
