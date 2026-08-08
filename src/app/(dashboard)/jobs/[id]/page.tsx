@@ -7,6 +7,7 @@ import { ChangeOrdersPanel } from "@/features/jobs/ChangeOrdersPanel";
 import { DailyLogPanel } from "@/features/jobs/DailyLogPanel";
 import { PunchListPanel } from "@/features/jobs/PunchListPanel";
 import { CrewAndStatus } from "@/features/jobs/CrewAndStatus";
+import { DeleteJobButton } from "@/features/jobs/DeleteJobButton";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -27,7 +28,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
   const [job, teamMembers, dailyLogs] = await Promise.all([
     db.job.findFirst({
-      where: { id: params.id, companyId: ctx.company.id },
+      where: { id: params.id, companyId: ctx.company.id, deletedAt: null },
       include: { customer: true, photos: true, invoices: true, estimate: true, changeOrders: true, punchListItems: true }
     }),
     db.user.findMany({ where: { companyId: ctx.company.id }, select: { id: true, name: true } }),
@@ -37,9 +38,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Job for {job.customer.name}</h1>
-        <Badge color={job.status === "COMPLETE" || job.status === "CLOSED" ? "green" : "yellow"}>{job.status.replace(/_/g, " ")}</Badge>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-white">Job for {job.customer.name}</h1>
+          <Badge color={job.status === "COMPLETE" || job.status === "CLOSED" ? "green" : "yellow"}>{job.status.replace(/_/g, " ")}</Badge>
+        </div>
+        {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+          <DeleteJobButton jobId={job.id} customerName={job.customer.name} />
+        )}
       </div>
 
       <div className="card p-5 grid grid-cols-2 gap-4">

@@ -82,3 +82,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   return NextResponse.json(updated);
 }
+
+// Soft delete - see schema comment on Job.deletedAt. Owner/Admin only;
+// nothing about the job's real history (logs, photos, punch list,
+// invoices) is touched or destroyed.
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const ctx = await requireSession();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Only owners and admins can delete projects." }, { status: 403 });
+  }
+
+  const job = await db.job.findFirst({ where: { id: params.id, companyId: ctx.company.id, deletedAt: null } });
+  if (!job) return NextResponse.json({ error: "Not found." }, { status: 404 });
+
+  await db.job.update({ where: { id: job.id }, data: { deletedAt: new Date() } });
+  return NextResponse.json({ ok: true });
+}

@@ -417,6 +417,12 @@ model Job {
   company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   customerId      String
   customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  // Soft delete, same pattern as Customer/Invoice - a Job has real
+  // operational history hanging off it (daily logs, photos, punch list,
+  // crew assignments) and invoices reference it with no cascade rule, so a
+  // hard delete would either fail outright or silently destroy months of
+  // real records. Filtered out of active lists/lookups once set.
+  deletedAt       DateTime?
   estimateId      String?   @unique
   estimate        Estimate? @relation(fields: [estimateId], references: [id])
   status          JobStatus @default(SCHEDULED)

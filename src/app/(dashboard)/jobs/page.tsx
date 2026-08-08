@@ -8,7 +8,7 @@ export default async function JobsPage() {
   if (!ctx) redirect("/login");
 
   const jobs = await db.job.findMany({
-    where: { companyId: ctx.company.id },
+    where: { companyId: ctx.company.id, deletedAt: null },
     include: { customer: true },
     orderBy: { createdAt: "desc" }
   });

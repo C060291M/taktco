@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/ui/StatCard";
 import { PayButton } from "@/features/invoices/PayButton";
+import { DeleteInvoiceButton } from "@/features/invoices/DeleteInvoiceButton";
 import { NewInvoiceForm } from "@/features/invoices/NewInvoiceForm";
 import { DollarSign, AlertCircle, Clock } from "lucide-react";
 
@@ -96,8 +97,11 @@ export default async function InvoicesPage() {
                     {inv.status.replace(/_/g, " ")}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                   {inv.status !== "PAID" && <PayButton invoiceId={inv.id} disabled={!ctx.company.payoutsEnabled} />}
+                  {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+                    <DeleteInvoiceButton invoiceId={inv.id} invoiceNumber={inv.invoiceNumber} redirectAfterDelete={false} />
+                  )}
                 </td>
               </tr>
             ))}
