@@ -13,7 +13,13 @@ export default async function PricingMatrixPage() {
     db.pricingCategory.findMany({
       where: { companyId: ctx.company.id },
       orderBy: { displayOrder: "asc" },
-      include: { items: { orderBy: { displayOrder: "asc" } } }
+      include: {
+        items: {
+          where: { parentItemId: null },
+          orderBy: { displayOrder: "asc" },
+          include: { addOns: { orderBy: { displayOrder: "asc" } } }
+        }
+      }
     }),
     db.estimatingQuestion.findMany({ where: { companyId: ctx.company.id }, orderBy: { displayOrder: "asc" } })
   ]);

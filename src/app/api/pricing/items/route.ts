@@ -55,7 +55,8 @@ const schema = z.object({
   maxCharge: z.number().nonnegative().optional(),
   taxable: z.boolean().optional(),
   notes: z.string().optional(),
-  customFields: z.record(z.string()).optional()
+  customFields: z.record(z.string()).optional(),
+  parentItemId: z.string().optional() // set to create this item as an add-on of another
 });
 
 export async function POST(req: NextRequest) {
@@ -67,6 +68,11 @@ export async function POST(req: NextRequest) {
 
   const category = await db.pricingCategory.findFirst({ where: { id: parsed.data.categoryId, companyId: ctx.company.id } });
   if (!category) return NextResponse.json({ error: "Category not found." }, { status: 404 });
+
+  if (parsed.data.parentItemId) {
+    const parent = await db.pricingItem.findFirst({ where: { id: parsed.data.parentItemId, companyId: ctx.company.id } });
+    if (!parent) return NextResponse.json({ error: "Parent item not found." }, { status: 404 });
+  }
 
   const count = await db.pricingItem.count({ where: { companyId: ctx.company.id } });
   const item = await db.pricingItem.create({
@@ -84,6 +90,7 @@ export async function POST(req: NextRequest) {
       taxable: parsed.data.taxable ?? true,
       notes: parsed.data.notes,
       customFields: parsed.data.customFields ?? {},
+      parentItemId: parsed.data.parentItemId,
       displayOrder: count,
       createdByName: ctx.user.name
     }

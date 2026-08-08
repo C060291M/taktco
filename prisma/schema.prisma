@@ -1478,6 +1478,14 @@ model PricingItem {
   // and still passed to the AI.
   customFields   Json                  @default("{}")
   createdByName  String?
+  // Add-ons: optional sub-items attached to a parent item (e.g. "Gate
+  // Installation" as an add-on of "Fence Installation"). An add-on is a
+  // full, independent PricingItem in its own right - same fields, same AI
+  // visibility, same editability - just also nested under a parent for
+  // display, and optionally suggested alongside it.
+  parentItemId   String?
+  parentItem     PricingItem?          @relation("ItemAddOns", fields: [parentItemId], references: [id], onDelete: Cascade)
+  addOns         PricingItem[]         @relation("ItemAddOns")
   history        PricingItemHistory[]
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt

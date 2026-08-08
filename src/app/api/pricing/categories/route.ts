@@ -20,7 +20,13 @@ export async function GET() {
   const categories = await db.pricingCategory.findMany({
     where: { companyId: ctx.company.id },
     orderBy: { displayOrder: "asc" },
-    include: { items: { orderBy: { displayOrder: "asc" } } }
+    include: {
+      items: {
+        where: { parentItemId: null }, // top-level items only - add-ons come nested below, not as flat siblings
+        orderBy: { displayOrder: "asc" },
+        include: { addOns: { orderBy: { displayOrder: "asc" } } }
+      }
+    }
   });
   return NextResponse.json(categories);
 }

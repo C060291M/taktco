@@ -1,12 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
-import { ChevronDown, Star, Trash2, Copy, Plus, Download, Upload, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Star, Trash2, Copy, Plus, Download, Upload, Search, Pencil } from "lucide-react";
+import { ItemFormModal } from "@/features/settings/ItemFormModal";
 
 type Item = {
   id: string; name: string; description: string | null; unit: string; price: string | number;
+  cost: string | number | null; markupPercent: string | number | null;
+  minCharge: string | number | null; maxCharge: string | number | null;
   taxable: boolean; active: boolean; favorite: boolean; notes: string | null; categoryId: string;
+  addOns?: Item[];
 };
 type Category = { id: string; name: string; description: string | null; active: boolean; items: Item[] };
 type Question = { id: string; question: string; answerType: string; active: boolean };
@@ -18,6 +22,13 @@ export function PricingMatrixClient({
   const toast = useToast();
   const [categories, setCategories] = useState(initialCategories);
   const [questions, setQuestions] = useState(initialQuestions);
+  const [modal, setModal] = useState<
+    | { mode: "create"; categoryId: string }
+    | { mode: "add-on"; categoryId: string; parentItemId: string; parentItemName: string }
+    | { mode: "edit"; item: Item }
+    | null
+  >(null);
+  const [expandedAddOns, setExpandedAddOns] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<Set<string>>(new Set(initialCategories.map((c) => c.id)));
   const [search, setSearch] = useState("");
   const [loadingTemplate, setLoadingTemplate] = useState(false);
@@ -90,18 +101,21 @@ export function PricingMatrixClient({
     else toast.error("Couldn't add category");
   }
 
-  async function addItem(categoryId: string) {
-    const name = prompt("Item name:");
-    if (!name) return;
-    const unit = prompt("Unit (e.g. each, hour, linear foot):", "each") || "each";
-    const priceStr = prompt("Price:", "0") || "0";
-    const price = Number(priceStr);
-    if (isNaN(price)) { toast.error("Invalid price"); return; }
-    const res = await fetch("/api/pricing/items", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ categoryId, name, unit, price })
+  function addItem(categoryId: string) {
+    setModal({ mode: "create", categoryId });
+  }
+  function addAddOn(categoryId: string, parentItemId: string, parentItemName: string) {
+    setModal({ mode: "add-on", categoryId, parentItemId, parentItemName });
+  }
+  function editItem(item: Item) {
+    setModal({ mode: "edit", item });
+  }
+  function toggleAddOnsExpanded(itemId: string) {
+    setExpandedAddOns((prev) => {
+      const next = new Set(prev);
+      next.has(itemId) ? next.delete(itemId) : next.add(itemId);
+      return next;
     });
-    if (res.ok) { toast.success("Item added"); refresh(); }
-    else toast.error("Couldn't add item");
   }
 
   async function updateItemPrice(item: Item, newPrice: number) {
@@ -323,50 +337,95 @@ export function PricingMatrixClient({
                   <table className="w-full text-sm">
                     <tbody>
                       {category.items.map((item) => (
-                        <tr key={item.id} className={`border-b border-graphite-700 last:border-0 ${!item.active ? "opacity-50" : ""}`}>
-                          {canManage && (
-                            <td className="pl-4 py-2 w-6">
-                              <input
-                                type="checkbox"
-                                checked={selectedItems.has(item.id)}
-                                onChange={() => setSelectedItems((prev) => {
-                                  const next = new Set(prev);
-                                  next.has(item.id) ? next.delete(item.id) : next.add(item.id);
-                                  return next;
-                                })}
-                              />
-                            </td>
-                          )}
-                          <td className="py-2 pl-2">
-                            <button onClick={() => canManage && toggleFavorite(item)} className="text-graphite-500 hover:text-amber-400">
-                              <Star size={13} fill={item.favorite ? "currentColor" : "none"} className={item.favorite ? "text-amber-400" : ""} />
-                            </button>
-                          </td>
-                          <td className="py-2 px-2 text-graphite-100">{item.name}</td>
-                          <td className="py-2 px-2 text-graphite-400 text-xs">{item.unit}</td>
-                          <td className="py-2 px-2 text-graphite-200 text-right">
-                            {canManage ? (
-                              <input
-                                className="input w-24 text-right text-xs py-1"
-                                type="number"
-                                defaultValue={Number(item.price)}
-                                onBlur={(e) => {
-                                  const val = Number(e.target.value);
-                                  if (!isNaN(val) && val !== Number(item.price)) updateItemPrice(item, val);
-                                }}
-                              />
-                            ) : (
-                              `$${Number(item.price).toLocaleString()}`
+                        <Fragment key={item.id}>
+                          <tr key={item.id} className={`border-b border-graphite-700 last:border-0 ${!item.active ? "opacity-50" : ""}`}>
+                            {canManage && (
+                              <td className="pl-4 py-2 w-6">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.has(item.id)}
+                                  onChange={() => setSelectedItems((prev) => {
+                                    const next = new Set(prev);
+                                    next.has(item.id) ? next.delete(item.id) : next.add(item.id);
+                                    return next;
+                                  })}
+                                />
+                              </td>
                             )}
-                          </td>
-                          {canManage && (
-                            <td className="py-2 px-2 text-right space-x-2 whitespace-nowrap">
-                              <button className="text-graphite-500 hover:text-white" onClick={() => toggleItemActive(item)}>{item.active ? "Deactivate" : "Activate"}</button>
-                              <button className="text-graphite-500 hover:text-white" onClick={() => duplicateItem(item)}><Copy size={13} /></button>
-                              <button className="text-graphite-500 hover:text-red-400" onClick={() => deleteItem(item)}><Trash2 size={13} /></button>
+                            <td className="py-2 pl-2">
+                              <button onClick={() => canManage && toggleFavorite(item)} className="text-graphite-500 hover:text-amber-400">
+                                <Star size={13} fill={item.favorite ? "currentColor" : "none"} className={item.favorite ? "text-amber-400" : ""} />
+                              </button>
                             </td>
-                          )}
-                        </tr>
+                            <td className="py-2 px-2 text-graphite-100">
+                              <span className="flex items-center gap-1">
+                                {item.addOns && item.addOns.length > 0 && (
+                                  <button onClick={() => toggleAddOnsExpanded(item.id)} className="text-graphite-500 hover:text-white">
+                                    {expandedAddOns.has(item.id) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                  </button>
+                                )}
+                                {item.name}
+                                {item.addOns && item.addOns.length > 0 && (
+                                  <span className="text-graphite-500 text-[11px]">({item.addOns.length} add-on{item.addOns.length === 1 ? "" : "s"})</span>
+                                )}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 text-graphite-400 text-xs">{item.unit}</td>
+                            <td className="py-2 px-2 text-graphite-200 text-right">
+                              {canManage ? (
+                                <input
+                                  className="input w-24 text-right text-xs py-1"
+                                  type="number"
+                                  defaultValue={Number(item.price)}
+                                  onBlur={(e) => {
+                                    const val = Number(e.target.value);
+                                    if (!isNaN(val) && val !== Number(item.price)) updateItemPrice(item, val);
+                                  }}
+                                />
+                              ) : (
+                                `$${Number(item.price).toLocaleString()}`
+                              )}
+                            </td>
+                            {canManage && (
+                              <td className="py-2 px-2 text-right space-x-2 whitespace-nowrap">
+                                <button className="text-graphite-500 hover:text-white" onClick={() => editItem(item)} title="Edit all fields"><Pencil size={13} /></button>
+                                <button className="text-graphite-500 hover:text-white text-[11px]" onClick={() => addAddOn(item.categoryId, item.id, item.name)}>+ Add-on</button>
+                                <button className="text-graphite-500 hover:text-white" onClick={() => toggleItemActive(item)}>{item.active ? "Deactivate" : "Activate"}</button>
+                                <button className="text-graphite-500 hover:text-white" onClick={() => duplicateItem(item)}><Copy size={13} /></button>
+                                <button className="text-graphite-500 hover:text-red-400" onClick={() => deleteItem(item)}><Trash2 size={13} /></button>
+                              </td>
+                            )}
+                          </tr>
+                          {expandedAddOns.has(item.id) && item.addOns?.map((addOn) => (
+                            <tr key={addOn.id} className={`border-b border-graphite-700 last:border-0 bg-graphite-800/30 ${!addOn.active ? "opacity-50" : ""}`}>
+                              {canManage && <td />}
+                              <td />
+                              <td className="py-1.5 pl-6 text-graphite-300 text-xs">↳ {addOn.name}</td>
+                              <td className="py-1.5 px-2 text-graphite-500 text-xs">{addOn.unit}</td>
+                              <td className="py-1.5 px-2 text-graphite-300 text-xs text-right">
+                                {canManage ? (
+                                  <input
+                                    className="input w-24 text-right text-xs py-1"
+                                    type="number"
+                                    defaultValue={Number(addOn.price)}
+                                    onBlur={(e) => {
+                                      const val = Number(e.target.value);
+                                      if (!isNaN(val) && val !== Number(addOn.price)) updateItemPrice(addOn, val);
+                                    }}
+                                  />
+                                ) : (
+                                  `$${Number(addOn.price).toLocaleString()}`
+                                )}
+                              </td>
+                              {canManage && (
+                                <td className="py-1.5 px-2 text-right space-x-2 whitespace-nowrap">
+                                  <button className="text-graphite-500 hover:text-white" onClick={() => editItem(addOn)} title="Edit all fields"><Pencil size={12} /></button>
+                                  <button className="text-graphite-500 hover:text-red-400" onClick={() => deleteItem(addOn)}><Trash2 size={12} /></button>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        </Fragment>
                       ))}
                     </tbody>
                   </table>
@@ -401,6 +460,40 @@ export function PricingMatrixClient({
           </div>
         )}
       </div>
+
+      {modal?.mode === "create" && (
+        <ItemFormModal mode="create" categoryId={modal.categoryId} onClose={() => setModal(null)} onSaved={refresh} />
+      )}
+      {modal?.mode === "add-on" && (
+        <ItemFormModal
+          mode="add-on"
+          categoryId={modal.categoryId}
+          parentItemId={modal.parentItemId}
+          parentItemName={modal.parentItemName}
+          onClose={() => setModal(null)}
+          onSaved={refresh}
+        />
+      )}
+      {modal?.mode === "edit" && (
+        <ItemFormModal
+          mode="edit"
+          initial={{
+            id: modal.item.id,
+            name: modal.item.name,
+            description: modal.item.description,
+            unit: modal.item.unit,
+            price: Number(modal.item.price),
+            cost: modal.item.cost !== null ? Number(modal.item.cost) : null,
+            markupPercent: modal.item.markupPercent !== null ? Number(modal.item.markupPercent) : null,
+            minCharge: modal.item.minCharge !== null ? Number(modal.item.minCharge) : null,
+            maxCharge: modal.item.maxCharge !== null ? Number(modal.item.maxCharge) : null,
+            taxable: modal.item.taxable,
+            notes: modal.item.notes
+          }}
+          onClose={() => setModal(null)}
+          onSaved={refresh}
+        />
+      )}
     </div>
   );
 }
