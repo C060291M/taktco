@@ -24,6 +24,13 @@ export function LeadQuickActions({
   const [assignee, setAssignee] = useState(assignedUserId || "");
   const [busy, setBusy] = useState(false);
 
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sendSuccess, setSendSuccess] = useState(false);
+
   async function patch(body: Record<string, unknown>) {
     setBusy(true);
     await fetch(`/api/leads/${leadId}`, {
@@ -53,6 +60,30 @@ export function LeadQuickActions({
     router.push("/pipeline");
   }
 
+  async function sendEmail() {
+    setSending(true);
+    setSendError(null);
+    const res = await fetch(`/api/leads/${leadId}/send-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subject, body })
+    });
+    const result = await res.json();
+    setSending(false);
+    if (res.ok && result.sent) {
+      setSendSuccess(true);
+      setTimeout(() => {
+        setComposeOpen(false);
+        setSendSuccess(false);
+        setSubject("");
+        setBody("");
+        router.refresh();
+      }, 1200);
+    } else {
+      setSendError(result.reason || result.error || "Send failed.");
+    }
+  }
+
   return (
     <div className="card p-4 flex flex-wrap items-center gap-2">
       {customerPhone && (
@@ -62,8 +93,9 @@ export function LeadQuickActions({
         <a href={`sms:${customerPhone}`} className="btn-secondary text-xs">Text</a>
       )}
       {customerEmail && (
-        <a href={`mailto:${customerEmail}`} className="btn-secondary text-xs">Email</a>
+        <button className="btn-secondary text-xs" onClick={() => setComposeOpen(true)}>Email</button>
       )}
+
       <select
         className="input py-1.5 text-xs w-40"
         value={assignee}
@@ -78,6 +110,7 @@ export function LeadQuickActions({
           <option key={m.id} value={m.id}>{m.name}</option>
         ))}
       </select>
+
       <button className="btn-secondary text-xs" disabled={busy} onClick={archive}>
         Archive
       </button>
@@ -85,6 +118,40 @@ export function LeadQuickActions({
         <button className="text-xs text-red-400 hover:text-red-300 ml-auto" disabled={busy} onClick={remove}>
           Delete lead
         </button>
+      )}
+
+      {composeOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => !sending && setComposeOpen(false)}>
+          <div className="card p-5 w-full max-w-md space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-sm font-medium text-white">Email {customerEmail}</h3>
+            <input
+              className="input w-full text-sm"
+              placeholder="Subject"
+              value={subject}
+              disabled={sending}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+            <textarea
+              className="input w-full text-sm min-h-[120px]"
+              placeholder="Message"
+              value={body}
+              disabled={sending}
+              onChange={(e) => setBody(e.target.value)}
+            />
+            {sendError && <p className="text-xs text-red-400">{sendError}</p>}
+            {sendSuccess && <p className="text-xs text-teal-400">Sent!</p>}
+            <div className="flex justify-end gap-2">
+              <button className="btn-secondary text-xs" disabled={sending} onClick={() => setComposeOpen(false)}>Cancel</button>
+              <button
+                className="btn-primary text-xs"
+                disabled={sending || !subject || !body}
+                onClick={sendEmail}
+              >
+                {sending ? "Sending..." : "Send"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
