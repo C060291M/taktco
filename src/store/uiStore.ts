@@ -10,6 +10,8 @@ type UIState = {
   setCommandPaletteOpen: (open: boolean) => void;
   quickActionOpen: boolean;
   setQuickActionOpen: (open: boolean) => void;
+  breadcrumbLabels: Record<string, string>;
+  setBreadcrumbLabel: (id: string, label: string) => void;
 };
 
 // Client-only UI state (toast queue, command palette visibility). Deliberately
@@ -28,5 +30,10 @@ export const useUIStore = create<UIState>((set) => ({
   commandPaletteOpen: false,
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   quickActionOpen: false,
-  setQuickActionOpen: (open) => set({ quickActionOpen: open })
+  setQuickActionOpen: (open) => set({ quickActionOpen: open }),
+  breadcrumbLabels: {},
+  setBreadcrumbLabel: (id, label) =>
+    set((state) => ({ breadcrumbLabels: { ...state.breadcrumbLabels, [id]: label } }))
 }));
+
+

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { LeadQuickActions } from "./LeadQuickActions";
 import { LeadNotesTasks } from "./LeadNotesTasks";
+import { SetBreadcrumbLabel } from "@/components/layout/SetBreadcrumbLabel";
 
 function money(n: number | { toString(): string } | null) {
   if (n === null) return "—";
@@ -31,9 +32,11 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
 
   return (
     <div className="space-y-6 max-w-3xl">
+      <SetBreadcrumbLabel id={lead.id} label={`Lead #${String(lead.leadNumber).padStart(3, "0")}`} />
       <div>
         <Link href="/pipeline" className="text-xs text-graphite-400 hover:text-white">← Pipeline</Link>
         <div className="flex items-center gap-2 mt-2">
+          <span className="text-xs text-graphite-400 font-mono">#{String(lead.leadNumber).padStart(3, "0")}</span>
           <h1 className="text-xl font-semibold text-white">{lead.customer.name}</h1>
           <Badge color="blue">{lead.pipelineStage.replace(/_/g, " ")}</Badge>
         </div>
@@ -80,3 +83,6 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
     </div>
   );
 }
+
+
+

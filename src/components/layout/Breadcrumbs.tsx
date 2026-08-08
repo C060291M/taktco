@@ -1,6 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useUIStore } from "@/store/uiStore";
 
 const LABELS: Record<string, string> = {
   dashboard: "Command Center",
@@ -27,6 +28,7 @@ const LABELS: Record<string, string> = {
 
 export function Breadcrumbs() {
   const pathname = usePathname();
+  const breadcrumbLabels = useUIStore((s) => s.breadcrumbLabels);
   const segments = pathname.split("/").filter(Boolean);
 
   return (
@@ -34,7 +36,7 @@ export function Breadcrumbs() {
       {segments.map((seg, i) => {
         const href = "/" + segments.slice(0, i + 1).join("/");
         const isLast = i === segments.length - 1;
-        const label = LABELS[seg] || seg;
+        const label = LABELS[seg] || breadcrumbLabels[seg] || seg;
         return (
           <span key={href} className="flex items-center gap-1.5">
             {i > 0 && <span className="text-graphite-600">/</span>}
@@ -49,3 +51,6 @@ export function Breadcrumbs() {
     </nav>
   );
 }
+
+
+
