@@ -27,7 +27,8 @@ function DollarInput({ value, onChange, placeholder }: { value: string; onChange
     <div className="relative">
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-graphite-500 text-sm pointer-events-none">$</span>
       <input
-        className="input pl-6"
+        className="input"
+        style={{ paddingLeft: "1.75rem" }}
         type="number"
         step="0.01"
         placeholder={placeholder}
@@ -197,3 +198,4 @@ export function ItemFormModal({
     </div>
   );
 }
+
