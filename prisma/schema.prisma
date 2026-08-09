@@ -204,6 +204,8 @@ model Company {
   fuelCharge            Decimal? @db.Decimal(12, 2)
   travelCharge          Decimal? @db.Decimal(12, 2)
   warrantyLengthMonths  Int?
+  estimateExpirationEnabled Boolean @default(false)
+  defaultEstimateValidDays  Int     @default(30)
   defaultLateFeePercent Decimal? @db.Decimal(5, 2)
   defaultDepositPercent Decimal? @db.Decimal(5, 2)
   invoiceFooterText    String?
@@ -409,6 +411,8 @@ model Estimate {
   warranty       String?
   terms          String?
   aiGenerated    Boolean        @default(false)
+  displayMode    String         @default("ITEMIZED") // ITEMIZED | SUMMARY
+  validUntil     DateTime?
   approvalToken  String         @unique @default(cuid())
   createdAt      DateTime       @default(now())
   viewedAt       DateTime?
@@ -1605,6 +1609,8 @@ model CampaignQueueItem {
   @@index([campaignId, status])
   @@index([companyId, status])
 }
+
+
 
 
 

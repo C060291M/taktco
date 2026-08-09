@@ -21,7 +21,9 @@ const schema = z.object({
   mobilizationFee: z.number().nullable().optional(),
   fuelCharge: z.number().nullable().optional(),
   travelCharge: z.number().nullable().optional(),
-  warrantyLengthMonths: z.number().int().nullable().optional()
+  warrantyLengthMonths: z.number().int().nullable().optional(),
+  estimateExpirationEnabled: z.boolean().optional(),
+  defaultEstimateValidDays: z.number().int().min(1).optional()
 });
 
 // One shared route for every "company default" setting (estimates, invoices,
@@ -41,3 +43,4 @@ export async function PATCH(req: NextRequest) {
   const updated = await db.company.update({ where: { id: ctx.company.id }, data: parsed.data });
   return NextResponse.json(updated);
 }
+

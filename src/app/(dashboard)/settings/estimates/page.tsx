@@ -17,9 +17,12 @@ export default async function EstimateSettingsPage() {
           defaultMarkupPercent: ctx.company.defaultMarkupPercent ? Number(ctx.company.defaultMarkupPercent) : null,
           defaultLaborRate: ctx.company.defaultLaborRate ? Number(ctx.company.defaultLaborRate) : null,
           defaultWarrantyText: ctx.company.defaultWarrantyText,
-          defaultEstimateTerms: ctx.company.defaultEstimateTerms
+          defaultEstimateTerms: ctx.company.defaultEstimateTerms,
+          estimateExpirationEnabled: ctx.company.estimateExpirationEnabled,
+          defaultEstimateValidDays: ctx.company.defaultEstimateValidDays
         }}
       />
     </div>
   );
 }
+

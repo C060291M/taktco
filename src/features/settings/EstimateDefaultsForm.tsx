@@ -8,6 +8,8 @@ type Defaults = {
   defaultLaborRate: number | null;
   defaultWarrantyText: string | null;
   defaultEstimateTerms: string | null;
+  estimateExpirationEnabled: boolean;
+  defaultEstimateValidDays: number;
 };
 
 export function EstimateDefaultsForm({ initial }: { initial: Defaults }) {
@@ -17,7 +19,9 @@ export function EstimateDefaultsForm({ initial }: { initial: Defaults }) {
     markup: initial.defaultMarkupPercent?.toString() || "",
     laborRate: initial.defaultLaborRate?.toString() || "",
     warranty: initial.defaultWarrantyText || "",
-    terms: initial.defaultEstimateTerms || ""
+    terms: initial.defaultEstimateTerms || "",
+    expirationEnabled: initial.estimateExpirationEnabled,
+    validDays: initial.defaultEstimateValidDays.toString()
   });
   const [saving, setSaving] = useState(false);
 
@@ -30,7 +34,9 @@ export function EstimateDefaultsForm({ initial }: { initial: Defaults }) {
         defaultMarkupPercent: form.markup ? Number(form.markup) : null,
         defaultLaborRate: form.laborRate ? Number(form.laborRate) : null,
         defaultWarrantyText: form.warranty || null,
-        defaultEstimateTerms: form.terms || null
+        defaultEstimateTerms: form.terms || null,
+        estimateExpirationEnabled: form.expirationEnabled,
+        defaultEstimateValidDays: form.validDays ? Number(form.validDays) : 30
       })
     });
     setSaving(false);
@@ -62,7 +68,32 @@ export function EstimateDefaultsForm({ initial }: { initial: Defaults }) {
         <label className="block text-xs text-graphite-300 mb-1">Default terms</label>
         <textarea className="input" rows={2} value={form.terms} onChange={(e) => setForm((f) => ({ ...f, terms: e.target.value }))} />
       </div>
-      <p className="text-[11px] text-graphite-500">These pre-fill new estimates — you can still edit them per estimate before sending.</p>
+
+      <div className="border-t border-graphite-700 pt-3 space-y-2">
+        <label className="flex items-center gap-2 text-xs text-graphite-300">
+          <input
+            type="checkbox"
+            checked={form.expirationEnabled}
+            onChange={(e) => setForm((f) => ({ ...f, expirationEnabled: e.target.checked }))}
+          />
+          Automatically set an expiration on new estimates
+        </label>
+        {form.expirationEnabled && (
+          <div className="flex items-center gap-2 pl-6">
+            <span className="text-xs text-graphite-400">Valid for</span>
+            <input
+              className="input w-20"
+              type="number"
+              min={1}
+              value={form.validDays}
+              onChange={(e) => setForm((f) => ({ ...f, validDays: e.target.value }))}
+            />
+            <span className="text-xs text-graphite-400">days</span>
+          </div>
+        )}
+      </div>
+
+      <p className="text-[11px] text-graphite-500">These pre-fill new estimates - you can still edit them per estimate before sending.</p>
       <button className="btn-primary" disabled={saving} onClick={save}>{saving ? "Saving..." : "Save"}</button>
     </div>
   );
