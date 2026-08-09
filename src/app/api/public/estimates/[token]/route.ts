@@ -34,6 +34,8 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
     warranty: estimate.warranty,
     terms: estimate.terms,
     createdAt: estimate.createdAt,
+    displayMode: estimate.displayMode,
+    validUntil: estimate.validUntil,
     customer: { name: estimate.customer.name },
     company: {
       name: estimate.company.name,
@@ -62,6 +64,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
   if (estimate.status === "APPROVED" || estimate.status === "DECLINED") {
     return NextResponse.json({ error: "This estimate has already been responded to." }, { status: 400 });
   }
+  if (estimate.validUntil && estimate.validUntil < new Date()) {
+    return NextResponse.json({ error: "This estimate has expired. Contact the company for an updated quote." }, { status: 400 });
+  }
 
   const newStatus = parsed.data.action === "approve" ? "APPROVED" : "DECLINED";
   const updated = await db.estimate.update({
@@ -87,5 +92,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
 
   return NextResponse.json({ status: updated.status });
 }
+
+
 
 

@@ -25,6 +25,9 @@ export default async function PublicEstimatePage({ params }: { params: { token: 
       lineItems={lineItems}
       warranty={estimate.warranty}
       terms={estimate.terms}
+      displayMode={estimate.displayMode}
+      validUntil={estimate.validUntil ? estimate.validUntil.toISOString() : null}
     />
   );
 }
+

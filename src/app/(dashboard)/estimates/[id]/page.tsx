@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { EstimateActions } from "@/features/estimates/EstimateActions";
 import { DeleteEstimateButton } from "@/features/estimates/DeleteEstimateButton";
 import { CopyPublicLink } from "@/features/estimates/CopyPublicLink";
+import { EstimateDisplayControls } from "@/features/estimates/EstimateDisplayControls";
 import { BrandedDocumentHeader } from "@/components/layout/BrandedDocumentHeader";
 import { PrintButton } from "@/components/ui/PrintButton";
 import { analyzeEstimate } from "@/lib/estimatingAdvisor";
@@ -90,7 +91,11 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
 
       <EstimatingAdvisor findings={advisorFindings} />
 
+      <EstimateDisplayControls estimateId={estimate.id} displayMode={estimate.displayMode} validUntil={estimate.validUntil ? estimate.validUntil.toISOString() : null} />
+
       <EstimateActions estimateId={estimate.id} status={estimate.status} hasJob={!!estimate.job} />
     </div>
   );
 }
+
+
