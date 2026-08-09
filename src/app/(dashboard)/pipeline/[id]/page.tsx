@@ -29,6 +29,7 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
   if (!lead) notFound();
 
   const teamMembers = await db.user.findMany({ where: { companyId: ctx.company.id }, select: { id: true, name: true } });
+  const commsSettings = await db.companyCommsSettings.findUnique({ where: { companyId: ctx.company.id }, select: { callMarksContacted: true } });
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -69,6 +70,9 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
         customerId={lead.customerId}
         customerPhone={lead.customer.phone}
         customerEmail={lead.customer.email}
+        pipelineStage={lead.pipelineStage}
+        callMarksContacted={commsSettings?.callMarksContacted ?? false}
+        canManageSettings={ctx.user.role === "OWNER" || ctx.user.role === "ADMIN"}
         assignedUserId={lead.assignedUserId}
         teamMembers={teamMembers}
         canDelete={ctx.user.role === "OWNER" || ctx.user.role === "ADMIN"}
@@ -83,6 +87,9 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
     </div>
   );
 }
+
+
+
 
 
 

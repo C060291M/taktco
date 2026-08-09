@@ -1160,6 +1160,7 @@ model CompanyCommsSettings {
   encryptedTwilioAuthToken String?
   twilioFromNumber        String?
   twilioConnectionStatus  String?   @default("untested")
+  callMarksContacted      Boolean  @default(false)
   updatedAt               DateTime  @updatedAt
 }
 
@@ -1602,3 +1603,5 @@ model CampaignQueueItem {
   @@index([campaignId, status])
   @@index([companyId, status])
 }
+
+

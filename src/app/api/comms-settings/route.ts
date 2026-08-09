@@ -28,7 +28,8 @@ export async function GET() {
       connected: Boolean(settings?.twilioAccountSid && settings?.encryptedTwilioAuthToken),
       accountSid: settings?.twilioAccountSid ? maskSecret(settings.twilioAccountSid) : null,
       fromNumber: settings?.twilioFromNumber || null
-    }
+    },
+    callMarksContacted: settings?.callMarksContacted || false
   });
 }
 
@@ -44,7 +45,8 @@ const schema = z.object({
   twilioFromNumber: z.string().optional(),
   clearSmtp: z.boolean().optional(),
   clearResend: z.boolean().optional(),
-  clearTwilio: z.boolean().optional()
+  clearTwilio: z.boolean().optional(),
+  callMarksContacted: z.boolean().optional()
 });
 
 export async function PATCH(req: NextRequest) {
@@ -83,6 +85,10 @@ export async function PATCH(req: NextRequest) {
     data.twilioConnectionStatus = "untested";
   }
 
+  if (parsed.data.callMarksContacted !== undefined) {
+    data.callMarksContacted = parsed.data.callMarksContacted;
+  }
+
   await db.companyCommsSettings.upsert({
     where: { companyId: ctx.company.id },
     create: { companyId: ctx.company.id, ...data },
@@ -91,3 +97,6 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+
+
