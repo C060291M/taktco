@@ -57,6 +57,22 @@ export function ItemFormModal({
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  // Recalculates Price whenever Cost or Markup % changes, so entering both
+  // actually does something instead of silently doing nothing. Price stays
+  // a normal editable field afterward - typing into it directly still works,
+  // it just gets recalculated again the next time Cost or Markup change.
+  function updateAndRecalcPrice(key: "cost" | "markupPercent", value: string) {
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      const cost = Number(next.cost);
+      const markup = Number(next.markupPercent) || 0;
+      if (next.cost && cost > 0) {
+        next.price = (cost * (1 + markup / 100)).toFixed(2);
+      }
+      return next;
+    });
+  }
+
   async function save() {
     if (!form.name.trim()) { toast.error("Name is required."); return; }
     const unit = form.unit === "Custom..." ? form.customUnit.trim() : form.unit;
@@ -122,11 +138,11 @@ export function ItemFormModal({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Cost (optional)</label>
-            <input className="input" type="number" step="0.01" value={form.cost} onChange={(e) => update("cost", e.target.value)} />
+            <input className="input" type="number" step="0.01" value={form.cost} onChange={(e) => updateAndRecalcPrice("cost", e.target.value)} />
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Markup %</label>
-            <input className="input" type="number" step="0.01" value={form.markupPercent} onChange={(e) => update("markupPercent", e.target.value)} />
+            <input className="input" type="number" step="0.01" value={form.markupPercent} onChange={(e) => updateAndRecalcPrice("markupPercent", e.target.value)} />
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Min charge</label>
@@ -153,6 +169,9 @@ export function ItemFormModal({
     </div>
   );
 }
+
+
+
 
 
 
