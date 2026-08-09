@@ -112,29 +112,29 @@ export function ItemFormModal({
           {form.unit === "Custom..." ? (
             <input className="input" placeholder="Custom unit" value={form.customUnit} onChange={(e) => update("customUnit", e.target.value)} />
           ) : (
-            <input className="input" type="number" placeholder="Price" value={form.price} onChange={(e) => update("price", e.target.value)} />
+            <input className="input" type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => update("price", e.target.value)} />
           )}
         </div>
         {form.unit === "Custom..." && (
-          <input className="input" type="number" placeholder="Price" value={form.price} onChange={(e) => update("price", e.target.value)} />
+          <input className="input" type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => update("price", e.target.value)} />
         )}
 
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Cost (optional)</label>
-            <input className="input" type="number" value={form.cost} onChange={(e) => update("cost", e.target.value)} />
+            <input className="input" type="number" step="0.01" value={form.cost} onChange={(e) => update("cost", e.target.value)} />
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Markup %</label>
-            <input className="input" type="number" value={form.markupPercent} onChange={(e) => update("markupPercent", e.target.value)} />
+            <input className="input" type="number" step="0.01" value={form.markupPercent} onChange={(e) => update("markupPercent", e.target.value)} />
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Min charge</label>
-            <input className="input" type="number" value={form.minCharge} onChange={(e) => update("minCharge", e.target.value)} />
+            <input className="input" type="number" step="0.01" value={form.minCharge} onChange={(e) => update("minCharge", e.target.value)} />
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Max charge</label>
-            <input className="input" type="number" value={form.maxCharge} onChange={(e) => update("maxCharge", e.target.value)} />
+            <input className="input" type="number" step="0.01" value={form.maxCharge} onChange={(e) => update("maxCharge", e.target.value)} />
           </div>
         </div>
 
@@ -153,3 +153,8 @@ export function ItemFormModal({
     </div>
   );
 }
+
+
+
+
+
