@@ -9,6 +9,7 @@ import {
   FileSignature,
   DollarSign,
   Building2,
+  Calendar,
   TrendingUp,
   BarChart3,
   Bot,
@@ -26,6 +27,7 @@ const NAV = [
   { href: "/contracts", label: "Contracts", icon: FileSignature },
   { href: "/invoices", label: "Invoices", icon: DollarSign },
   { href: "/jobs", label: "Projects", icon: Building2 },
+  { href: "/schedule", label: "Schedule", icon: Calendar },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/nova-ai", label: "TAKTCO AI", icon: Bot },
   { href: "/automations", label: "Automations", icon: Zap },
@@ -65,7 +67,7 @@ export function Sidebar({ companyName, logoUrl }: { companyName: string; logoUrl
         </div>
       </div>
       <nav className="flex-1 py-4 px-2 space-y-1">
-        {NAV.slice(0, 7).map((item) => {
+        {NAV.slice(0, 8).map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
           return (
@@ -115,7 +117,7 @@ export function Sidebar({ companyName, logoUrl }: { companyName: string; logoUrl
           </div>
         )}
 
-        {NAV.slice(7).map((item) => {
+        {NAV.slice(8).map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
           return (
@@ -136,3 +138,7 @@ export function Sidebar({ companyName, logoUrl }: { companyName: string; logoUrl
     </aside>
   );
 }
+
+
+
+
