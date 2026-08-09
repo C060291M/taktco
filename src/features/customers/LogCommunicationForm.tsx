@@ -32,8 +32,8 @@ export function LogCommunicationForm({ customerId }: { customerId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      <select className="input w-28 shrink-0" value={type} onChange={(e) => setType(e.target.value)}>
+    <form onSubmit={handleSubmit} className="grid grid-cols-[7rem,1fr,auto] gap-2">
+      <select className="input" value={type} onChange={(e) => setType(e.target.value)}>
         {TYPES.map((t) => (
           <option key={t.value} value={t.value}>{t.label}</option>
         ))}
@@ -44,7 +44,7 @@ export function LogCommunicationForm({ customerId }: { customerId: string }) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
       />
-      <button type="submit" className="btn-primary shrink-0" disabled={loading || !content.trim()}>
+      <button type="submit" className="btn-primary" disabled={loading || !content.trim()}>
         {loading ? "Logging..." : "Log"}
       </button>
     </form>
