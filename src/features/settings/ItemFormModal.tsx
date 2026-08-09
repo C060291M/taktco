@@ -1,11 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/useToast";
 
-// Common unit presets per the original spec ("provide common defaults plus
-// unlimited custom units") - picking "Custom..." reveals a free-text input
-// instead, since unit was always meant to be unlimited, not locked to this
-// list.
 const UNIT_PRESETS = [
   "Each", "Hour", "Day", "Week", "Month", "Linear Foot", "Square Foot",
   "Square Yard", "Cubic Yard", "Ton", "Pound", "Bag", "Roll", "Panel",
@@ -25,6 +21,22 @@ export type EditableItem = {
   taxable?: boolean;
   notes?: string | null;
 };
+
+function DollarInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-graphite-500 text-sm pointer-events-none">$</span>
+      <input
+        className="input pl-6"
+        type="number"
+        step="0.01"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
 
 export function ItemFormModal({
   mode, categoryId, parentItemId, parentItemName, initial, onClose, onSaved
@@ -57,21 +69,37 @@ export function ItemFormModal({
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  // Recalculates Price whenever Cost or Markup % changes, so entering both
-  // actually does something instead of silently doing nothing. Price stays
-  // a normal editable field afterward - typing into it directly still works,
-  // it just gets recalculated again the next time Cost or Markup change.
+  function recalcPrice(cost: string, markupPercent: string) {
+    const costNum = Number(cost);
+    const markup = Number(markupPercent) || 0;
+    if (cost && costNum > 0) {
+      return (costNum * (1 + markup / 100)).toFixed(2);
+    }
+    return null;
+  }
+
   function updateAndRecalcPrice(key: "cost" | "markupPercent", value: string) {
     setForm((f) => {
       const next = { ...f, [key]: value };
-      const cost = Number(next.cost);
-      const markup = Number(next.markupPercent) || 0;
-      if (next.cost && cost > 0) {
-        next.price = (cost * (1 + markup / 100)).toFixed(2);
-      }
+      const recalculated = recalcPrice(next.cost, next.markupPercent);
+      if (recalculated !== null) next.price = recalculated;
       return next;
     });
   }
+
+  // Opening an existing item that has a saved Cost but a stale/zero Price
+  // (e.g. saved before this auto-calculate feature existed) fixes itself
+  // immediately on open, instead of requiring you to retype into Cost or
+  // Markup just to trigger a recalculation.
+  useEffect(() => {
+    if (initial?.cost) {
+      const recalculated = recalcPrice(initial.cost.toString(), initial.markupPercent?.toString() || "");
+      if (recalculated !== null) {
+        setForm((f) => ({ ...f, price: recalculated }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function save() {
     if (!form.name.trim()) { toast.error("Name is required."); return; }
@@ -128,17 +156,17 @@ export function ItemFormModal({
           {form.unit === "Custom..." ? (
             <input className="input" placeholder="Custom unit" value={form.customUnit} onChange={(e) => update("customUnit", e.target.value)} />
           ) : (
-            <input className="input" type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => update("price", e.target.value)} />
+            <DollarInput value={form.price} onChange={(v) => update("price", v)} placeholder="Price" />
           )}
         </div>
         {form.unit === "Custom..." && (
-          <input className="input" type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => update("price", e.target.value)} />
+          <DollarInput value={form.price} onChange={(v) => update("price", v)} placeholder="Price" />
         )}
 
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Cost (optional)</label>
-            <input className="input" type="number" step="0.01" value={form.cost} onChange={(e) => updateAndRecalcPrice("cost", e.target.value)} />
+            <DollarInput value={form.cost} onChange={(v) => updateAndRecalcPrice("cost", v)} />
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Markup %</label>
@@ -146,11 +174,11 @@ export function ItemFormModal({
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Min charge</label>
-            <input className="input" type="number" step="0.01" value={form.minCharge} onChange={(e) => update("minCharge", e.target.value)} />
+            <DollarInput value={form.minCharge} onChange={(v) => update("minCharge", v)} />
           </div>
           <div>
             <label className="block text-[11px] text-graphite-400 mb-1">Max charge</label>
-            <input className="input" type="number" step="0.01" value={form.maxCharge} onChange={(e) => update("maxCharge", e.target.value)} />
+            <DollarInput value={form.maxCharge} onChange={(v) => update("maxCharge", v)} />
           </div>
         </div>
 
@@ -169,11 +197,3 @@ export function ItemFormModal({
     </div>
   );
 }
-
-
-
-
-
-
-
-
