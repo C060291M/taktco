@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { sendTrackedEmail } from "@/services/resend";
+import { brandedEmail } from "@/emails/brandedEmail";
 
 const schema = z.object({
   subject: z.string().min(1),
@@ -23,7 +24,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!lead) return NextResponse.json({ error: "Lead not found." }, { status: 404 });
   if (!lead.customer.email) return NextResponse.json({ error: "This customer has no email on file." }, { status: 400 });
 
-  const html = parsed.data.body.replace(/\n/g, "<br>");
+  const html = brandedEmail({
+    companyName: ctx.company.name,
+    logoUrl: ctx.company.logoUrl,
+    accentColor: ctx.company.brandAccentColor,
+    heading: parsed.data.subject,
+    bodyHtml: parsed.data.body.replace(/\n/g, "<br/>")
+  });
 
   const result = await sendTrackedEmail({
     companyId: ctx.company.id,
@@ -48,3 +55,5 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   return NextResponse.json(result, { status: result.sent ? 200 : 400 });
 }
+
+
