@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 
-const schema = z.object({ completed: z.boolean() });
+const schema = z.object({ completed: z.boolean().optional(), title: z.string().min(1).optional(), dueDate: z.string().nullable().optional() });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const task = await db.task.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
   if (!task) return NextResponse.json({ error: "Not found." }, { status: 404 });
 
-  const updated = await db.task.update({ where: { id: task.id }, data: { completed: parsed.data.completed } });
+  const updated = await db.task.update({ where: { id: task.id }, data: { ...(parsed.data.completed !== undefined ? { completed: parsed.data.completed } : {}), ...(parsed.data.title ? { title: parsed.data.title } : {}), ...(parsed.data.dueDate !== undefined ? { dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null } : {}) } });
   return NextResponse.json(updated);
 }
 
@@ -29,3 +29,5 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   await db.task.delete({ where: { id: task.id } });
   return NextResponse.json({ ok: true });
 }
+
+
