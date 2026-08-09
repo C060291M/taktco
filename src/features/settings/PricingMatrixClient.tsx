@@ -46,6 +46,20 @@ export function PricingMatrixClient({
   const [selectedSuggestions, setSelectedSuggestions] = useState<Set<number>>(new Set());
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [suggestError, setSuggestError] = useState<string | null>(null);
+  const [recalculating, setRecalculating] = useState(false);
+
+  async function recalculatePrices() {
+    setRecalculating(true);
+    const res = await fetch("/api/pricing/items/recalculate", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    setRecalculating(false);
+    if (res.ok) {
+      toast.success(`Recalculated ${data.updated} price${data.updated === 1 ? "" : "s"} from Cost + Markup`);
+      refresh();
+    } else {
+      toast.error("Couldn't recalculate prices.");
+    }
+  }
 
   // Deliberately NOT router.refresh() - that depends on Next.js re-running
   // the server component and this component's props re-syncing correctly,
@@ -317,6 +331,9 @@ export function PricingMatrixClient({
               {suggestLoading ? "Thinking..." : "✨ Improve with AI"}
             </button>
             <button className="btn-secondary text-xs flex items-center gap-1" onClick={exportCsv}><Download size={13} /> Export CSV</button>
+            <button className="btn-secondary text-xs flex items-center gap-1" onClick={recalculatePrices} disabled={recalculating}>
+              {recalculating ? "Recalculating..." : "Recalculate prices from Cost + Markup"}
+            </button>
             <label className="btn-secondary text-xs flex items-center gap-1 cursor-pointer">
               <Upload size={13} /> Import CSV
               <input type="file" accept=".csv" className="hidden" onChange={importCsv} />
@@ -453,17 +470,21 @@ export function PricingMatrixClient({
                             <td className="py-2 px-2 text-graphite-400 text-xs">{item.unit}</td>
                             <td className="py-2 px-2 text-graphite-200 text-right">
                               {canManage ? (
-                                <input
-                                  className="input w-24 text-right text-xs py-1"
-                                  type="number"
-                                  defaultValue={Number(item.price)}
-                                  onBlur={(e) => {
-                                    const val = Number(e.target.value);
-                                    if (!isNaN(val) && val !== Number(item.price)) updateItemPrice(item, val);
-                                  }}
-                                />
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="text-graphite-500">$</span>
+                                  <input
+                                    className="input w-20 text-right text-xs py-1"
+                                    type="number"
+                                    step="0.01"
+                                    defaultValue={Number(item.price)}
+                                    onBlur={(e) => {
+                                      const val = Number(e.target.value);
+                                      if (!isNaN(val) && val !== Number(item.price)) updateItemPrice(item, val);
+                                    }}
+                                  />
+                                </span>
                               ) : (
-                                `$${Number(item.price).toLocaleString()}`
+                                `${Number(item.price).toLocaleString()}`
                               )}
                             </td>
                             {canManage && (
@@ -484,17 +505,21 @@ export function PricingMatrixClient({
                               <td className="py-1.5 px-2 text-graphite-500 text-xs">{addOn.unit}</td>
                               <td className="py-1.5 px-2 text-graphite-300 text-xs text-right">
                                 {canManage ? (
-                                  <input
-                                    className="input w-24 text-right text-xs py-1"
-                                    type="number"
-                                    defaultValue={Number(addOn.price)}
-                                    onBlur={(e) => {
-                                      const val = Number(e.target.value);
-                                      if (!isNaN(val) && val !== Number(addOn.price)) updateItemPrice(addOn, val);
-                                    }}
-                                  />
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="text-graphite-500">$</span>
+                                    <input
+                                      className="input w-20 text-right text-xs py-1"
+                                      type="number"
+                                      step="0.01"
+                                      defaultValue={Number(addOn.price)}
+                                      onBlur={(e) => {
+                                        const val = Number(e.target.value);
+                                        if (!isNaN(val) && val !== Number(addOn.price)) updateItemPrice(addOn, val);
+                                      }}
+                                    />
+                                  </span>
                                 ) : (
-                                  `$${Number(addOn.price).toLocaleString()}`
+                                  `${Number(addOn.price).toLocaleString()}`
                                 )}
                               </td>
                               {canManage && (
@@ -577,3 +602,7 @@ export function PricingMatrixClient({
     </div>
   );
 }
+
+
+
+
