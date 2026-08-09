@@ -19,11 +19,11 @@ Between {{companyName}} ("Contractor") and {{customerName}} ("Client")
 Date: {{date}}
 
 1. SCOPE OF WORK
-[Describe the work to be performed]
+{{scope}}
 
 2. PRICING
-Total price: [$AMOUNT]
-Payment terms: [e.g., 50% deposit, balance due on completion]
+Total price: {{totalAmount}}
+Payment terms: {{paymentTerms}}
 
 3. TIMELINE
 Estimated start date: [DATE]
@@ -162,11 +162,30 @@ Service Provider: {{companyName}}
 Client: {{customerName}}`
 };
 
-export function getContractTemplate(type: string, companyName: string, customerName: string): string {
+export function getContractTemplate(
+  type: string,
+  companyName: string,
+  customerName: string,
+  estimate?: { lineItems: { description: string; qty: number; unit: string; unitPrice: number }[]; totalAmount: number; terms: string | null }
+): string {
   const template = TEMPLATES[type] || "";
   const date = new Date().toLocaleDateString();
+
+  const scope = estimate && estimate.lineItems.length > 0
+    ? estimate.lineItems.map((li) => `- ${li.description} (${li.qty} ${li.unit})`).join("\n")
+    : "[Describe the work to be performed]";
+  const totalAmount = estimate
+    ? `${estimate.totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+    : "[$AMOUNT]";
+  const paymentTerms = estimate?.terms || "[e.g., 50% deposit, balance due on completion]";
+
   return template
     .replaceAll("{{companyName}}", companyName)
     .replaceAll("{{customerName}}", customerName)
-    .replaceAll("{{date}}", date);
+    .replaceAll("{{date}}", date)
+    .replaceAll("{{scope}}", scope)
+    .replaceAll("{{totalAmount}}", totalAmount)
+    .replaceAll("{{paymentTerms}}", paymentTerms);
 }
+
+

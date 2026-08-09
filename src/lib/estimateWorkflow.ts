@@ -40,14 +40,19 @@ export async function runEstimateApprovalWorkflow(estimate: {
   });
   if (!existingContract) {
     const company = await db.company.findUnique({ where: { id: estimate.companyId } });
-    if (company && customer) {
+    const fullEstimate = await db.estimate.findUnique({ where: { id: estimate.id } });
+    if (company && customer && fullEstimate) {
       await db.contract.create({
         data: {
           companyId: estimate.companyId,
           customerId: estimate.customerId,
           type: "SERVICE_AGREEMENT",
           title: "Service Agreement",
-          content: getContractTemplate("SERVICE_AGREEMENT", company.name, customer.name),
+          content: getContractTemplate("SERVICE_AGREEMENT", company.name, customer.name, {
+            lineItems: fullEstimate.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number }[],
+            totalAmount: Number(fullEstimate.totalAmount),
+            terms: fullEstimate.terms
+          }),
           status: "DRAFT"
         }
       });
@@ -69,3 +74,4 @@ export async function runEstimateApprovalWorkflow(estimate: {
     amount: Number(estimate.totalAmount)
   });
 }
+
