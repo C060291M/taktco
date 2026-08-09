@@ -20,7 +20,7 @@ export async function askClaude(systemPrompt: string, userPrompt: string): Promi
     },
     body: JSON.stringify({
       model: "claude-sonnet-5",
-      max_tokens: 1024,
+      max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }]
     })
@@ -49,6 +49,9 @@ export async function askClaudeForJSON<T>(systemPrompt: string, userPrompt: stri
   try {
     return JSON.parse(cleaned) as T;
   } catch {
+    console.error("askClaudeForJSON: failed to parse AI response as JSON. Raw response:", cleaned);
     throw new Error("AI returned a response that wasn't valid JSON. Try rephrasing the description and generating again.");
   }
 }
+
+
