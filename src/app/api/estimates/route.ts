@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
 
   const total = parsed.data.lineItems.reduce((sum, li) => sum + li.qty * li.unitPrice, 0);
   const estimateNumber = await claimNextEstimateNumber(ctx.company.id);
+  const validUntil = ctx.company.estimateExpirationEnabled ? new Date(Date.now() + ctx.company.defaultEstimateValidDays * 24 * 60 * 60 * 1000) : undefined;
 
   const estimate = await db.estimate.create({
     data: {
@@ -55,9 +56,13 @@ export async function POST(req: NextRequest) {
       warranty: parsed.data.warranty,
       terms: parsed.data.terms,
       aiGenerated: parsed.data.aiGenerated || false,
-      status: "DRAFT"
+      status: "DRAFT",
+      validUntil
     }
   });
 
   return NextResponse.json(estimate, { status: 201 });
 }
+
+
+

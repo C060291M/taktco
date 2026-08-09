@@ -6,7 +6,9 @@ import { runEstimateApprovalWorkflow } from "@/lib/estimateWorkflow";
 import { bumpLeadStageForCustomer } from "@/lib/leadStageAutomation";
 
 const schema = z.object({
-  status: z.enum(["DRAFT", "SENT", "VIEWED", "APPROVED", "DECLINED"])
+  status: z.enum(["DRAFT", "SENT", "VIEWED", "APPROVED", "DECLINED"]).optional(),
+  displayMode: z.enum(["ITEMIZED", "SUMMARY"]).optional(),
+  validUntil: z.string().nullable().optional()
 });
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -37,7 +39,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     where: { id: estimate.id },
     data: {
       status: parsed.data.status,
-      approvedAt: parsed.data.status === "APPROVED" ? new Date() : estimate.approvedAt
+      approvedAt: parsed.data.status === "APPROVED" ? new Date() : estimate.approvedAt,
+      ...(parsed.data.displayMode ? { displayMode: parsed.data.displayMode } : {}),
+      ...(parsed.data.validUntil !== undefined ? { validUntil: parsed.data.validUntil ? new Date(parsed.data.validUntil) : null } : {})
     }
   });
 
@@ -69,5 +73,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   await db.estimate.update({ where: { id: estimate.id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }
+
+
 
 
