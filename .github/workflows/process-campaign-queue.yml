@@ -1,0 +1,16 @@
+name: Process campaign email queue
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  process-queue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the campaign queue endpoint
+        run: |
+          curl -X POST https://taktco.org/api/campaigns/process-queue \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -f
