@@ -184,7 +184,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
           {customer.communications.length === 0 && <p className="text-sm text-graphite-400">No calls, texts, or notes logged yet.</p>}
           {customer.communications.map((c) => (
             <div key={c.id} className="text-sm border-b border-graphite-700 pb-2 last:border-0">
-              <span className="text-graphite-400 text-xs uppercase">{c.type}</span>
+              <span className="text-graphite-400 text-xs uppercase">{c.type}</span> <span className="text-graphite-500 text-xs">- {new Date(c.createdAt).toLocaleDateString()}</span>
               <p className="text-graphite-200">{c.content}</p>
             </div>
           ))}
@@ -206,3 +206,4 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
     </div>
   );
 }
+
