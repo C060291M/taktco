@@ -116,7 +116,7 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
       <div className="card p-5">
         <h2 className="text-sm font-medium text-white mb-3">Notes</h2>
         <form onSubmit={addNote} className="flex gap-2 mb-4">
-          <input className="input" placeholder="Add a note..." value={noteText} onChange={(e) => setNoteText(e.target.value)} />
+          <input className="input flex-1 min-w-0" placeholder="Add a note..." value={noteText} onChange={(e) => setNoteText(e.target.value)} />
           <button type="submit" className="btn-primary shrink-0" disabled={busy || !noteText.trim()}>Add</button>
         </form>
         <div className="space-y-3">
@@ -158,7 +158,7 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
       <div className="card p-5">
         <h2 className="text-sm font-medium text-white mb-3">Tasks</h2>
         <form onSubmit={addTask} className="flex gap-2 mb-4">
-          <input className="input" placeholder="New task..." value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} />
+          <input className="input flex-1 min-w-0" placeholder="New task..." value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} />
           <input className="input w-36 shrink-0" type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} />
           <button type="submit" className="btn-primary shrink-0" disabled={busy || !taskTitle.trim()}>Add</button>
         </form>
@@ -169,8 +169,7 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
               {editingTaskId === t.id ? (
                 <div className="flex gap-2 items-center">
                   <input
-                    className="input flex-1 text-sm"
-                    value={editingTaskTitle}
+                    className="input flex-1 min-w-0 text-sm" value={editingTaskTitle}
                     disabled={busy}
                     onChange={(e) => setEditingTaskTitle(e.target.value)}
                   />
@@ -216,3 +215,7 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
     </div>
   );
 }
+
+
+
+
