@@ -150,6 +150,7 @@ enum CampaignChannel {
 
 enum CampaignStatus {
   DRAFT
+  SENDING
   SENT
 }
 
@@ -601,6 +602,7 @@ model Campaign {
   recipientCount Int             @default(0)
   deliveredCount Int             @default(0)
   failedCount    Int             @default(0)
+  queueItems     CampaignQueueItem[]
   sentAt         DateTime?
   // Soft delete, same consistent pattern as Customer/Job/Invoice/Estimate.
   // Nothing else references a Campaign, so a hard delete would be
@@ -1574,3 +1576,29 @@ model EstimatingQuestion {
 
 
 
+
+
+
+enum CampaignQueueStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// Tracks per-recipient send state for a campaign so a send can pause when
+// the connected mailbox's daily cap is hit and resume on a later day
+// without re-sending anyone or losing track of who's left. See
+// lib/emailThrottle.ts for why this exists.
+model CampaignQueueItem {
+  id         String              @id @default(cuid())
+  campaignId String
+  campaign   Campaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  companyId  String
+  customerId String
+  status     CampaignQueueStatus @default(PENDING)
+  createdAt  DateTime            @default(now())
+  sentAt     DateTime?
+
+  @@index([campaignId, status])
+  @@index([companyId, status])
+}
