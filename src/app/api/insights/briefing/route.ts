@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
-import { generateWithGateway, InsufficientCreditsError } from "@/lib/aiGateway";
+import { askClaude } from "@/lib/ai";
 
 // Same grounded pattern as TAKTCO AI chat: every number in the briefing comes
-// from a real query first, then the AI gateway only narrates those numbers
-// into a paragraph - it's never asked to invent or estimate anything itself.
+// from a real query first, then the AI narrates those numbers into a
+// paragraph - it never invents or estimates anything itself.
+//
+// IMPORTANT: this uses askClaude directly (platform-paid, TAKTCO's own
+// ANTHROPIC_API_KEY) rather than generateWithGateway - the briefing is a
+// free system feature, not something that should ever charge a tenant's AI
+// credits. It's also cached once per calendar day on Company, so it's a
+// single AI call per company per day regardless of how many times the
+// dashboard is loaded that day.
 export async function GET() {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,19 +44,25 @@ export async function GET() {
     openPipelineLeads: openLeads
   };
 
+  const company = await db.company.findUnique({ where: { id: companyId }, select: { lastBriefingDate: true, lastBriefingNarrative: true, name: true, tradeType: true } });
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const alreadyGeneratedToday = company?.lastBriefingDate && company.lastBriefingDate >= startOfToday;
+
+  if (alreadyGeneratedToday && company?.lastBriefingNarrative) {
+    return NextResponse.json({ facts, narrative: company.lastBriefingNarrative });
+  }
+
   let narrative = "";
   try {
-    narrative = await generateWithGateway({
-      companyId,
-      feature: "business_analysis",
-      systemPrompt: `You write a short daily business briefing for ${ctx.company.name}, a ${ctx.company.tradeType || "construction"} company. Use ONLY the numbers given - never invent or estimate anything not provided. 2-4 short sentences, direct and plain, like a sharp operations manager talking to the owner. Start with "Good morning."`,
-      userPrompt: JSON.stringify(facts)
-    });
-  } catch (err) {
+    narrative = await askClaude(
+      `You write a short daily business briefing for ${ctx.company.name}, a ${ctx.company.tradeType || "construction"} company. Use ONLY the numbers given - never invent or estimate anything not provided. 2-4 short sentences, direct and plain, like a sharp operations manager talking to the owner. Start with "Good morning."`,
+      JSON.stringify(facts)
+    );
+    await db.company.update({ where: { id: companyId }, data: { lastBriefingDate: now, lastBriefingNarrative: narrative } });
+  } catch {
     // AI narration is a nice-to-have layer on top of real numbers - if it's
-    // unavailable (no credits, not configured), the raw facts below are
-    // still a complete, honest briefing on their own.
-    narrative = err instanceof InsufficientCreditsError ? "" : "";
+    // unavailable, the raw facts are still a complete, honest briefing.
+    narrative = "";
   }
 
   return NextResponse.json({ facts, narrative });
