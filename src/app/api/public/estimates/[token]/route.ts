@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { runEstimateApprovalWorkflow } from "@/lib/estimateWorkflow";
+import { bumpLeadStageForCustomer } from "@/lib/leadStageAutomation";
 import { notify } from "@/lib/notify";
 import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 
@@ -71,6 +72,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
   if (newStatus === "APPROVED") {
     await runEstimateApprovalWorkflow(estimate);
   }
+  if (newStatus === "DECLINED") {
+    await bumpLeadStageForCustomer(estimate.companyId, estimate.customerId, "LOST");
+  }
 
   await db.auditLog.create({
     data: {
@@ -83,3 +87,5 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
 
   return NextResponse.json({ status: updated.status });
 }
+
+

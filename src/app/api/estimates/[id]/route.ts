@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { runEstimateApprovalWorkflow } from "@/lib/estimateWorkflow";
+import { bumpLeadStageForCustomer } from "@/lib/leadStageAutomation";
 
 const schema = z.object({
   status: z.enum(["DRAFT", "SENT", "VIEWED", "APPROVED", "DECLINED"])
@@ -43,6 +44,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (parsed.data.status === "APPROVED") {
     await runEstimateApprovalWorkflow(estimate);
   }
+  if (parsed.data.status === "SENT") {
+    await bumpLeadStageForCustomer(ctx.company.id, estimate.customerId, "ESTIMATE_SENT");
+  }
+  if (parsed.data.status === "DECLINED") {
+    await bumpLeadStageForCustomer(ctx.company.id, estimate.customerId, "LOST");
+  }
 
   return NextResponse.json(updated);
 }
@@ -62,3 +69,5 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   await db.estimate.update({ where: { id: estimate.id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }
+
+

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
+import { bumpLeadStageById } from "@/lib/leadStageAutomation";
 
 const schema = z.object({
   customerId: z.string().optional(),
@@ -31,6 +32,11 @@ export async function POST(req: NextRequest) {
     },
     include: { owner: true }
   });
+  if (parsed.data.leadId) {
+    await bumpLeadStageById(parsed.data.leadId, "APPOINTMENT_SCHEDULED");
+  }
 
   return NextResponse.json(task, { status: 201 });
 }
+
+

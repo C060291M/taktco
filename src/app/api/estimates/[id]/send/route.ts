@@ -3,6 +3,7 @@ import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { sendTrackedEmail } from "@/services/resend";
 import { brandedEmail } from "@/emails/brandedEmail";
+import { bumpLeadStageForCustomer } from "@/lib/leadStageAutomation";
 
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
@@ -35,7 +36,10 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
 
   if (result.sent && estimate.status === "DRAFT") {
     await db.estimate.update({ where: { id: estimate.id }, data: { status: "SENT" } });
+    await bumpLeadStageForCustomer(ctx.company.id, estimate.customerId, "ESTIMATE_SENT");
   }
 
   return NextResponse.json(result, { status: result.sent ? 200 : 400 });
 }
+
+
