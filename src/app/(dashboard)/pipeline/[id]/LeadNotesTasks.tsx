@@ -115,9 +115,9 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
     <div className="grid md:grid-cols-2 gap-6">
       <div className="card p-5">
         <h2 className="text-sm font-medium text-white mb-3">Notes</h2>
-        <form onSubmit={addNote} className="flex gap-2 mb-4">
-          <input className="input flex-1 min-w-0" placeholder="Add a note..." value={noteText} onChange={(e) => setNoteText(e.target.value)} />
-          <button type="submit" className="btn-primary shrink-0" disabled={busy || !noteText.trim()}>Add</button>
+        <form onSubmit={addNote} className="grid grid-cols-[1fr,auto] gap-2 mb-4">
+          <input className="input" placeholder="Add a note..." value={noteText} onChange={(e) => setNoteText(e.target.value)} />
+          <button type="submit" className="btn-primary" disabled={busy || !noteText.trim()}>Add</button>
         </form>
         <div className="space-y-3">
           {sortedNotes.length === 0 && <p className="text-sm text-graphite-400">No notes yet.</p>}
@@ -132,8 +132,8 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
                     onChange={(e) => setEditingNoteText(e.target.value)}
                   />
                   <div className="flex gap-2 justify-end">
-                    <button className="text-xs text-graphite-400 hover:text-white" onClick={() => setEditingNoteId(null)}>Cancel</button>
-                    <button className="text-xs text-accent hover:text-white" disabled={busy} onClick={() => saveNote(n.id)}>Save</button>
+                    <button className="btn-secondary text-xs" disabled={busy} onClick={() => setEditingNoteId(null)}>Cancel</button>
+                    <button className="btn-primary text-xs" disabled={busy} onClick={() => saveNote(n.id)}>Save</button>
                   </div>
                 </div>
               ) : (
@@ -157,31 +157,32 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
 
       <div className="card p-5">
         <h2 className="text-sm font-medium text-white mb-3">Tasks</h2>
-        <form onSubmit={addTask} className="flex gap-2 mb-4">
-          <input className="input flex-1 min-w-0" placeholder="New task..." value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} />
-          <input className="input w-36 shrink-0" type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} />
-          <button type="submit" className="btn-primary shrink-0" disabled={busy || !taskTitle.trim()}>Add</button>
+        <form onSubmit={addTask} className="grid grid-cols-[1fr,9rem,auto] gap-2 mb-4">
+          <input className="input" placeholder="New task..." value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} />
+          <input className="input" type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} />
+          <button type="submit" className="btn-primary" disabled={busy || !taskTitle.trim()}>Add</button>
         </form>
         <div className="space-y-2">
           {tasks.length === 0 && <p className="text-sm text-graphite-400">No tasks yet.</p>}
           {tasks.map((t) => (
             <div key={t.id} className="text-sm">
               {editingTaskId === t.id ? (
-                <div className="flex gap-2 items-center">
+                <div className="grid grid-cols-[1fr,9rem,auto,auto] gap-2 items-center">
                   <input
-                    className="input flex-1 min-w-0 text-sm" value={editingTaskTitle}
+                    className="input text-sm"
+                    value={editingTaskTitle}
                     disabled={busy}
                     onChange={(e) => setEditingTaskTitle(e.target.value)}
                   />
                   <input
-                    className="input w-36 shrink-0"
+                    className="input"
                     type="date"
                     value={editingTaskDue}
                     disabled={busy}
                     onChange={(e) => setEditingTaskDue(e.target.value)}
                   />
-                  <button className="text-xs text-graphite-400 hover:text-white shrink-0" onClick={() => setEditingTaskId(null)}>Cancel</button>
-                  <button className="text-xs text-accent hover:text-white shrink-0" disabled={busy} onClick={() => saveTask(t.id)}>Save</button>
+                  <button className="btn-secondary text-xs" disabled={busy} onClick={() => setEditingTaskId(null)}>Cancel</button>
+                  <button className="btn-primary text-xs" disabled={busy} onClick={() => saveTask(t.id)}>Save</button>
                 </div>
               ) : (
                 <label className="flex items-center gap-2 cursor-pointer group">
@@ -215,7 +216,3 @@ export function LeadNotesTasks({ leadId, notes, tasks }: { leadId: string; notes
     </div>
   );
 }
-
-
-
-
