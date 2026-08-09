@@ -6,6 +6,7 @@ import { LegalDisclaimer } from "@/components/layout/LegalDisclaimer";
 import { CONTRACT_TYPES } from "@/lib/contractTemplates";
 import { ContractActions } from "@/features/contracts/ContractActions";
 import { PrintButton } from "@/components/ui/PrintButton";
+import { CopyContractLink } from "@/features/contracts/CopyContractLink";
 
 function typeLabel(type: string) {
   return CONTRACT_TYPES.find((t) => t.value === type)?.label || type;
@@ -28,9 +29,12 @@ export default async function ContractDetailPage({ params }: { params: { id: str
         <div className="pt-2 pb-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-white">{contract.title}</h1>
-            <p className="text-sm text-graphite-400">For {contract.customer.name} · Status: {contract.status}</p>
+            <p className="text-sm text-graphite-400">For {contract.customer.name} - Status: {contract.status}</p>
           </div>
-          <PrintButton />
+          <div className="flex gap-2">
+            <PrintButton />
+            <CopyContractLink token={contract.signingToken} />
+          </div>
         </div>
 
         {contract.fileUrl ? (
@@ -63,3 +67,5 @@ export default async function ContractDetailPage({ params }: { params: { id: str
     </div>
   );
 }
+
+

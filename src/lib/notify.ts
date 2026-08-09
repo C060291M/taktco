@@ -4,7 +4,7 @@ import { sendTrackedSms } from "@/services/twilio";
 import { brandedEmail } from "@/emails/brandedEmail";
 
 type Category =
-  | "NEW_LEAD" | "ESTIMATE_VIEWED" | "ESTIMATE_APPROVED" | "CONTRACT_SIGNED"
+  | "NEW_LEAD" | "ESTIMATE_VIEWED" | "ESTIMATE_APPROVED" | "CONTRACT_SIGNED" | "CONTRACT_DECLINED"
   | "INVOICE_SENT" | "INVOICE_PAID" | "INVOICE_OVERDUE" | "PROJECT_STATUS_CHANGED"
   | "CREW_ASSIGNMENT" | "FOLLOW_UP_DUE" | "REVIEW_RECEIVED" | "REFERRAL_RECEIVED"
   | "AI_RECOMMENDATION" | "SYSTEM_ANNOUNCEMENT";
@@ -60,3 +60,4 @@ export async function notify(params: {
 
   return notification;
 }
+
