@@ -4,7 +4,9 @@ import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 
 const schema = z.object({
-  role: z.enum(["OWNER", "ADMIN", "SALES_REP", "FIELD_TECH"])
+  role: z.enum(["OWNER", "ADMIN", "SALES_REP", "FIELD_TECH"]).optional(),
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional()
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -15,20 +17,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const parsed = schema.safeParse(await req.json());
-  if (!parsed.success) return NextResponse.json({ error: "Invalid role." }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
 
   const target = await db.user.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
   if (!target) return NextResponse.json({ error: "Not found." }, { status: 404 });
 
   // Only an owner can grant or remove owner-level access - stops an admin from
   // promoting themselves or someone else to owner.
-  if ((parsed.data.role === "OWNER" || target.role === "OWNER") && ctx.user.role !== "OWNER") {
+  if (parsed.data.role && (parsed.data.role === "OWNER" || target.role === "OWNER") && ctx.user.role !== "OWNER") {
     return NextResponse.json({ error: "Only an owner can change owner-level access." }, { status: 403 });
   }
 
   // Never allow the last remaining owner to be demoted - that would lock the
   // company out of owner-only actions like billing and payment verification.
-  if (target.role === "OWNER" && parsed.data.role !== "OWNER") {
+  if (parsed.data.role && target.role === "OWNER" && parsed.data.role !== "OWNER") {
     const ownerCount = await db.user.count({ where: { companyId: ctx.company.id, role: "OWNER" } });
     if (ownerCount <= 1) {
       return NextResponse.json({ error: "This is the only owner - promote someone else to owner first." }, { status: 400 });
@@ -37,12 +39,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const updated = await db.user.update({
     where: { id: target.id },
-    data: { role: parsed.data.role },
+    data: { ...(parsed.data.role ? { role: parsed.data.role } : {}), ...(parsed.data.name ? { name: parsed.data.name } : {}), ...(parsed.data.email ? { email: parsed.data.email } : {}) },
     select: { id: true, name: true, email: true, role: true }
   });
 
   await db.auditLog.create({
-    data: { companyId: ctx.company.id, userId: ctx.user.id, action: "role_changed", entityType: "user", entityId: target.id }
+    data: { companyId: ctx.company.id, userId: ctx.user.id, action: "user_updated", entityType: "user", entityId: target.id }
   });
 
   return NextResponse.json(updated);
@@ -80,3 +82,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   return NextResponse.json({ ok: true });
 }
+
+
+
+
+
+
+
+
+

@@ -31,6 +31,9 @@ export function TeamTable({
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
 
   async function changeRole(userId: string, role: string) {
     setBusyId(userId);
@@ -46,6 +49,31 @@ export function TeamTable({
     } else {
       const data = await res.json().catch(() => ({}));
       setError(data.error || "Couldn't change that role.");
+    }
+  }
+
+  function startEdit(u: TeamUser) {
+    setEditingId(u.id);
+    setEditName(u.name);
+    setEditEmail(u.email);
+    setError(null);
+  }
+
+  async function saveEdit(userId: string) {
+    setBusyId(userId);
+    setError(null);
+    const res = await fetch(`/api/users/${userId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: editName, email: editEmail })
+    });
+    setBusyId(null);
+    if (res.ok) {
+      setEditingId(null);
+      router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Couldn't save those changes.");
     }
   }
 
@@ -79,12 +107,33 @@ export function TeamTable({
           {users.map((u) => {
             const isSelf = u.id === currentUserId;
             const roleLocked = u.role === "OWNER" && !canManageOwners;
+            const isEditing = editingId === u.id;
             return (
               <tr key={u.id} className="border-b border-graphite-700 last:border-0">
                 <td className="px-4 py-3 text-graphite-100">
-                  {u.name} {isSelf && <span className="text-graphite-500 text-xs">(you)</span>}
+                  {isEditing ? (
+                    <input
+                      className="input py-1 text-xs w-32"
+                      value={editName}
+                      disabled={busyId === u.id}
+                      onChange={(e) => setEditName(e.target.value)}
+                    />
+                  ) : (
+                    <>{u.name} {isSelf && <span className="text-graphite-500 text-xs">(you)</span>}</>
+                  )}
                 </td>
-                <td className="px-4 py-3 text-graphite-300">{u.email}</td>
+                <td className="px-4 py-3 text-graphite-300">
+                  {isEditing ? (
+                    <input
+                      className="input py-1 text-xs w-44"
+                      value={editEmail}
+                      disabled={busyId === u.id}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                    />
+                  ) : (
+                    u.email
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   {roleLocked ? (
                     <Badge color={roleColor(u.role)}>{u.role.replace("_", " ")}</Badge>
@@ -92,7 +141,7 @@ export function TeamTable({
                     <select
                       className="input py-1 text-xs w-36"
                       value={u.role}
-                      disabled={busyId === u.id}
+                      disabled={busyId === u.id || isEditing}
                       onChange={(e) => changeRole(u.id, e.target.value)}
                     >
                       {ALL_ROLES.filter((r) => r !== "OWNER" || canManageOwners).map((r) => (
@@ -101,15 +150,43 @@ export function TeamTable({
                     </select>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right">
-                  {!isSelf && (
-                    <button
-                      className="text-xs text-graphite-400 hover:text-red-400"
-                      disabled={busyId === u.id}
-                      onClick={() => removeUser(u.id)}
-                    >
-                      Remove
-                    </button>
+                <td className="px-4 py-3 text-right whitespace-nowrap">
+                  {isEditing ? (
+                    <>
+                      <button
+                        className="text-xs text-graphite-400 hover:text-white mr-3"
+                        disabled={busyId === u.id}
+                        onClick={() => setEditingId(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="text-xs text-accent hover:text-white"
+                        disabled={busyId === u.id}
+                        onClick={() => saveEdit(u.id)}
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="text-xs text-graphite-400 hover:text-white mr-3"
+                        disabled={busyId === u.id}
+                        onClick={() => startEdit(u)}
+                      >
+                        Edit
+                      </button>
+                      {!isSelf && (
+                        <button
+                          className="text-xs text-graphite-400 hover:text-red-400"
+                          disabled={busyId === u.id}
+                          onClick={() => removeUser(u.id)}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </>
                   )}
                 </td>
               </tr>
