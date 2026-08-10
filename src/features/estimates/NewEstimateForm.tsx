@@ -85,8 +85,16 @@ export function NewEstimateForm({
     }
   }
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSaveError(null);
+    const zeroQtyIndex = items.findIndex((li) => !li.qty || li.qty <= 0);
+    if (zeroQtyIndex !== -1) {
+      setSaveError(`Line item "${items[zeroQtyIndex].description || "untitled"}" has a quantity of 0 - enter a real quantity or remove it before saving.`);
+      return;
+    }
     setLoading(true);
     const res = await fetch("/api/estimates", {
       method: "POST",
@@ -98,6 +106,9 @@ export function NewEstimateForm({
       setOpen(false);
       resetForm();
       router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setSaveError(data.error || "Couldn't save the estimate. Check that every line item has a description, quantity, and price.");
     }
   }
 
@@ -240,6 +251,7 @@ export function NewEstimateForm({
               <span className="text-white font-semibold">${total.toLocaleString()}</span>
             </div>
 
+            {saveError && <p className="text-xs text-red-400">{saveError}</p>}
             <div className="flex gap-2 justify-end pt-2">
               <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
               <button type="submit" disabled={loading} className="btn-primary">{loading ? "Saving..." : "Save estimate"}</button>
@@ -250,4 +262,7 @@ export function NewEstimateForm({
     </div>
   );
 }
+
+
+
 
