@@ -7,6 +7,7 @@ import { PayButton } from "@/features/invoices/PayButton";
 import { DeleteInvoiceButton } from "@/features/invoices/DeleteInvoiceButton";
 import { CopyPublicLink } from "@/components/forms/CopyPublicLink";
 import { PrintButton } from "@/components/ui/PrintButton";
+import { SendInvoiceButton } from "@/features/invoices/SendInvoiceButton";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -41,6 +42,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
             <div className="flex gap-2">
               <PrintButton />
               <CopyPublicLink token={invoice.paymentLinkToken} basePath="invoice" />
+              <SendInvoiceButton invoiceId={invoice.id} />
               {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
                 <DeleteInvoiceButton invoiceId={invoice.id} invoiceNumber={invoice.invoiceNumber} />
               )}
@@ -78,3 +80,5 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
     </div>
   );
 }
+
+
