@@ -69,7 +69,7 @@ Given a plain-language job description, produce a realistic, itemized estimate d
   "lineItems": [ { "description": string, "qty": number, "unit": string, "unitPrice": number, "cost": number (optional - only include if the matching pricing item listed a [cost: $X], omit the field entirely otherwise, never guess a cost) } ],
   "warranty": string (1-2 sentences, realistic for this trade),
   "terms": string (1-2 sentences, standard payment/terms language),
-  "flags": string[] (anything unusual worth the estimator's attention - missing pricing items, an unusually large quantity, duplicate-looking items, total below the minimum job price, margin below target - empty array if nothing stands out)
+  "flags": string[] (anything unusual worth the estimator's attention - missing pricing items, an unusually large quantity, duplicate-looking items, total below the minimum job price, margin below target. Each flag must be ONE short sentence, under 20 words - no multi-sentence explanations. Maximum 5 flags. Empty array if nothing stands out.)
 }
 Every unitPrice in lineItems must come directly from the Pricing Matrix above - copy the price exactly, only the quantity varies based on the job description. Use the exact item names and units from the matrix where they match. Return 3-8 line items.`;
 
@@ -84,3 +84,4 @@ Every unitPrice in lineItems must come directly from the Pricing Matrix above - 
     return NextResponse.json({ error: err instanceof Error ? err.message : "AI generation failed." }, { status: 502 });
   }
 }
+

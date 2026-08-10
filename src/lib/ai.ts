@@ -45,13 +45,24 @@ export async function askClaudeForJSON<T>(systemPrompt: string, userPrompt: stri
     `${systemPrompt}\n\nRespond with ONLY raw JSON. No markdown code fences, no commentary, no preamble - the first character of your response must be { and the last must be }.`,
     userPrompt
   );
-  const cleaned = raw.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+  let cleaned = raw.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
   try {
     return JSON.parse(cleaned) as T;
   } catch {
+    // Fallback: if the model wrapped the JSON in any stray text, extract
+    // just the outermost {...} block and retry once before giving up.
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]) as T;
+      } catch {
+        // falls through to the error below
+      }
+    }
     console.error("askClaudeForJSON: failed to parse AI response as JSON. Raw response:", cleaned);
     throw new Error("AI returned a response that wasn't valid JSON. Try rephrasing the description and generating again.");
   }
 }
+
 
 
