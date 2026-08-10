@@ -7,6 +7,7 @@ import { CONTRACT_TYPES } from "@/lib/contractTemplates";
 import { ContractActions } from "@/features/contracts/ContractActions";
 import { PrintButton } from "@/components/ui/PrintButton";
 import { CopyContractLink } from "@/features/contracts/CopyContractLink";
+import { ContractContentEditor } from "@/features/contracts/ContractContentEditor";
 
 function typeLabel(type: string) {
   return CONTRACT_TYPES.find((t) => t.value === type)?.label || type;
@@ -21,6 +22,7 @@ export default async function ContractDetailPage({ params }: { params: { id: str
     include: { customer: true }
   });
   if (!contract) notFound();
+  const canManage = ctx.user.role === "OWNER" || ctx.user.role === "ADMIN";
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -29,7 +31,7 @@ export default async function ContractDetailPage({ params }: { params: { id: str
         <div className="pt-2 pb-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-white">{contract.title}</h1>
-            <p className="text-sm text-graphite-400">For {contract.customer.name} - Status: {contract.status}</p>
+            <p className="text-sm text-graphite-400">For {contract.customer.name}{contract.customer.address ? ` - ${contract.customer.address}` : ""} - Status: {contract.status}</p>
           </div>
           <div className="flex gap-2">
             <PrintButton />
@@ -43,12 +45,14 @@ export default async function ContractDetailPage({ params }: { params: { id: str
             download={contract.fileName || "contract"}
             className="btn-secondary inline-block"
           >
-            📄 Download {contract.fileName || "document"}
+            Download {contract.fileName || "document"}
           </a>
         ) : (
-          <pre className="whitespace-pre-wrap font-mono text-xs text-graphite-200 bg-graphite-900 rounded-lg p-4 leading-relaxed">
-            {contract.content}
-          </pre>
+          <ContractContentEditor
+            contractId={contract.id}
+            content={contract.content}
+            canEdit={canManage && contract.status === "DRAFT"}
+          />
         )}
 
         {contract.status === "SIGNED" && contract.signedByName && (
@@ -67,5 +71,4 @@ export default async function ContractDetailPage({ params }: { params: { id: str
     </div>
   );
 }
-
 
