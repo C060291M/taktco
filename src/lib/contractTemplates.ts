@@ -17,6 +17,7 @@ const TEMPLATES: Record<string, string> = {
 
 Between {{companyName}} ("Contractor") and {{customerName}} ("Client")
 Date: {{date}}
+Property/Service Address: {{customerAddress}}
 
 1. SCOPE OF WORK
 {{scope}}
@@ -46,6 +47,7 @@ Client: {{customerName}}`,
 
 Between {{companyName}} ("Contractor") and {{customerName}} ("Owner")
 Date: {{date}}
+Property/Service Address: {{customerAddress}}
 
 1. PROJECT DESCRIPTION
 [Describe the construction project in detail]
@@ -75,6 +77,7 @@ Owner: {{customerName}}`,
 Project: [Reference original contract/estimate]
 Between {{companyName}} and {{customerName}}
 Date: {{date}}
+Property/Service Address: {{customerAddress}}
 
 1. DESCRIPTION OF CHANGE
 [What is changing from the original scope of work]
@@ -100,6 +103,7 @@ Client: {{customerName}}`,
 
 Issued by {{companyName}} to {{customerName}}
 Date: {{date}}
+Property/Service Address: {{customerAddress}}
 
 1. COVERAGE
 This warranty covers [workmanship / specific materials] for a period of [X years/months] from the date of completion.
@@ -120,6 +124,7 @@ For: {{customerName}}`,
 
 Between {{companyName}} and {{customerName}}
 Date: {{date}}
+Property/Service Address: {{customerAddress}}
 
 1. TOTAL AMOUNT DUE
 [$AMOUNT]
@@ -141,6 +146,7 @@ Signed:
 
 Between {{companyName}} ("Service Provider") and {{customerName}} ("Client")
 Date: {{date}}
+Property/Service Address: {{customerAddress}}
 
 1. SERVICES INCLUDED
 [Describe recurring maintenance services covered]
@@ -166,6 +172,7 @@ export function getContractTemplate(
   type: string,
   companyName: string,
   customerName: string,
+  customerAddress?: string | null,
   estimate?: { lineItems: { description: string; qty: number; unit: string; unitPrice: number }[]; totalAmount: number; terms: string | null }
 ): string {
   const template = TEMPLATES[type] || "";
@@ -182,10 +189,13 @@ export function getContractTemplate(
   return template
     .replaceAll("{{companyName}}", companyName)
     .replaceAll("{{customerName}}", customerName)
-    .replaceAll("{{date}}", date)
+    .replaceAll("{{date}}", date).replaceAll("{{customerAddress}}", customerAddress || "[ADDRESS]")
     .replaceAll("{{scope}}", scope)
     .replaceAll("{{totalAmount}}", totalAmount)
     .replaceAll("{{paymentTerms}}", paymentTerms);
 }
+
+
+
 
 

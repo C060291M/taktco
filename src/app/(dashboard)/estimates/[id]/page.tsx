@@ -40,6 +40,7 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
         <div className="pt-2 pb-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-white">For {estimate.customer.name}</h1>
+            {estimate.customer.address && <p className="text-xs text-graphite-500">{estimate.customer.address}</p>}
             {estimate.estimateNumber && <p className="text-xs text-graphite-500">#{estimate.estimateNumber}</p>}
             <p className="text-sm text-graphite-400">Status: {estimate.status.replace("_", " ")}</p>
           </div>
@@ -97,5 +98,6 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
     </div>
   );
 }
+
 
 

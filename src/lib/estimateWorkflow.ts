@@ -48,7 +48,7 @@ export async function runEstimateApprovalWorkflow(estimate: {
           customerId: estimate.customerId,
           type: "SERVICE_AGREEMENT",
           title: "Service Agreement",
-          content: getContractTemplate("SERVICE_AGREEMENT", company.name, customer.name, {
+          content: getContractTemplate("SERVICE_AGREEMENT", company.name, customer.name, customer.address, {
             lineItems: fullEstimate.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number }[],
             totalAmount: Number(fullEstimate.totalAmount),
             terms: fullEstimate.terms
@@ -74,4 +74,5 @@ export async function runEstimateApprovalWorkflow(estimate: {
     amount: Number(estimate.totalAmount)
   });
 }
+
 
