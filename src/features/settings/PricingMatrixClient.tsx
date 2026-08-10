@@ -473,6 +473,7 @@ export function PricingMatrixClient({
                                 <span className="inline-flex items-center gap-1">
                                   <span className="text-graphite-500">$</span>
                                   <input
+                                    key={`${item.id}-${item.price}`}
                                     className="input w-20 text-right text-xs py-1"
                                     type="number"
                                     step="0.01"
@@ -602,6 +603,10 @@ export function PricingMatrixClient({
     </div>
   );
 }
+
+
+
+
 
 
 

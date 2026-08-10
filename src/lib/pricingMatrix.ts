@@ -285,7 +285,8 @@ export async function getPricingMatrixForAI(companyId: string) {
     lines.push(`## ${cat.name}`);
     for (const item of cat.items) {
       const parts = [`- ${item.name}: $${Number(item.price)}/${item.unit} (id: ${item.id})`];
-      if (item.cost) parts.push(`[cost: $${Number(item.cost)}]`);
+      if (item.description) parts.push(`- ${item.description}`);
+      if (item.cost) parts.push(`[cost: ${Number(item.cost)}]`);
       if (item.minCharge) parts.push(`(min charge $${Number(item.minCharge)})`);
       if (item.notes) parts.push(`- ${item.notes}`);
       lines.push(parts.join(" "));
@@ -323,3 +324,5 @@ function formatBusinessRules(company: Company | null): string {
   if (company.warrantyLengthMonths) rules.push(`Standard warranty length: ${company.warrantyLengthMonths} months.`);
   return rules.length ? `\n\nCOMPANY BUSINESS RULES:\n${rules.map((r) => `- ${r}`).join("\n")}` : "";
 }
+
+
