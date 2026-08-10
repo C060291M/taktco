@@ -17,6 +17,23 @@ export function VerificationPanel({ initial, isOwner }: { initial: CompanyPaymen
   const [legalBusinessName, setLegalBusinessName] = useState(initial.legalBusinessName || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+  async function syncStatus() {
+    setSyncing(true);
+    setSyncMessage(null);
+    const res = await fetch("/api/company/verification/sync", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    setSyncing(false);
+    if (res.ok && data.ready) {
+      router.refresh();
+    } else if (res.ok) {
+      setSyncMessage("Stripe still shows this account as not fully set up yet.");
+    } else {
+      setSyncMessage(data.error || "Couldn't check status.");
+    }
+  }
 
   // Same fix as PricingMatrixClient - router.refresh() alone doesn't
   // re-sync state that was only seeded from props on first mount.
@@ -63,6 +80,10 @@ export function VerificationPanel({ initial, isOwner }: { initial: CompanyPaymen
         <button className="btn-secondary w-full" onClick={() => startVerification()}>
           Continue onboarding
         </button>
+        <button className="btn-secondary w-full text-xs" onClick={syncStatus} disabled={syncing}>
+          {syncing ? "Checking..." : "Check status now"}
+        </button>
+        {syncMessage && <p className="text-xs text-graphite-400">{syncMessage}</p>}
       </div>
     );
   }
@@ -117,3 +138,5 @@ export function VerificationPanel({ initial, isOwner }: { initial: CompanyPaymen
     </form>
   );
 }
+
+
