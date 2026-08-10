@@ -43,6 +43,9 @@ export function EstimateDisplayControls({
           <option value="ITEMIZED">Itemized (full breakdown)</option>
           <option value="SUMMARY">Summary (scope + total only)</option>
         </select>
+        <span className="text-graphite-500">
+          Client will see: {displayMode === "SUMMARY" ? "Summary (scope + total only)" : "Itemized (full breakdown)"}
+        </span>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-graphite-400">Valid until:</span>
@@ -67,3 +70,4 @@ export function EstimateDisplayControls({
     </div>
   );
 }
+
