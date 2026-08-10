@@ -214,6 +214,7 @@ export function NewEstimateForm({
                   <input
                     className="input col-span-3"
                     type="number"
+                    step="0.01"
                     placeholder="Unit price"
                     value={li.unitPrice}
                     onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })}
@@ -249,3 +250,4 @@ export function NewEstimateForm({
     </div>
   );
 }
+
