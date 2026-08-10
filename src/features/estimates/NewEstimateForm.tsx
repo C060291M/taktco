@@ -29,11 +29,16 @@ export function NewEstimateForm({
   const [questions, setQuestions] = useState<{ id: string; question: string; answerType: string }[]>([]);
   const [questionAnswers, setQuestionAnswers] = useState<Record<string, string>>({});
   const [aiFlags, setAiFlags] = useState<string[]>([]);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const total = items.reduce((sum, li) => sum + (li.qty || 0) * (li.unitPrice || 0), 0);
 
   function updateItem(i: number, patch: Partial<LineItem>) {
     setItems((prev) => prev.map((li, idx) => (idx === i ? { ...li, ...patch } : li)));
+  }
+
+  function removeItem(i: number) {
+    setItems((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   function resetForm() {
@@ -47,6 +52,7 @@ export function NewEstimateForm({
     setAiError(null);
     setQuestionAnswers({});
     setAiFlags([]);
+    setSaveError(null);
   }
 
   async function enterAiMode() {
@@ -77,15 +83,13 @@ export function NewEstimateForm({
       setTerms(data.terms || "");
       setAiGenerated(true);
       setAiFlags(data.flags || []);
-      setAiMode(false); // drop into the editable manual view with fields pre-filled
+      setAiMode(false);
     } else if (data.error === "PRICING_MATRIX_EMPTY") {
       setAiError(data.message);
     } else {
       setAiError(data.error || "AI generation failed.");
     }
   }
-
-  const [saveError, setSaveError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -130,14 +134,14 @@ export function NewEstimateForm({
             className={aiMode ? "btn-primary text-xs" : "btn-secondary text-xs"}
             onClick={enterAiMode}
           >
-            ✨ AI Builder
+            AI Builder
           </button>
         </div>
 
         {aiMode ? (
           <div className="space-y-3">
             <p className="text-xs text-graphite-400">
-              Describe the job in plain language — TAKTCO AI drafts the line items, warranty, and terms. You can edit everything before saving.
+              Describe the job in plain language - TAKTCO AI drafts the line items, warranty, and terms. You can edit everything before saving.
             </p>
             <textarea
               className="input"
@@ -158,7 +162,7 @@ export function NewEstimateForm({
                         value={questionAnswers[q.id] || ""}
                         onChange={(e) => setQuestionAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
                       >
-                        <option value="">—</option>
+                        <option value="">-</option>
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
                       </select>
@@ -181,12 +185,12 @@ export function NewEstimateForm({
         ) : (
           <>
             {aiGenerated && (
-              <p className="text-[11px] text-accent">✨ Drafted by TAKTCO AI — review everything below before sending.</p>
+              <p className="text-[11px] text-accent">Drafted by TAKTCO AI - review everything below before sending.</p>
             )}
             {aiFlags.length > 0 && (
               <div className="p-2 rounded-lg border border-amber-500/40 bg-amber-500/5 space-y-0.5">
                 {aiFlags.map((flag, i) => (
-                  <p key={i} className="text-[11px] text-amber-300">⚠ {flag}</p>
+                  <p key={i} className="text-[11px] text-amber-300">! {flag}</p>
                 ))}
               </div>
             )}
@@ -201,7 +205,7 @@ export function NewEstimateForm({
               {items.map((li, i) => (
                 <div key={i} className="grid grid-cols-12 gap-2">
                   <input
-                    className="input col-span-5"
+                    className="input col-span-4"
                     placeholder="Description"
                     value={li.description}
                     onChange={(e) => updateItem(i, { description: e.target.value })}
@@ -232,6 +236,14 @@ export function NewEstimateForm({
                     required
                     min={0}
                   />
+                  <button
+                    type="button"
+                    className="col-span-1 text-graphite-500 hover:text-red-400 text-xs"
+                    onClick={() => removeItem(i)}
+                    title="Remove line item"
+                  >
+                    X
+                  </button>
                 </div>
               ))}
             </div>
@@ -262,8 +274,3 @@ export function NewEstimateForm({
     </div>
   );
 }
-
-
-
-
-
