@@ -60,6 +60,16 @@ export async function isConnectAccountReady(accountId: string) {
   return Boolean(account.charges_enabled && account.payouts_enabled);
 }
 
+export async function requestAccountCapabilities(accountId: string) {
+  if (!stripe) return;
+  await stripe.accounts.update(accountId, {
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true }
+    }
+  });
+}
+
 // Creates a hosted Checkout Session for one invoice, on behalf of the
 // company's connected account. Returns the URL to redirect the customer to.
 export async function createInvoiceCheckoutSession(params: {
@@ -180,4 +190,7 @@ export async function refundPayment(params: {
     { stripeAccount: params.connectedAccountId }
   );
 }
+
+
+
 
