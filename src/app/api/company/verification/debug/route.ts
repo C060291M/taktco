@@ -5,7 +5,7 @@ import { stripe } from "@/services/stripe";
 // One-time fix: directly sets the test DOB and SSN on the account
 // representative via API, satisfying the card_payments requirement without
 // needing to re-run Stripe's hosted onboarding UI.
-export async function POST() {
+export async function GET() {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!stripe || !ctx.company.stripeConnectAccountId) {
@@ -29,3 +29,4 @@ export async function POST() {
     requirements: account.requirements
   });
 }
+
