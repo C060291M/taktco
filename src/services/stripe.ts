@@ -76,7 +76,7 @@ export async function createInvoiceCheckoutSession(params: {
   const session = await stripe.checkout.sessions.create(
     {
       mode: "payment",
-      payment_method_types: ["card", "us_bank_account"],
+      payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
@@ -180,3 +180,4 @@ export async function refundPayment(params: {
     { stripeAccount: params.connectedAccountId }
   );
 }
+
