@@ -39,7 +39,11 @@ export async function createConnectAccountLink(params: {
       type: "express",
       email: params.email,
       business_type: "company",
-      company: { name: params.companyName }
+      company: { name: params.companyName },
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true }
+      }
     });
     accountId = account.id;
   }
@@ -190,6 +194,8 @@ export async function refundPayment(params: {
     { stripeAccount: params.connectedAccountId }
   );
 }
+
+
 
 
 
