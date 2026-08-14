@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
         data: {
           stripeSubscriptionId: subscription.id,
           subscriptionStatus: subscription.status,
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          currentPeriodEnd: new Date(subscription.items.data[0].current_period_end * 1000),
           ...(tier ? { subscriptionTier: tier } : {})
         }
       });
@@ -165,11 +165,11 @@ export async function POST(req: NextRequest) {
         if (wallet) {
           await db.aiCreditWallet.update({
             where: { companyId: company.id },
-            data: { includedCredits: included, usedThisCycle: 0, cycleResetAt: new Date(subscription.current_period_end * 1000) }
+            data: { includedCredits: included, usedThisCycle: 0, cycleResetAt: new Date(subscription.items.data[0].current_period_end * 1000) }
           });
         } else {
           await db.aiCreditWallet.create({
-            data: { companyId: company.id, includedCredits: included, cycleResetAt: new Date(subscription.current_period_end * 1000) }
+            data: { companyId: company.id, includedCredits: included, cycleResetAt: new Date(subscription.items.data[0].current_period_end * 1000) }
           });
         }
       }

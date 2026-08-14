@@ -52,7 +52,7 @@ export default async function EstimatesPage() {
               <tr key={e.id} className="border-b border-graphite-700 last:border-0 hover:bg-graphite-800/60">
                 <td className="px-4 py-3 text-graphite-400 text-xs">{e.estimateNumber || "—"}</td>
                 <td className="px-4 py-3">
-                  <Link href={`/estimates/${e.id}`} className="text-graphite-100 hover:text-accent">{e.customer.name}</Link>
+                  <Link href={`/estimates/${e.estimateNumber}`} className="text-graphite-100 hover:text-accent">{e.customer.name}</Link>
                 </td>
                 <td className="px-4 py-3 text-graphite-300">{money(e.totalAmount)}</td>
                 <td className="px-4 py-3">

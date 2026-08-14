@@ -1,4 +1,4 @@
-import { db } from "@/database/client";
+﻿import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { EstimateActions } from "@/features/estimates/EstimateActions";
@@ -15,12 +15,12 @@ function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
-export default async function EstimateDetailPage({ params }: { params: { id: string } }) {
+export default async function EstimateDetailPage({ params }: { params: { number: string } }) {
   const ctx = await requireSession();
   if (!ctx) redirect("/login");
 
   const estimate = await db.estimate.findFirst({
-    where: { id: params.id, companyId: ctx.company.id, deletedAt: null },
+    where: { estimateNumber: params.number, companyId: ctx.company.id, deletedAt: null },
     include: { customer: true, job: true }
   });
   if (!estimate) notFound();
@@ -98,6 +98,3 @@ export default async function EstimateDetailPage({ params }: { params: { id: str
     </div>
   );
 }
-
-
-
