@@ -119,9 +119,18 @@ export async function createInvoiceCheckoutSession(params: {
 // signature - callers must return a 400 in that case, per Stripe's docs.
 export function verifyWebhookSignature(rawBody: string, signature: string) {
   if (!stripe) throw new Error("Stripe is not configured.");
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!webhookSecret) throw new Error("STRIPE_WEBHOOK_SECRET is not set.");
-  return stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+  const secrets = [process.env.STRIPE_WEBHOOK_SECRET, process.env.STRIPE_WEBHOOK_SECRET_PLATFORM].filter(Boolean) as string[];
+  if (secrets.length === 0) throw new Error("No webhook secret is set.");
+
+  let lastError: unknown;
+  for (const secret of secrets) {
+    try {
+      return stripe.webhooks.constructEvent(rawBody, signature, secret);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
 }
 
 // ---------- Subscription billing (TAKTCO charging its own customers) ----------
@@ -194,6 +203,8 @@ export async function refundPayment(params: {
     { stripeAccount: params.connectedAccountId }
   );
 }
+
+
 
 
 
