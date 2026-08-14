@@ -146,7 +146,7 @@ export function NewInvoiceForm({
               <input className="input col-span-5" placeholder="Description" value={li.description} onChange={(e) => updateItem(i, { description: e.target.value })} required />
               <input className="input col-span-2" type="number" placeholder="Qty" value={li.qty} onChange={(e) => updateItem(i, { qty: Number(e.target.value) })} required min={0} />
               <input className="input col-span-2" placeholder="Unit" value={li.unit} onChange={(e) => updateItem(i, { unit: e.target.value })} />
-              <input className="input col-span-3" type="number" placeholder="Unit price" value={li.unitPrice} onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })} required min={0} />
+              <input className="input col-span-3" type="number" placeholder="Unit price" value={li.unitPrice} onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })} required min={0} step={0.01} />
             </div>
           ))}
         </div>
@@ -157,7 +157,7 @@ export function NewInvoiceForm({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-xs text-graphite-300 mb-1">Tax amount</label>
-            <input className="input" type="number" value={taxAmount} onChange={(e) => setTaxAmount(e.target.value)} min={0} />
+            <input className="input" type="number" value={taxAmount} onChange={(e) => setTaxAmount(e.target.value)} min={0} step={0.01} />
           </div>
           <div>
             <label className="block text-xs text-graphite-300 mb-1">Due date</label>
@@ -178,3 +178,5 @@ export function NewInvoiceForm({
     </div>
   );
 }
+
+
