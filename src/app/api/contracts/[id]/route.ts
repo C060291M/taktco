@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
@@ -8,13 +8,13 @@ import { notify } from "@/lib/notify";
 const schema = z.object({
   content: z.string().optional(),
   status: z.enum(["DRAFT", "SENT", "SIGNED", "DECLINED"]).optional(),
-  signedByName: z.string().min(1).optional()
+  signedByName: z.string().min(1).optional(),
+  companySignedByName: z.string().min(1).optional()
 });
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const contract = await db.contract.findFirst({
     where: { id: params.id, companyId: ctx.company.id },
     include: { customer: true, job: true }
@@ -23,20 +23,18 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json(contract);
 }
 
-// Handles three things: editing the fillable content, sending it, and "signing" it -
-// signing is a typed-name + timestamp stub (see LegalDisclaimer) rather than a real
-// e-signature provider. TODO before relying on this for anything binding: swap in a
-// real e-sign integration (HelloSign/DocuSign) so signatures are actually verifiable.
+// Handles four things: editing the fillable content, sending it, the company's
+// own signature (required before send - see send/route.ts), and the
+// customer's typed-name signing stub (see LegalDisclaimer). TODO before
+// relying on this for anything binding: swap in a real e-sign integration
+// (HelloSign/DocuSign) so signatures are actually verifiable.
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Invalid update." }, { status: 400 });
-
   const contract = await db.contract.findFirst({ where: { id: params.id, companyId: ctx.company.id }, include: { customer: true } });
   if (!contract) return NextResponse.json({ error: "Not found." }, { status: 404 });
-
   if (parsed.data.status === "SIGNED" && !parsed.data.signedByName) {
     return NextResponse.json({ error: "Type a name to sign." }, { status: 400 });
   }
@@ -46,6 +44,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     data: {
       ...(parsed.data.content !== undefined ? { content: parsed.data.content } : {}),
       ...(parsed.data.status ? { status: parsed.data.status } : {}),
+      ...(parsed.data.companySignedByName
+        ? { companySignedByName: parsed.data.companySignedByName, companySignedAt: new Date() }
+        : {}),
       ...(parsed.data.status === "SIGNED"
         ? {
             signedByName: parsed.data.signedByName,
@@ -55,6 +56,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         : {})
     }
   });
+
+  if (parsed.data.companySignedByName) {
+    await db.auditLog.create({
+      data: {
+        companyId: ctx.company.id,
+        userId: ctx.user.id,
+        action: "contract_company_signed",
+        entityType: "contract",
+        entityId: contract.id
+      }
+    });
+  }
 
   if (parsed.data.status) {
     await db.auditLog.create({

@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { notify } from "@/lib/notify";
 import { checkRateLimit, clientIp } from "@/lib/rateLimit";
+import { generateContractPdf } from "@/lib/generateContractPdf";
+import { sendTrackedEmail } from "@/services/resend";
+import { brandedEmail } from "@/emails/brandedEmail";
 
 // Public, unauthenticated by design - mirrors /api/public/estimates/[token].
 // Looked up by the unguessable signingToken (cuid), never by internal id.
@@ -34,6 +37,10 @@ const schema = z.object({
   signedByName: z.string().min(1).optional()
 });
 
+function pdfFilenameFor(title: string) {
+  return title.replace(/[^a-z0-9]+/gi, "_") + "_signed.pdf";
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: { token: string } }) {
   const { allowed, retryAfterMs } = checkRateLimit(`sign:${clientIp(req)}`, 10, 5 * 60 * 1000);
   if (!allowed) {
@@ -49,7 +56,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
     return NextResponse.json({ error: "Type your full name to sign." }, { status: 400 });
   }
 
-  const contract = await db.contract.findUnique({ where: { signingToken: params.token }, include: { customer: true } });
+  const contract = await db.contract.findUnique({ where: { signingToken: params.token }, include: { customer: true, company: true } });
   if (!contract) return NextResponse.json({ error: "Contract not found." }, { status: 404 });
   if (contract.status === "SIGNED" || contract.status === "DECLINED") {
     return NextResponse.json({ error: "This contract has already been responded to." }, { status: 400 });
@@ -83,6 +90,59 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
       : `${contract.customer.name} declined their contract`,
     linkUrl: `/contracts/${contract.id}`
   });
+
+  if (newStatus === "SIGNED") {
+    try {
+      const pdfBuffer = await generateContractPdf({
+        companyName: contract.company.name,
+        customerName: contract.customer.name,
+        title: contract.title,
+        content: contract.content,
+        companySignedByName: contract.companySignedByName,
+        companySignedAt: contract.companySignedAt,
+        signedByName: updated.signedByName,
+        signedAt: updated.signedAt
+      });
+      const filename = pdfFilenameFor(contract.title);
+
+      if (contract.customer.email) {
+        await sendTrackedEmail({
+          companyId: contract.companyId,
+          customerId: contract.customerId,
+          toEmail: contract.customer.email,
+          subject: `${contract.title} - signed copy for your records`,
+          html: brandedEmail({
+            companyName: contract.company.name,
+            logoUrl: contract.company.logoUrl,
+            accentColor: contract.company.brandAccentColor,
+            heading: "Signed - here's your copy",
+            bodyHtml: `Thanks for signing ${contract.title}. A signed PDF copy is attached for your records.`
+          }),
+          kind: "contract_signed_confirmation",
+          attachments: [{ filename, content: pdfBuffer }]
+        });
+      }
+
+      if (contract.company.businessEmail) {
+        await sendTrackedEmail({
+          companyId: contract.companyId,
+          toEmail: contract.company.businessEmail,
+          subject: `${contract.customer.name} signed: ${contract.title}`,
+          html: brandedEmail({
+            companyName: contract.company.name,
+            logoUrl: contract.company.logoUrl,
+            accentColor: contract.company.brandAccentColor,
+            heading: "Contract signed",
+            bodyHtml: `${contract.customer.name} just signed ${contract.title}. A copy is attached.`
+          }),
+          kind: "contract_signed_company_copy",
+          attachments: [{ filename, content: pdfBuffer }]
+        });
+      }
+    } catch (err) {
+      console.error("Failed to generate/send signed contract PDF:", err);
+    }
+  }
 
   return NextResponse.json({ status: updated.status });
 }

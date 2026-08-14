@@ -67,8 +67,9 @@ export default async function ContractDetailPage({ params }: { params: { id: str
 
       <LegalDisclaimer />
 
-      <ContractActions contractId={contract.id} status={contract.status} />
+      <ContractActions contractId={contract.id} status={contract.status} companySignedByName={contract.companySignedByName} />
     </div>
   );
 }
+
 

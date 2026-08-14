@@ -74,6 +74,7 @@ export async function sendTrackedEmail(params: {
   subject: string;
   html: string;
   kind: string;
+  attachments?: { filename: string; content: Buffer }[];
 }) {
   const sender = await getSenderForCompany(params.companyId);
   if (!sender) {
@@ -97,7 +98,8 @@ export async function sendTrackedEmail(params: {
         from: sender.fromAddress,
         to: params.toEmail,
         subject: params.subject,
-        html: params.html
+        html: params.html,
+        attachments: params.attachments
       });
       await db.emailLog.create({
         data: {
@@ -116,7 +118,7 @@ export async function sendTrackedEmail(params: {
     // Resend path - the SDK doesn't always throw on a rejected send, it can
     // return { data: null, error: {...} } instead. Real bug found and fixed
     // tonight by testing against live Resend - checked explicitly here.
-    const result = await sender.client.emails.send({ from: sender.fromAddress, to: params.toEmail, subject: params.subject, html: params.html });
+    const result = await sender.client.emails.send({ from: sender.fromAddress, to: params.toEmail, subject: params.subject, html: params.html, attachments: params.attachments?.map(a => ({ filename: a.filename, content: a.content })) });
     if (result.error) {
       await db.emailLog.create({
         data: {
@@ -173,3 +175,6 @@ export async function sendTrackedEmail(params: {
     return { sent: false, reason: "Send failed - see EmailLog for details." };
   }
 }
+
+
+

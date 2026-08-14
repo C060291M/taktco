@@ -561,6 +561,8 @@ model Contract {
   signedByName String?
   signedAt     DateTime?
   ipAddress    String?        // captured server-side at signing - part of the typed-signature audit trail, see stub note above
+  companySignedByName String?
+  companySignedAt     DateTime?
   signingToken String         @unique @default(cuid())
   createdAt    DateTime       @default(now())
 
@@ -1611,6 +1613,7 @@ model CampaignQueueItem {
   @@index([campaignId, status])
   @@index([companyId, status])
 }
+
 
 
 

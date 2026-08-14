@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { sendTrackedEmail } from "@/services/resend";
@@ -13,6 +13,9 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     include: { customer: true }
   });
   if (!contract) return NextResponse.json({ error: "Not found." }, { status: 404 });
+  if (!contract.companySignedByName) {
+    return NextResponse.json({ error: "Sign the contract as your company before sending it to the client." }, { status: 400 });
+  }
   if (!contract.customer.email) return NextResponse.json({ error: "This customer has no email on file." }, { status: 400 });
 
   const link = `${process.env.NEXT_PUBLIC_APP_URL}/contract/${contract.signingToken}`;
