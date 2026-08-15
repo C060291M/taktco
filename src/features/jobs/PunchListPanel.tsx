@@ -37,8 +37,8 @@ export function PunchListPanel({ jobId, items }: { jobId: string; items: Item[] 
   return (
     <div className="card p-5">
       <h2 className="text-sm font-medium text-white mb-3">Punch list</h2>
-      <form onSubmit={add} className="flex gap-2 mb-4">
-        <input className="input" placeholder="What needs fixing?" value={desc} onChange={(e) => setDesc(e.target.value)} />
+      <form onSubmit={add} className="flex flex-wrap gap-2 mb-4">
+        <input className="input flex-1 min-w-[180px]" placeholder="What needs fixing?" value={desc} onChange={(e) => setDesc(e.target.value)} />
         <select className="input w-28 shrink-0" value={priority} onChange={(e) => setPriority(e.target.value)}>
           <option value="LOW">Low</option>
           <option value="MEDIUM">Medium</option>
@@ -64,3 +64,5 @@ export function PunchListPanel({ jobId, items }: { jobId: string; items: Item[] 
     </div>
   );
 }
+
+
