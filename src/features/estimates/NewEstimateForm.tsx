@@ -7,16 +7,18 @@ type LineItem = { description: string; qty: number; unit: string; unitPrice: num
 export function NewEstimateForm({
   customers,
   defaultWarranty,
-  defaultTerms
+  defaultTerms,
+  defaultCustomerId
 }: {
   customers: { id: string; name: string }[];
   defaultWarranty?: string | null;
   defaultTerms?: string | null;
-}) {
+  defaultCustomerId?: string;
+})  {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [customerId, setCustomerId] = useState("");
+  const [customerId, setCustomerId] = useState(defaultCustomerId || "");
   const [items, setItems] = useState<LineItem[]>([{ description: "", qty: 1, unit: "ea", unitPrice: 0 }]);
   const [warranty, setWarranty] = useState(defaultWarranty || "");
   const [terms, setTerms] = useState(defaultTerms || "");
@@ -43,7 +45,7 @@ export function NewEstimateForm({
 
   function resetForm() {
     setItems([{ description: "", qty: 1, unit: "ea", unitPrice: 0 }]);
-    setCustomerId("");
+    setCustomerId(defaultCustomerId || "");
     setWarranty(defaultWarranty || "");
     setTerms(defaultTerms || "");
     setAiGenerated(false);
@@ -274,3 +276,4 @@ export function NewEstimateForm({
     </div>
   );
 }
+

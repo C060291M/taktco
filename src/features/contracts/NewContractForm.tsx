@@ -5,11 +5,11 @@ import { DocumentDropzone } from "@/components/forms/DocumentDropzone";
 import { LegalDisclaimer } from "@/components/layout/LegalDisclaimer";
 import { CONTRACT_TYPES } from "@/lib/contractTemplates";
 
-export function NewContractForm({ customers, companyName }: { customers: { id: string; name: string }[]; companyName: string }) {
+export function NewContractForm({ customers, companyName, defaultCustomerId }: { customers: { id: string; name: string }[]; companyName: string; defaultCustomerId?: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"template" | "ai" | "upload">("template");
-  const [customerId, setCustomerId] = useState("");
+  const [customerId, setCustomerId] = useState(defaultCustomerId || "");
   const [type, setType] = useState(CONTRACT_TYPES[0].value);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -181,3 +181,4 @@ export function NewContractForm({ customers, companyName }: { customers: { id: s
     </div>
   );
 }
+

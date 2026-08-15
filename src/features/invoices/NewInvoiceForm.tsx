@@ -9,17 +9,19 @@ export function NewInvoiceForm({
   customers,
   jobs,
   defaultDueDays,
-  hasDepositPercent
+  hasDepositPercent,
+  defaultCustomerId
 }: {
   customers: { id: string; name: string }[];
   jobs: JobOption[];
   defaultDueDays?: number | null;
   hasDepositPercent?: boolean;
-}) {
+  defaultCustomerId?: string;
+})  {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [customerId, setCustomerId] = useState("");
+  const [customerId, setCustomerId] = useState(defaultCustomerId || "");
   const [jobId, setJobId] = useState("");
   const [splitting, setSplitting] = useState(false);
   const [splitError, setSplitError] = useState<string | null>(null);
@@ -178,5 +180,6 @@ export function NewInvoiceForm({
     </div>
   );
 }
+
 
 
