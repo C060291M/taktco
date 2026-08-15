@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { notify } from "@/lib/notify";
@@ -95,13 +95,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
     try {
       const pdfBuffer = await generateContractPdf({
         companyName: contract.company.name,
+        logoUrl: contract.company.logoUrl,
+        accentColor: contract.company.brandAccentColor,
+        companyPhone: contract.company.businessPhone,
+        companyEmail: contract.company.businessEmail,
         customerName: contract.customer.name,
+        customerAddress: contract.customer.address,
         title: contract.title,
         content: contract.content,
         companySignedByName: contract.companySignedByName,
         companySignedAt: contract.companySignedAt,
         signedByName: updated.signedByName,
-        signedAt: updated.signedAt
+        signedAt: updated.signedAt,
+        createdAt: contract.createdAt
       });
       const filename = pdfFilenameFor(contract.title);
 
@@ -146,3 +152,4 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
 
   return NextResponse.json({ status: updated.status });
 }
+

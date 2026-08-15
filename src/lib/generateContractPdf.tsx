@@ -1,82 +1,84 @@
-﻿// Server-side PDF generation for signed/approved/paid documents, so clients
-// have a real file to download/keep - not just a webpage they can view once.
-// Uses @react-pdf/renderer (pure JS, no headless-browser dependency, safe
-// on Railway) rather than Puppeteer.
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+﻿import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
-
-const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 11, fontFamily: "Helvetica" },
-  header: { marginBottom: 20, borderBottom: "1pt solid #333", paddingBottom: 10 },
-  companyName: { fontSize: 16, fontWeight: 700, marginBottom: 2 },
-  title: { fontSize: 14, fontWeight: 700, marginTop: 14, marginBottom: 8 },
-  row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
-  label: { color: "#555" },
-  content: { marginTop: 10, marginBottom: 20, lineHeight: 1.5 },
-  signatureBlock: { marginTop: 24, borderTop: "1pt solid #ccc", paddingTop: 12 },
-  signatureRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
-  signatureLabel: { fontSize: 9, color: "#666", marginBottom: 2 },
-  signatureValue: { fontSize: 11, fontWeight: 700 }
-});
+import { pdfStyles, PdfHeader, PdfPreparedFor, PdfFooter } from "@/lib/pdfBranding";
 
 export async function generateContractPdf(params: {
   companyName: string;
+  logoUrl?: string | null;
+  accentColor: string;
+  companyPhone?: string | null;
+  companyEmail?: string | null;
   customerName: string;
+  customerAddress?: string | null;
   title: string;
   content: string | null;
   companySignedByName: string | null;
   companySignedAt: Date | null;
   signedByName: string | null;
   signedAt: Date | null;
+  createdAt: Date;
 }) {
+  const styles = pdfStyles(params.accentColor || "#1EAEC4");
+
   const doc = React.createElement(
     Document,
     {},
     React.createElement(
       Page,
       { size: "LETTER", style: styles.page },
-      React.createElement(
-        View,
-        { style: styles.header },
-        React.createElement(Text, { style: styles.companyName }, params.companyName)
-      ),
-      React.createElement(Text, { style: styles.title }, params.title),
-      React.createElement(Text, {}, `For: ${params.customerName}`),
+      PdfHeader({
+        styles,
+        logoUrl: params.logoUrl,
+        companyName: params.companyName,
+        companyPhone: params.companyPhone,
+        companyEmail: params.companyEmail,
+        docType: params.title.toUpperCase(),
+        metaRows: [{ label: "Date", value: new Date(params.createdAt).toLocaleDateString() }]
+      }),
+      PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress] }),
+
       params.content
-        ? React.createElement(Text, { style: styles.content }, params.content)
+        ? React.createElement(
+            View,
+            { style: { marginTop: 4, marginBottom: 20 } },
+            React.createElement(Text, { style: { fontSize: 9.5, color: "#333", lineHeight: 1.6 } }, params.content)
+          )
         : null,
+
       React.createElement(
         View,
-        { style: styles.signatureBlock },
+        { style: { marginTop: 10, paddingTop: 14, borderTop: "1pt solid #ddd" } },
         React.createElement(
           View,
-          { style: styles.signatureRow },
+          { style: { flexDirection: "row", justifyContent: "space-between" } },
           React.createElement(
             View,
-            {},
-            React.createElement(Text, { style: styles.signatureLabel }, "Signed by company"),
+            { style: { flex: 1 } },
+            React.createElement(Text, { style: { fontSize: 8, color: params.accentColor, fontWeight: 700, marginBottom: 3 } }, "SIGNED BY COMPANY"),
             React.createElement(
               Text,
-              { style: styles.signatureValue },
+              { style: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" } },
               params.companySignedByName
-                ? `${params.companySignedByName} - ${params.companySignedAt ? new Date(params.companySignedAt).toLocaleDateString() : ""}`
+                ? `${params.companySignedByName}${params.companySignedAt ? ` - ${new Date(params.companySignedAt).toLocaleDateString()}` : ""}`
                 : "Not signed"
             )
           ),
           React.createElement(
             View,
-            {},
-            React.createElement(Text, { style: styles.signatureLabel }, "Signed by customer"),
+            { style: { flex: 1 } },
+            React.createElement(Text, { style: { fontSize: 8, color: params.accentColor, fontWeight: 700, marginBottom: 3 } }, "SIGNED BY CLIENT"),
             React.createElement(
               Text,
-              { style: styles.signatureValue },
+              { style: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" } },
               params.signedByName
-                ? `${params.signedByName} - ${params.signedAt ? new Date(params.signedAt).toLocaleDateString() : ""}`
+                ? `${params.signedByName}${params.signedAt ? ` - ${new Date(params.signedAt).toLocaleDateString()}` : ""}`
                 : "Not signed"
             )
           )
         )
-      )
+      ),
+
+      PdfFooter({ styles, companyName: params.companyName })
     )
   );
 

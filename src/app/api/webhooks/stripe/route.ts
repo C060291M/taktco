@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { verifyWebhookSignature, isConnectAccountReady, tierForPriceId, TIER_INCLUDED_CREDITS } from "@/services/stripe";
 import { notify } from "@/lib/notify";
@@ -111,13 +111,20 @@ export async function POST(req: NextRequest) {
             const lineItems = invoice.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number }[];
             const pdfBuffer = await generateInvoicePdf({
               companyName: invoice.company.name,
+              logoUrl: invoice.company.logoUrl,
+              accentColor: invoice.company.brandAccentColor,
+              companyPhone: invoice.company.businessPhone,
+              companyEmail: invoice.company.businessEmail,
               customerName: invoice.customer.name,
+              customerAddress: invoice.customer.address,
               invoiceNumber: invoice.invoiceNumber,
               amount: Number(invoice.amount),
               taxAmount: Number(invoice.taxAmount || 0),
               lineItems,
+              dueDate: invoice.dueDate,
               paidAt,
-              paymentMethod: "card"
+              paymentMethod: "card",
+              createdAt: invoice.createdAt
             });
             const label = invoice.invoiceNumber || "invoice";
             const filename = pdfFilenameFor(label);
@@ -275,3 +282,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ received: true });
 }
+

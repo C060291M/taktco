@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { runEstimateApprovalWorkflow } from "@/lib/estimateWorkflow";
@@ -100,13 +100,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
       const lineItems = estimate.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number }[];
       const pdfBuffer = await generateEstimatePdf({
         companyName: estimate.company.name,
+        logoUrl: estimate.company.logoUrl,
+        accentColor: estimate.company.brandAccentColor,
+        companyPhone: estimate.company.businessPhone,
+        companyEmail: estimate.company.businessEmail,
         customerName: estimate.customer.name,
+        customerAddress: estimate.customer.address,
         estimateNumber: estimate.estimateNumber,
         totalAmount: Number(estimate.totalAmount),
         lineItems,
         warranty: estimate.warranty,
         terms: estimate.terms,
-        approvedAt: updated.approvedAt
+        approvedAt: updated.approvedAt,
+        createdAt: estimate.createdAt
       });
       const label = estimate.estimateNumber || "estimate";
       const filename = pdfFilenameFor(label);
@@ -152,3 +158,4 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
 
   return NextResponse.json({ status: updated.status });
 }
+
