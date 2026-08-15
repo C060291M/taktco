@@ -13,15 +13,21 @@ export function CrewAndStatus({
   jobId,
   status,
   assignedUserIds,
-  teamMembers
+  teamMembers,
+  startDate: initialStartDate,
+  endDate: initialEndDate
 }: {
   jobId: string;
   status: string;
   assignedUserIds: string[];
   teamMembers: TeamMember[];
+  startDate?: string | null;
+  endDate?: string | null;
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [startDate, setStartDate] = useState(initialStartDate ? initialStartDate.slice(0, 10) : "");
+  const [endDate, setEndDate] = useState(initialEndDate ? initialEndDate.slice(0, 10) : "");
 
   async function patch(body: object) {
     setSaving(true);
@@ -52,6 +58,32 @@ export function CrewAndStatus({
         </select>
       </div>
       <div>
+        <p className="text-xs text-graphite-400 mb-1">Start date</p>
+        <input
+          className="input"
+          type="date"
+          value={startDate}
+          disabled={saving}
+          onChange={(e) => {
+            setStartDate(e.target.value);
+            patch({ startDate: e.target.value || null });
+          }}
+        />
+      </div>
+      <div>
+        <p className="text-xs text-graphite-400 mb-1">End date (optional)</p>
+        <input
+          className="input"
+          type="date"
+          value={endDate}
+          disabled={saving}
+          onChange={(e) => {
+            setEndDate(e.target.value);
+            patch({ endDate: e.target.value || null });
+          }}
+        />
+      </div>
+      <div>
         <p className="text-xs text-graphite-400 mb-1">Crew assigned</p>
         <div className="flex flex-wrap gap-2">
           {teamMembers.map((m) => (
@@ -72,3 +104,4 @@ export function CrewAndStatus({
     </div>
   );
 }
+

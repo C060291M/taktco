@@ -59,7 +59,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      <CrewAndStatus jobId={job.id} status={job.status} assignedUserIds={job.assignedUserIds} teamMembers={teamMembers} />
+      <CrewAndStatus jobId={job.id} status={job.status} assignedUserIds={job.assignedUserIds} teamMembers={teamMembers} startDate={job.startDate ? job.startDate.toISOString() : null} endDate={job.endDate ? job.endDate.toISOString() : null} />
 
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
@@ -132,3 +132,4 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     </div>
   );
 }
+

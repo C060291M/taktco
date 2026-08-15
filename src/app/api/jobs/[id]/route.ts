@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
@@ -27,6 +27,8 @@ const schema = z.object({
   projectManagerId: z.string().nullable().optional(),
   projectAddress: z.string().optional(),
   targetCompletionDate: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
+  endDate: z.string().nullable().optional(),
   category: z.string().optional(),
   portfolioFeatured: z.boolean().optional(),
   portfolioHidden: z.boolean().optional()
@@ -54,14 +56,23 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const job = await db.job.findFirst({ where: { id: params.id, companyId: ctx.company.id }, include: { customer: true } });
   if (!job) return NextResponse.json({ error: "Not found." }, { status: 404 });
 
-  const { targetCompletionDate, ...rest } = parsed.data;
+  const targetCompletionDate = parsed.data.targetCompletionDate;
+  const startDate = parsed.data.startDate;
+  const endDate = parsed.data.endDate;
+  const rest = { ...parsed.data };
+  delete rest.targetCompletionDate;
+  delete rest.startDate;
+  delete rest.endDate;
+
   const updated = await db.job.update({
     where: { id: job.id },
     data: {
       ...rest,
       ...(targetCompletionDate !== undefined
         ? { targetCompletionDate: targetCompletionDate ? new Date(targetCompletionDate) : null }
-        : {})
+        : {}),
+      ...(startDate !== undefined ? { startDate: startDate ? new Date(startDate) : null } : {}),
+      ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {})
     }
   });
 
