@@ -48,7 +48,22 @@ export function CrewAndStatus({
   }
 
   return (
-    <div className="card p-5 grid md:grid-cols-2 gap-4">
+    <div className="card p-5 space-y-4">
+      {status !== "COMPLETE" && status !== "CLOSED" && status !== "ARCHIVED" && (
+        <button
+          type="button"
+          className="btn-primary w-full"
+          disabled={saving}
+          onClick={() => {
+            if (confirm("Mark this project as complete? This also marks the customer as completed.")) {
+              patch({ status: "COMPLETE" });
+            }
+          }}
+        >
+          Mark Project Complete
+        </button>
+      )}
+      <div className="grid md:grid-cols-2 gap-4">
       <div>
         <p className="text-xs text-graphite-400 mb-1">Status</p>
         <select className="input" value={status} disabled={saving} onChange={(e) => patch({ status: e.target.value })}>
@@ -101,7 +116,9 @@ export function CrewAndStatus({
           ))}
         </div>
       </div>
+      </div>
     </div>
   );
 }
+
 

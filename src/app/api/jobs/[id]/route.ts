@@ -88,6 +88,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
     if (parsed.data.status === "COMPLETE" && job.status !== "COMPLETE") {
       await runTrigger(ctx.company.id, "PROJECT_COMPLETED", { companyId: ctx.company.id, customerId: job.customerId, jobId: job.id, trigger: "PROJECT_COMPLETED" });
+      await db.customer.update({ where: { id: job.customerId }, data: { status: "completed" } });
     }
   }
 
@@ -110,4 +111,5 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   await db.job.update({ where: { id: job.id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }
+
 
