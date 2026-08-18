@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 
 type Facts = {
@@ -10,12 +10,21 @@ type Facts = {
   openPipelineLeads: number;
 };
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export function MorningBriefing() {
   const [facts, setFacts] = useState<Facts | null>(null);
   const [narrative, setNarrative] = useState("");
   const [loading, setLoading] = useState(true);
+  const [greeting, setGreeting] = useState("");
 
   useEffect(() => {
+    setGreeting(getGreeting());
     fetch("/api/insights/briefing")
       .then((r) => r.json())
       .then((data) => {
@@ -31,13 +40,16 @@ export function MorningBriefing() {
 
   return (
     <div className="card p-5 border-accent/30">
-      <p className="text-[11px] text-accent uppercase tracking-wide mb-2">Morning briefing</p>
+      <p className="text-[11px] text-accent uppercase tracking-wide mb-2">Daily briefing</p>
       {narrative ? (
-        <p className="text-sm text-graphite-100 leading-relaxed whitespace-pre-wrap">{narrative}</p>
+        <p className="text-sm text-graphite-100 leading-relaxed whitespace-pre-wrap">
+          {greeting}. {narrative}
+        </p>
       ) : (
         // Falls back to the raw facts, plainly stated, if AI narration isn't
         // available (no credits, BYOAI not configured) - never blocks on it.
         <div className="text-sm text-graphite-200 space-y-1">
+          <p className="font-medium text-graphite-100">{greeting}.</p>
           <p>Revenue this month: ${facts.revenueThisMonth.toLocaleString()}{facts.revenueChangeVsLastMonth !== null && ` (${facts.revenueChangeVsLastMonth >= 0 ? "+" : ""}${facts.revenueChangeVsLastMonth}% vs last month)`}</p>
           {facts.projectsBehindSchedule > 0 && <p>{facts.projectsBehindSchedule} project{facts.projectsBehindSchedule === 1 ? "" : "s"} behind schedule.</p>}
           {facts.invoicesNeedingAttention > 0 && <p>{facts.invoicesNeedingAttention} invoice{facts.invoicesNeedingAttention === 1 ? "" : "s"} needing attention.</p>}

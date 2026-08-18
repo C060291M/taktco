@@ -55,7 +55,7 @@ export async function GET() {
   let narrative = "";
   try {
     narrative = await askClaude(
-      `You write a short daily business briefing for ${ctx.company.name}, a ${ctx.company.tradeType || "construction"} company. Use ONLY the numbers given - never invent or estimate anything not provided. 2-4 short sentences, direct and plain, like a sharp operations manager talking to the owner. Start with "Good morning."`,
+      `You write a short daily business briefing for ${ctx.company.name}, a ${ctx.company.tradeType || "construction"} company. Use ONLY the numbers given - never invent or estimate anything not provided. 2-4 short sentences, direct and plain, like a sharp operations manager talking to the owner. Do not start with a greeting - the app adds that separately based on the time the person is actually reading this.`,
       JSON.stringify(facts)
     );
     await db.company.update({ where: { id: companyId }, data: { lastBriefingDate: now, lastBriefingNarrative: narrative } });
@@ -67,3 +67,4 @@ export async function GET() {
 
   return NextResponse.json({ facts, narrative });
 }
+
