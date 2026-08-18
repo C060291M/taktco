@@ -99,7 +99,7 @@ export default async function InvoicesPage() {
                 </td>
                 <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                   {inv.status !== "PAID" && <PayButton invoiceId={inv.id} disabled={!ctx.company.payoutsEnabled} />}
-                  {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+                  {(ctx.user.role === "OWNER") && (
                     <DeleteInvoiceButton invoiceId={inv.id} invoiceNumber={inv.invoiceNumber} redirectAfterDelete={false} />
                   )}
                 </td>

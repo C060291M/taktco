@@ -63,8 +63,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Only owners and admins can delete estimates." }, { status: 403 });
+  if (ctx.user.role !== "OWNER") {
+    return NextResponse.json({ error: "Only owners can delete estimates." }, { status: 403 });
   }
 
   const estimate = await db.estimate.findFirst({ where: { id: params.id, companyId: ctx.company.id, deletedAt: null } });
@@ -73,6 +73,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   await db.estimate.update({ where: { id: estimate.id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }
+
 
 
 

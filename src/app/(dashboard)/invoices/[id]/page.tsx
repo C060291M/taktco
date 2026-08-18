@@ -43,7 +43,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
               <PrintButton />
               <CopyPublicLink token={invoice.paymentLinkToken} basePath="invoice" />
               <SendInvoiceButton invoiceId={invoice.id} />
-              {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+              {(ctx.user.role === "OWNER") && (
                 <DeleteInvoiceButton invoiceId={invoice.id} invoiceNumber={invoice.invoiceNumber} />
               )}
             </div>

@@ -1,4 +1,4 @@
-﻿import { db } from "@/database/client";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
@@ -72,7 +72,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
           </p>
           <div className="flex items-center gap-3 mt-1">
             <EditContactInfo customerId={customer.id} name={customer.name} email={customer.email} phone={customer.phone} address={customer.address} />
-            <DeleteCustomerButton customerId={customer.id} customerName={customer.name} />
+            {ctx.user.role === "OWNER" && <DeleteCustomerButton customerId={customer.id} customerName={customer.name} />}
           </div>
           {customer.address ? (
             <a href={mapsUrl} target="_blank" rel="noreferrer" className="text-xs text-accent hover:underline">
@@ -242,3 +242,4 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-﻿import { db } from "@/database/client";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { EstimateActions } from "@/features/estimates/EstimateActions";
@@ -47,7 +47,7 @@ export default async function EstimateDetailPage({ params }: { params: { number:
           <div className="flex gap-2">
             <PrintButton />
             <CopyPublicLink token={estimate.approvalToken} />
-            {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+            {(ctx.user.role === "OWNER") && (
               <DeleteEstimateButton estimateId={estimate.id} estimateNumber={estimate.estimateNumber} />
             )}
           </div>

@@ -12,6 +12,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Invalid update." }, { status: 400 });
 
+  if (ctx.user.role !== "OWNER") return NextResponse.json({ error: "Only owners can delete this." }, { status: 403 });
+
   const task = await db.task.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
   if (!task) return NextResponse.json({ error: "Not found." }, { status: 404 });
 
@@ -23,11 +25,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (ctx.user.role !== "OWNER") return NextResponse.json({ error: "Only owners can delete this." }, { status: 403 });
+
   const task = await db.task.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
   if (!task) return NextResponse.json({ error: "Not found." }, { status: 404 });
 
   await db.task.delete({ where: { id: task.id } });
   return NextResponse.json({ ok: true });
 }
+
 
 

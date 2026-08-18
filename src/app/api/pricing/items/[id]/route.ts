@@ -60,6 +60,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx || !canManage(ctx.user.role)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (ctx.user.role !== "OWNER") return NextResponse.json({ error: "Only owners can delete this." }, { status: 403 });
 
   const item = await db.pricingItem.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
   if (!item) return NextResponse.json({ error: "Not found." }, { status: 404 });

@@ -13,6 +13,7 @@ function canManage(role: string) {
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx || !canManage(ctx.user.role)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (ctx.user.role !== "OWNER") return NextResponse.json({ error: "Only owners can delete this." }, { status: 403 });
 
   const invoice = await db.invoice.findFirst({ where: { id: params.id, companyId: ctx.company.id, deletedAt: null } });
   if (!invoice) return NextResponse.json({ error: "Not found." }, { status: 404 });

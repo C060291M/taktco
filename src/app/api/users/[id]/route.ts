@@ -12,7 +12,7 @@ const schema = z.object({
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
+  if (ctx.user.role !== "OWNER") {
     return NextResponse.json({ error: "Only owners and admins can change roles." }, { status: 403 });
   }
 
@@ -53,8 +53,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Only owners and admins can remove teammates." }, { status: 403 });
+  if (ctx.user.role !== "OWNER") {
+    return NextResponse.json({ error: "Only the account owner can remove teammates." }, { status: 403 });
   }
 
   const target = await db.user.findFirst({ where: { id: params.id, companyId: ctx.company.id } });
@@ -82,6 +82,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   return NextResponse.json({ ok: true });
 }
+
 
 
 

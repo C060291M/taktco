@@ -63,7 +63,7 @@ export default async function CampaignsPage() {
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-2">
                     {c.status === "DRAFT" && <SendCampaignButton campaignId={c.id} />}
-                    {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+                    {(ctx.user.role === "OWNER") && (
                       <DeleteCampaignButton campaignId={c.id} campaignName={c.name} />
                     )}
                   </div>

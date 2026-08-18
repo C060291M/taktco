@@ -43,7 +43,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
           <h1 className="text-xl font-semibold text-white">Job for {job.customer.name}</h1>
           <Badge color={job.status === "COMPLETE" || job.status === "CLOSED" ? "green" : "yellow"}>{job.status.replace(/_/g, " ")}</Badge>
         </div>
-        {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+        {(ctx.user.role === "OWNER") && (
           <DeleteJobButton jobId={job.id} customerName={job.customer.name} />
         )}
       </div>

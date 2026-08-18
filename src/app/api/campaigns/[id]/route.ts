@@ -9,8 +9,8 @@ import { requireSession } from "@/lib/auth";
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Only owners and admins can delete campaigns." }, { status: 403 });
+  if (ctx.user.role !== "OWNER") {
+    return NextResponse.json({ error: "Only owners can delete campaigns." }, { status: 403 });
   }
 
   const campaign = await db.campaign.findFirst({ where: { id: params.id, companyId: ctx.company.id, deletedAt: null } });
@@ -19,3 +19,4 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   await db.campaign.update({ where: { id: campaign.id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }
+

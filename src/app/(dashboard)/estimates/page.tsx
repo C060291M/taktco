@@ -59,7 +59,7 @@ export default async function EstimatesPage() {
                   <Badge color={e.status === "APPROVED" ? "green" : e.status === "DECLINED" ? "red" : "blue"}>{e.status}</Badge>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  {(ctx.user.role === "OWNER" || ctx.user.role === "ADMIN") && (
+                  {(ctx.user.role === "OWNER") && (
                     <DeleteEstimateButton estimateId={e.id} estimateNumber={e.estimateNumber} redirectAfterDelete={false} />
                   )}
                 </td>
