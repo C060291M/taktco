@@ -3,6 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { BrandedDocumentHeader } from "@/components/layout/BrandedDocumentHeader";
 import { LegalDisclaimer } from "@/components/layout/LegalDisclaimer";
+import { formatDateInTz } from "@/lib/formatDate";
 import { CONTRACT_TYPES } from "@/lib/contractTemplates";
 import { ContractActions } from "@/features/contracts/ContractActions";
 import { PrintButton } from "@/components/ui/PrintButton";
@@ -55,10 +56,18 @@ export default async function ContractDetailPage({ params }: { params: { id: str
           />
         )}
 
+        {contract.companySignedByName && (
+          <div className="mt-4">
+            <p className="text-sm text-accent">
+              Signed for {ctx.company.name} by {contract.companySignedByName}
+              {contract.companySignedAt ? ` on ${formatDateInTz(contract.companySignedAt, ctx.company.timeZone)}` : ""}
+            </p>
+          </div>
+        )}
         {contract.status === "SIGNED" && contract.signedByName && (
           <div className="mt-4">
             <p className="text-sm text-emerald-400">
-              Signed by {contract.signedByName} on {new Date(contract.signedAt!).toLocaleDateString()}
+              Signed by {contract.signedByName} on {formatDateInTz(contract.signedAt!, ctx.company.timeZone)}
             </p>
             {contract.ipAddress && <p className="text-[11px] text-graphite-500 mt-1">IP address on file: {contract.ipAddress}</p>}
           </div>
@@ -71,5 +80,6 @@ export default async function ContractDetailPage({ params }: { params: { id: str
     </div>
   );
 }
+
 
 
