@@ -97,6 +97,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
         companyName: contract.company.name,
         logoUrl: contract.company.logoUrl,
         accentColor: contract.company.brandAccentColor,
+        timeZone: contract.company.timeZone,
         companyPhone: contract.company.businessPhone,
         companyEmail: contract.company.businessEmail,
         customerName: contract.customer.name,
@@ -152,4 +153,5 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
 
   return NextResponse.json({ status: updated.status });
 }
+
 

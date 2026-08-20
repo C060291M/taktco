@@ -102,6 +102,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
         companyName: estimate.company.name,
         logoUrl: estimate.company.logoUrl,
         accentColor: estimate.company.brandAccentColor,
+        timeZone: estimate.company.timeZone,
         companyPhone: estimate.company.businessPhone,
         companyEmail: estimate.company.businessEmail,
         customerName: estimate.customer.name,
@@ -158,4 +159,5 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
 
   return NextResponse.json({ status: updated.status });
 }
+
 

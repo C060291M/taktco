@@ -1,6 +1,7 @@
 ﻿import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { pdfStyles, PdfHeader, PdfPreparedFor, PdfFooter } from "@/lib/pdfBranding";
+import { formatDateInTz } from "@/lib/formatDate";
 
 type LineItem = { description: string; qty: number; unit: string; unitPrice: number };
 
@@ -14,6 +15,7 @@ export async function generateEstimatePdf(params: {
   accentColor: string;
   companyPhone?: string | null;
   companyEmail?: string | null;
+  timeZone: string;
   customerName: string;
   customerAddress?: string | null;
   estimateNumber: string | null;
@@ -25,6 +27,7 @@ export async function generateEstimatePdf(params: {
   createdAt: Date;
 }) {
   const styles = pdfStyles(params.accentColor || "#1EAEC4");
+  const tz = params.timeZone || "America/Chicago";
 
   const doc = React.createElement(
     Document,
@@ -41,7 +44,7 @@ export async function generateEstimatePdf(params: {
         docType: "ESTIMATE",
         metaRows: [
           { label: "Estimate #", value: params.estimateNumber || "-" },
-          { label: "Date", value: new Date(params.createdAt).toLocaleDateString() }
+          { label: "Date", value: formatDateInTz(params.createdAt, tz) }
         ]
       }),
       PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress] }),
@@ -102,7 +105,7 @@ export async function generateEstimatePdf(params: {
             React.createElement(
               Text,
               { style: [styles.statusBannerText, { color: "#2e7d32" }] },
-              `Approved on ${new Date(params.approvedAt).toLocaleDateString()}`
+              `Approved on ${formatDateInTz(params.approvedAt, tz)}`
             )
           )
         : null,

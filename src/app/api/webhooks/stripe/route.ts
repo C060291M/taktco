@@ -113,6 +113,7 @@ export async function POST(req: NextRequest) {
               companyName: invoice.company.name,
               logoUrl: invoice.company.logoUrl,
               accentColor: invoice.company.brandAccentColor,
+              timeZone: invoice.company.timeZone,
               companyPhone: invoice.company.businessPhone,
               companyEmail: invoice.company.businessEmail,
               customerName: invoice.customer.name,
@@ -282,4 +283,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ received: true });
 }
+
 

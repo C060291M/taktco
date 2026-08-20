@@ -1,6 +1,7 @@
 ﻿import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { pdfStyles, PdfHeader, PdfPreparedFor, PdfFooter } from "@/lib/pdfBranding";
+import { formatDateInTz } from "@/lib/formatDate";
 
 type LineItem = { description: string; qty: number; unit: string; unitPrice: number };
 
@@ -14,6 +15,7 @@ export async function generateInvoicePdf(params: {
   accentColor: string;
   companyPhone?: string | null;
   companyEmail?: string | null;
+  timeZone: string;
   customerName: string;
   customerAddress?: string | null;
   invoiceNumber: string | null;
@@ -26,6 +28,7 @@ export async function generateInvoicePdf(params: {
   createdAt: Date;
 }) {
   const styles = pdfStyles(params.accentColor || "#1EAEC4");
+  const tz = params.timeZone || "America/Chicago";
 
   const doc = React.createElement(
     Document,
@@ -42,8 +45,8 @@ export async function generateInvoicePdf(params: {
         docType: "INVOICE",
         metaRows: [
           { label: "Invoice #", value: params.invoiceNumber || "-" },
-          { label: "Date", value: new Date(params.createdAt).toLocaleDateString() },
-          ...(params.dueDate ? [{ label: "Due", value: new Date(params.dueDate).toLocaleDateString() }] : [])
+          { label: "Date", value: formatDateInTz(params.createdAt, tz) },
+          ...(params.dueDate ? [{ label: "Due", value: formatDateInTz(params.dueDate, tz) }] : [])
         ]
       }),
       PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress] }),
@@ -95,7 +98,7 @@ export async function generateInvoicePdf(params: {
             React.createElement(
               Text,
               { style: [styles.statusBannerText, { color: "#2e7d32" }] },
-              `Paid in full on ${new Date(params.paidAt).toLocaleDateString()}${params.paymentMethod ? ` via ${params.paymentMethod}` : ""}`
+              `Paid in full on ${formatDateInTz(params.paidAt, tz)}${params.paymentMethod ? ` via ${params.paymentMethod}` : ""}`
             )
           )
         : null,

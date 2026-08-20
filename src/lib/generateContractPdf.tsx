@@ -1,6 +1,7 @@
 ﻿import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { pdfStyles, PdfHeader, PdfPreparedFor, PdfFooter } from "@/lib/pdfBranding";
+import { formatDateInTz } from "@/lib/formatDate";
 
 export async function generateContractPdf(params: {
   companyName: string;
@@ -8,6 +9,7 @@ export async function generateContractPdf(params: {
   accentColor: string;
   companyPhone?: string | null;
   companyEmail?: string | null;
+  timeZone: string;
   customerName: string;
   customerAddress?: string | null;
   title: string;
@@ -19,6 +21,7 @@ export async function generateContractPdf(params: {
   createdAt: Date;
 }) {
   const styles = pdfStyles(params.accentColor || "#1EAEC4");
+  const tz = params.timeZone || "America/Chicago";
 
   const doc = React.createElement(
     Document,
@@ -33,7 +36,7 @@ export async function generateContractPdf(params: {
         companyPhone: params.companyPhone,
         companyEmail: params.companyEmail,
         docType: params.title.toUpperCase(),
-        metaRows: [{ label: "Date", value: new Date(params.createdAt).toLocaleDateString() }]
+        metaRows: [{ label: "Date", value: formatDateInTz(params.createdAt, tz) }]
       }),
       PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress] }),
 
@@ -59,7 +62,7 @@ export async function generateContractPdf(params: {
               Text,
               { style: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" } },
               params.companySignedByName
-                ? `${params.companySignedByName}${params.companySignedAt ? ` - ${new Date(params.companySignedAt).toLocaleDateString()}` : ""}`
+                ? `${params.companySignedByName}${params.companySignedAt ? ` - ${formatDateInTz(params.companySignedAt, tz)}` : ""}`
                 : "Not signed"
             )
           ),
@@ -71,7 +74,7 @@ export async function generateContractPdf(params: {
               Text,
               { style: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" } },
               params.signedByName
-                ? `${params.signedByName}${params.signedAt ? ` - ${new Date(params.signedAt).toLocaleDateString()}` : ""}`
+                ? `${params.signedByName}${params.signedAt ? ` - ${formatDateInTz(params.signedAt, tz)}` : ""}`
                 : "Not signed"
             )
           )
