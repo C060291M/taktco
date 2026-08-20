@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -7,6 +7,7 @@ import { z } from "zod";
 import { NovaBanner } from "@/components/marketing/NovaBanner";
 import { LogoDropzone } from "@/components/forms/LogoDropzone";
 import { WizardSteps } from "@/components/forms/WizardSteps";
+import { COMMON_US_TIMEZONES } from "@/lib/formatDate";
 
 const PRESET_COLORS = ["#1EAEC4", "#22D3EE", "#3B82F6", "#A855F7", "#F97316", "#22C55E"];
 const STEPS = ["Business", "Contact & tax", "Branding", "Your account"];
@@ -22,6 +23,7 @@ const schema = z.object({
     .string()
     .optional()
     .refine((v) => !v || (Number(v) >= 0 && Number(v) <= 100), "Enter a percent between 0 and 100"),
+  timeZone: z.string().optional(),
   name: z.string().min(2, "Enter your name"),
   email: z.string().email("Enter a valid email"),
   password: z.string().min(8, "At least 8 characters")
@@ -31,7 +33,7 @@ type FormValues = z.infer<typeof schema>;
 
 const STEP_FIELDS: (keyof FormValues)[][] = [
   ["companyName", "tradeType", "serviceArea"],
-  ["businessPhone", "businessEmail", "businessAddress", "taxRate"],
+  ["businessPhone", "businessEmail", "businessAddress", "taxRate", "timeZone"],
   [],
   ["name", "email", "password"]
 ];
@@ -49,7 +51,7 @@ export default function SignupPage() {
     handleSubmit,
     trigger,
     formState: { errors }
-  } = useForm<FormValues>({ resolver: zodResolver(schema), mode: "onBlur" });
+  } = useForm<FormValues>({ resolver: zodResolver(schema), mode: "onBlur", defaultValues: { timeZone: "America/Chicago" } });
 
   async function next() {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -85,7 +87,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           <div className="mb-6 text-center">
             <h1 className="text-xl font-semibold text-white">Welcome to TAKTCO</h1>
-            <p className="text-graphite-400 text-sm mt-1">Your construction business operating system — a few short steps, and it'll already look like your company.</p>
+            <p className="text-graphite-400 text-sm mt-1">Your construction business operating system - a few short steps, and it'll already look like your company.</p>
           </div>
 
           <WizardSteps steps={STEPS} currentStep={step} />
@@ -113,13 +115,13 @@ export default function SignupPage() {
                   </select>
                   {errors.tradeType && <p className="text-xs text-red-400 mt-1">{errors.tradeType.message}</p>}
                 </div>
-                <input className="input" placeholder="Service area (e.g. Dallas–Fort Worth)" {...register("serviceArea")} />
+                <input className="input" placeholder="Service area (e.g. Dallas-Fort Worth)" {...register("serviceArea")} />
               </div>
             )}
 
             {step === 1 && (
               <div className="space-y-3">
-                <p className="text-xs text-graphite-500">All optional — you can fill these in later from Settings.</p>
+                <p className="text-xs text-graphite-500">Most fields are optional - you can fill these in later from Settings.</p>
                 <input className="input" placeholder="Business phone" {...register("businessPhone")} />
                 <div>
                   <input className="input" placeholder="Business email" {...register("businessEmail")} />
@@ -129,6 +131,14 @@ export default function SignupPage() {
                 <div>
                   <input className="input" placeholder="Default tax rate (%)" inputMode="decimal" {...register("taxRate")} />
                   {errors.taxRate && <p className="text-xs text-red-400 mt-1">{errors.taxRate.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs text-graphite-400 mb-1">Time zone - used for all document and signature timestamps</label>
+                  <select className="input" {...register("timeZone")}>
+                    {COMMON_US_TIMEZONES.map((tz) => (
+                      <option key={tz.value} value={tz.value}>{tz.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             )}
@@ -173,7 +183,7 @@ export default function SignupPage() {
                   {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
                 </div>
                 <p className="text-[11px] text-graphite-500">
-                  Payment setup happens later, in Settings — no bank or tax info needed to get started.
+                  Payment setup happens later, in Settings - no bank or tax info needed to get started.
                 </p>
               </div>
             )}

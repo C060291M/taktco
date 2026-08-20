@@ -162,6 +162,7 @@ model Company {
   logoUrl              String?
   brandPrimaryColor    String   @default("#0E0F11")
   brandAccentColor     String   @default("#1EAEC4")
+  timeZone             String   @default("America/Chicago") // IANA tz name - used for all document/signature timestamps
   dashboardTheme       String   @default("solid") // solid | gradient | grid
   tradeType             String?
   serviceArea          String?
@@ -1613,6 +1614,7 @@ model CampaignQueueItem {
   @@index([campaignId, status])
   @@index([companyId, status])
 }
+
 
 
 
