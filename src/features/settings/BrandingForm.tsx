@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogoDropzone } from "@/components/forms/LogoDropzone";
+import { COMMON_US_TIMEZONES } from "@/lib/formatDate";
 
 const PRESET_COLORS = ["#1EAEC4", "#22D3EE", "#3B82F6", "#A855F7", "#F97316", "#22C55E"];
 
@@ -16,6 +17,7 @@ type Company = {
   logoUrl: string | null;
   brandAccentColor: string;
   dashboardTheme: string;
+  timeZone: string;
 };
 
 export function BrandingForm({ company }: { company: Company }) {
@@ -24,6 +26,7 @@ export function BrandingForm({ company }: { company: Company }) {
   const [logoUrl, setLogoUrl] = useState<string | null>(company.logoUrl || null);
   const [accent, setAccent] = useState(company.brandAccentColor);
   const [theme, setTheme] = useState(company.dashboardTheme || "solid");
+  const [timeZone, setTimeZone] = useState(company.timeZone || "America/Chicago");
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -31,7 +34,7 @@ export function BrandingForm({ company }: { company: Company }) {
     await fetch("/api/company", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, logoUrl: logoUrl || "", brandAccentColor: accent, dashboardTheme: theme })
+      body: JSON.stringify({ name, logoUrl: logoUrl || "", brandAccentColor: accent, dashboardTheme: theme, timeZone })
     });
     setSaving(false);
     router.refresh();
@@ -63,7 +66,7 @@ export function BrandingForm({ company }: { company: Company }) {
         <LogoDropzone onChange={(dataUrl) => setLogoUrl(dataUrl)} />
         {logoUrl && logoUrl.startsWith("data:") && (
           <p className="text-[11px] text-graphite-500 mt-1">
-            Stored locally for now — production should move this to real file storage (S3/R2). See README.
+            Stored locally for now - production should move this to real file storage (S3/R2). See README.
           </p>
         )}
       </div>
@@ -109,6 +112,16 @@ export function BrandingForm({ company }: { company: Company }) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-graphite-300 mb-2">Time zone</label>
+        <select className="input" value={timeZone} onChange={(e) => setTimeZone(e.target.value)}>
+          {COMMON_US_TIMEZONES.map((tz) => (
+            <option key={tz.value} value={tz.value}>{tz.label}</option>
+          ))}
+        </select>
+        <p className="text-[11px] text-graphite-500 mt-1">Used for every document and signature timestamp your customers see.</p>
       </div>
 
       <div className="pt-2">

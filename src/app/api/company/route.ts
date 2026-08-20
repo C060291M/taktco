@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
@@ -8,7 +8,8 @@ const schema = z.object({
   logoUrl: z.string().url().optional().or(z.literal("")),
   brandPrimaryColor: z.string().optional(),
   brandAccentColor: z.string().optional(),
-  dashboardTheme: z.enum(["solid", "gradient", "grid"]).optional()
+  dashboardTheme: z.enum(["solid", "gradient", "grid"]).optional(),
+  timeZone: z.string().optional()
 });
 
 export async function GET() {
@@ -19,7 +20,7 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   const ctx = await requireSession();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!ctx) return NextResponse.json({ error: "Unauthorized"}, { status: 401 });
   if (ctx.user.role !== "OWNER" && ctx.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Only owners and admins can update branding." }, { status: 403 });
   }
