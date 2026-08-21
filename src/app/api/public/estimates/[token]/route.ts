@@ -41,7 +41,8 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
     company: {
       name: estimate.company.name,
       logoUrl: estimate.company.logoUrl,
-      brandAccentColor: estimate.company.brandAccentColor
+      brandAccentColor: estimate.company.brandAccentColor,
+      timeZone: estimate.company.timeZone
     }
   });
 }
@@ -159,5 +160,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
 
   return NextResponse.json({ status: updated.status });
 }
+
 
 

@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
     dueDate: invoice.dueDate,
     notes: invoice.notes,
     customer: { name: invoice.customer.name },
-    company: { name: invoice.company.name, logoUrl: invoice.company.logoUrl, brandAccentColor: invoice.company.brandAccentColor },
+    company: { name: invoice.company.name, logoUrl: invoice.company.logoUrl, brandAccentColor: invoice.company.brandAccentColor, timeZone: invoice.company.timeZone },
     payments: invoice.payments.map((p) => ({ amount: p.amount, paidAt: p.paidAt, method: p.method })),
     payoutsEnabled: invoice.company.payoutsEnabled
   });
@@ -98,3 +98,4 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
 
   return NextResponse.json({ status: updated.status });
 }
+
