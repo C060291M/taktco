@@ -19,7 +19,7 @@ export default async function PublicInvoicePage({ params }: { params: { token: s
     <PublicInvoiceView
       token={params.token}
       customerName={invoice.customer.name}
-      company={{ name: invoice.company.name, logoUrl: invoice.company.logoUrl, brandAccentColor: invoice.company.brandAccentColor }}
+      company={{ name: invoice.company.name, logoUrl: invoice.company.logoUrl, brandAccentColor: invoice.company.brandAccentColor, timeZone: invoice.company.timeZone }}
       status={invoice.status}
       invoiceNumber={invoice.invoiceNumber}
       amount={Number(invoice.amount)}
@@ -31,3 +31,4 @@ export default async function PublicInvoicePage({ params }: { params: { token: s
     />
   );
 }
+

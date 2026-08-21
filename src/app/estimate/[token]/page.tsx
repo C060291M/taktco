@@ -19,7 +19,7 @@ export default async function PublicEstimatePage({ params }: { params: { token: 
     <PublicEstimateView
       token={params.token}
       customerName={estimate.customer.name}
-      company={{ name: estimate.company.name, logoUrl: estimate.company.logoUrl, brandAccentColor: estimate.company.brandAccentColor }}
+      company={{ name: estimate.company.name, logoUrl: estimate.company.logoUrl, brandAccentColor: estimate.company.brandAccentColor, timeZone: estimate.company.timeZone }}
       status={estimate.status}
       totalAmount={Number(estimate.totalAmount)}
       lineItems={lineItems}
@@ -30,4 +30,5 @@ export default async function PublicEstimatePage({ params }: { params: { token: 
     />
   );
 }
+
 

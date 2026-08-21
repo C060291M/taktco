@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
+import { formatDateInTz } from "@/lib/formatDate";
 
 type LineItem = { description: string; qty: number; unit: string; unitPrice: number };
-type Company = { name: string; logoUrl: string | null; brandAccentColor: string };
+type Company = { name: string; logoUrl: string | null; brandAccentColor: string; timeZone: string };
 
 function money(n: number) {
   return `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -54,7 +55,7 @@ export function PublicEstimateView({
 
   const decided = status === "APPROVED" || status === "DECLINED";
   const isExpired = validUntil ? new Date(validUntil) < new Date() : false;
-  const expiredDate = validUntil ? new Date(validUntil).toLocaleDateString() : null;
+  const expiredDate = validUntil ? formatDateInTz(validUntil, company.timeZone) : null;
 
   return (
     <div className="min-h-screen bg-graphite-950 flex items-center justify-center p-4" style={{ ["--brand-accent" as string]: company.brandAccentColor }}>
@@ -156,3 +157,5 @@ export function PublicEstimateView({
     </div>
   );
 }
+
+

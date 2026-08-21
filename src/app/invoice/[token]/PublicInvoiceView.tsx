@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
+import { formatDateInTz } from "@/lib/formatDate";
 
 type LineItem = { description: string; qty: number; unit: string; unitPrice: number };
-type Company = { name: string; logoUrl: string | null; brandAccentColor: string };
+type Company = { name: string; logoUrl: string | null; brandAccentColor: string; timeZone: string };
 type PaymentRow = { amount: number; paidAt: string; method: string };
 
 function money(n: number) {
@@ -70,7 +71,7 @@ export function PublicInvoiceView({
         <div className="card p-6" style={{ borderColor: company.brandAccentColor }}>
           <div className="flex items-center justify-between mb-1">
             <p className="text-sm text-graphite-400">Invoice {invoiceNumber && `#${invoiceNumber}`}</p>
-            {dueDate && <p className="text-xs text-graphite-500">Due {new Date(dueDate).toLocaleDateString()}</p>}
+            {dueDate && <p className="text-xs text-graphite-500">Due {formatDateInTz(dueDate, company.timeZone)}</p>}
           </div>
           <h1 className="text-xl font-semibold text-white mb-4">{customerName}</h1>
 
@@ -112,7 +113,7 @@ export function PublicInvoiceView({
               <p className="text-xs text-graphite-400 uppercase tracking-wide mb-2">Payment history</p>
               {payments.map((p, i) => (
                 <div key={i} className="flex items-center justify-between text-sm text-graphite-300">
-                  <span>{new Date(p.paidAt).toLocaleDateString()} · {p.method}</span>
+                  <span>{formatDateInTz(p.paidAt, company.timeZone)} · {p.method}</span>
                   <span>{money(p.amount)}</span>
                 </div>
               ))}
@@ -137,3 +138,5 @@ export function PublicInvoiceView({
     </div>
   );
 }
+
+
