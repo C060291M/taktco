@@ -1,4 +1,5 @@
 import { db } from "@/database/client";
+import { formatDateInTz } from "@/lib/formatDate";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { BrandedDocumentHeader } from "@/components/layout/BrandedDocumentHeader";
@@ -32,7 +33,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
             <h1 className="text-lg font-semibold text-white">Billed to {invoice.customer.name}</h1>
             {invoice.invoiceNumber && <p className="text-xs text-graphite-500">#{invoice.invoiceNumber}</p>}
             {invoice.dueDate && (
-              <p className="text-sm text-graphite-400">Due {new Date(invoice.dueDate).toLocaleDateString()}</p>
+              <p className="text-sm text-graphite-400">Due {formatDateInTz(invoice.dueDate, ctx.company.timeZone)}</p>
             )}
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -70,7 +71,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           <div className="space-y-2">
             {invoice.payments.map((p) => (
               <div key={p.id} className="flex items-center justify-between text-sm">
-                <span className="text-graphite-300">{new Date(p.paidAt).toLocaleDateString()} · {p.method}</span>
+                <span className="text-graphite-300">{formatDateInTz(p.paidAt, ctx.company.timeZone)} · {p.method}</span>
                 <span className="text-graphite-100">{money(p.amount)}</span>
               </div>
             ))}
@@ -80,5 +81,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
     </div>
   );
 }
+
+
 
 
