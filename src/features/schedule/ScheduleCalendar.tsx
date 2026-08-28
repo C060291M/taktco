@@ -1,17 +1,24 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import Link from "next/link";
 
-type JobEvent = {
+type CalendarEvent = {
   id: string;
-  customerName: string;
+  kind: "job" | "task";
+  label: string;
   status: string;
   startDate: string;
   endDate: string;
-  projectAddress: string | null;
+  href: string;
+  detail: string | null;
 };
 
-function statusColor(status: string) {
+function statusColor(kind: "job" | "task", status: string) {
+  if (kind === "task") {
+    return status === "DONE" || status === "true"
+      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+      : "bg-purple-500/20 text-purple-300 border-purple-500/40";
+  }
   if (status === "COMPLETE" || status === "CLOSED") return "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
   if (status === "ON_HOLD" || status === "WEATHER_DELAY" || status === "WAITING_ON_CUSTOMER") return "bg-amber-500/20 text-amber-300 border-amber-500/40";
   if (status === "IN_PROGRESS") return "bg-accent/20 text-accent border-accent/40";
@@ -22,7 +29,7 @@ function toDateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function ScheduleCalendar({ events }: { events: JobEvent[] }) {
+export function ScheduleCalendar({ events }: { events: CalendarEvent[] }) {
   const [cursor, setCursor] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -39,7 +46,7 @@ export function ScheduleCalendar({ events }: { events: JobEvent[] }) {
   for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const eventsByDay = new Map<string, JobEvent[]>();
+  const eventsByDay = new Map<string, CalendarEvent[]>();
   for (const ev of events) {
     const start = new Date(ev.startDate);
     const end = new Date(ev.endDate);
@@ -67,6 +74,11 @@ export function ScheduleCalendar({ events }: { events: JobEvent[] }) {
         </div>
       </div>
 
+      <div className="flex items-center gap-3 mb-3 text-[11px] text-graphite-400">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-accent inline-block" /> Projects</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block" /> Tasks</span>
+      </div>
+
       <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-graphite-500 mb-1">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d}>{d}</div>)}
       </div>
@@ -85,12 +97,12 @@ export function ScheduleCalendar({ events }: { events: JobEvent[] }) {
               <p className={`text-[11px] ${isToday ? "text-accent font-semibold" : "text-graphite-500"}`}>{date.getDate()}</p>
               {dayEvents.slice(0, 3).map((ev) => (
                 <Link
-                  key={ev.id}
-                  href={`/jobs/${ev.id}`}
-                  className={`block text-[10px] px-1.5 py-0.5 rounded border truncate ${statusColor(ev.status)}`}
-                  title={`${ev.customerName}${ev.projectAddress ? " - " + ev.projectAddress : ""}`}
+                  key={ev.kind + ev.id}
+                  href={ev.href}
+                  className={`block text-[10px] px-1.5 py-0.5 rounded border truncate ${statusColor(ev.kind, ev.status)}`}
+                  title={ev.detail ? ev.label + " - " + ev.detail : ev.label}
                 >
-                  {ev.customerName}
+                  {ev.kind === "task" ? "\u2713 " : ""}{ev.label}
                 </Link>
               ))}
               {dayEvents.length > 3 && (
@@ -102,7 +114,7 @@ export function ScheduleCalendar({ events }: { events: JobEvent[] }) {
       </div>
 
       {events.length === 0 && (
-        <p className="text-sm text-graphite-500 text-center py-6">No projects have a start date scheduled yet.</p>
+        <p className="text-sm text-graphite-500 text-center py-6">No projects or tasks are scheduled yet.</p>
       )}
     </div>
   );
