@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -45,7 +45,7 @@ function JobTag({ status }: { status: string }) {
   );
 }
 
-export function JobsBoard({ initialJobs }: { initialJobs: JobCard[] }) {
+export function JobsBoard({ initialJobs, hideCost }: { initialJobs: JobCard[]; hideCost?: boolean }) {
   const [jobs, setJobs] = useState(initialJobs);
   const [dragging, setDragging] = useState<string | null>(null);
 
@@ -89,7 +89,7 @@ export function JobsBoard({ initialJobs }: { initialJobs: JobCard[] }) {
                     <Link href={"/jobs/" + job.id} className="text-sm text-graphite-100 hover:text-accent block">
                       {job.customerName}
                     </Link>
-                    <p className="text-xs text-graphite-400 mt-1">${job.quotedCost.toLocaleString()}</p>
+                    {!hideCost && <p className="text-xs text-graphite-400 mt-1">${job.quotedCost.toLocaleString()}</p>}
                     <JobTag status={job.status} />
                   </div>
                 );
@@ -101,3 +101,4 @@ export function JobsBoard({ initialJobs }: { initialJobs: JobCard[] }) {
     </div>
   );
 }
+

@@ -26,7 +26,9 @@ export default async function JobsPage() {
         <h1 className="text-xl font-semibold text-white">Jobs</h1>
         <p className="text-sm text-graphite-400">Every active and completed job.</p>
       </div>
-      <JobsBoard initialJobs={serializable} />
+      <JobsBoard initialJobs={serializable} hideCost={ctx.user.role === "FIELD_TECH"} />
     </div>
   );
 }
+
+

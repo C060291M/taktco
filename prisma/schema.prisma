@@ -447,6 +447,8 @@ model Job {
   endDate         DateTime?
   targetCompletionDate DateTime?
   actualCompletionDate DateTime?
+  techSignedOffByName String?
+  techSignedOffAt DateTime?
   projectAddress  String?
   assignedUserIds String[]  @default([])
   projectManagerId String?
@@ -1614,6 +1616,9 @@ model CampaignQueueItem {
   @@index([campaignId, status])
   @@index([companyId, status])
 }
+
+
+
 
 
 
