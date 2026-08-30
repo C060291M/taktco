@@ -60,14 +60,14 @@ export function PeriodReview() {
           <div className="flex rounded-lg border border-graphite-700 overflow-hidden">
             <button
               type="button"
-              className={"text-xs px-3 py-1.5 " + (type === "month" ? "bg-accent text-accent-foreground" : "text-graphite-300 hover:bg-graphite-800")}
+              className={"text-xs px-3 py-1.5 whitespace-nowrap shrink-0 " + (type === "month" ? "bg-accent text-accent-foreground" : "text-graphite-300 hover:bg-graphite-800")}
               onClick={function () { setType("month"); }}
             >
               Monthly
             </button>
             <button
               type="button"
-              className={"text-xs px-3 py-1.5 " + (type === "year" ? "bg-accent text-accent-foreground" : "text-graphite-300 hover:bg-graphite-800")}
+              className={"text-xs px-3 py-1.5 whitespace-nowrap shrink-0 " + (type === "year" ? "bg-accent text-accent-foreground" : "text-graphite-300 hover:bg-graphite-800")}
               onClick={function () { setType("year"); }}
             >
               Yearly
@@ -115,4 +115,6 @@ export function PeriodReview() {
     </div>
   );
 }
+
+
 
