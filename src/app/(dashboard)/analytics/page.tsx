@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { StatCard } from "@/components/ui/StatCard";
 import { BarChart } from "@/components/ui/BarChart";
 import { Target, TrendingUp, Repeat, CheckCircle2 } from "lucide-react";
+import { PeriodReview } from "@/features/analytics/PeriodReview";
+import { TaxPrepSummary } from "@/features/analytics/TaxPrepSummary";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -75,6 +77,9 @@ export default async function AnalyticsPage() {
         <p className="text-sm text-graphite-400">How {ctx.company.name} is performing over time.</p>
       </div>
 
+      <PeriodReview />
+      <TaxPrepSummary />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           label="Closing rate"
@@ -143,3 +148,4 @@ export default async function AnalyticsPage() {
     </div>
   );
 }
+
