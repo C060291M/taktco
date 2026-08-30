@@ -367,6 +367,8 @@ model Lead {
   expectedCloseDate DateTime?
   createdAt      DateTime  @default(now())
   nextFollowupAt DateTime?
+  wonAt          DateTime?
+  lostAt         DateTime?
 
   tasks       Task[]
 
@@ -1616,6 +1618,7 @@ model CampaignQueueItem {
   @@index([campaignId, status])
   @@index([companyId, status])
 }
+
 
 
 

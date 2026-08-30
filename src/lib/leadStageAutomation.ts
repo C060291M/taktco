@@ -1,4 +1,4 @@
-import { db } from "@/database/client";
+﻿import { db } from "@/database/client";
 
 // Ordered pipeline stages - used only to compare "how far along" a lead is,
 // so an automated trigger can move a lead forward without ever regressing
@@ -20,12 +20,22 @@ const STAGE_ORDER = [
 // ever change its stage again - only a human action should reopen it.
 const TERMINAL = ["WON", "LOST", "ARCHIVED"];
 
+// wonAt/lostAt get stamped the moment a lead transitions INTO that stage -
+// this is the only reliable record of WHEN a deal actually closed, since
+// Lead has no general updatedAt field. Used by the Monthly/Yearly Business
+// Review to accurately report "leads won/lost this period".
+function stageTimestampData(targetStage: string): Record<string, unknown> {
+  if (targetStage === "WON") return { pipelineStage: "WON", wonAt: new Date() };
+  if (targetStage === "LOST") return { pipelineStage: "LOST", lostAt: new Date() };
+  return { pipelineStage: targetStage };
+}
+
 async function bumpLeads(leads: { id: string; pipelineStage: string }[], targetStage: string) {
   const targetIndex = STAGE_ORDER.indexOf(targetStage);
   for (const lead of leads) {
     const currentIndex = STAGE_ORDER.indexOf(lead.pipelineStage);
     if (currentIndex < targetIndex) {
-      await db.lead.update({ where: { id: lead.id }, data: { pipelineStage: targetStage as never } });
+      await db.lead.update({ where: { id: lead.id }, data: stageTimestampData(targetStage) as never });
     }
   }
 }

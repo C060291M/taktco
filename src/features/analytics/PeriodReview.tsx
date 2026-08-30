@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { StatCard } from "@/components/ui/StatCard";
-import { DollarSign, Briefcase, FileText, Receipt, TrendingUp } from "lucide-react";
+import { DollarSign, Briefcase, FileText, Receipt, TrendingUp, Target } from "lucide-react";
 
 type Facts = {
   revenue: number;
@@ -10,6 +10,9 @@ type Facts = {
   estimatesApproved: number;
   avgJobValue: number;
   invoicesPaidCount: number;
+  leadsWon: number;
+  leadsLost: number;
+  closingRate: number | null;
 };
 
 function money(n: number) {
@@ -104,9 +107,12 @@ export function PeriodReview() {
             <StatCard label="Estimates approved" value={String(facts.estimatesApproved)} icon={FileText} tone={facts.estimatesApproved > 0 ? "accent" : "neutral"} />
             <StatCard label="Avg. job value" value={money(facts.avgJobValue)} icon={TrendingUp} tone="accent" />
             <StatCard label="Invoices paid" value={String(facts.invoicesPaidCount)} icon={Receipt} tone={facts.invoicesPaidCount > 0 ? "positive" : "neutral"} />
+            <StatCard label="Leads won" value={String(facts.leadsWon)} icon={Target} tone={facts.leadsWon > 0 ? "positive" : "neutral"} />
+            <StatCard label="Closing rate" value={facts.closingRate === null ? "-" : facts.closingRate + "%"} sublabel={facts.leadsWon + facts.leadsLost > 0 ? (facts.leadsWon + facts.leadsLost) + " leads closed" : undefined} icon={Target} tone={facts.closingRate === null ? "neutral" : facts.closingRate >= 50 ? "positive" : "warning"} />
           </div>
         </>
       )}
     </div>
   );
 }
+

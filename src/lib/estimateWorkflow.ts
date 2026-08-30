@@ -32,7 +32,7 @@ export async function runEstimateApprovalWorkflow(estimate: {
 
   await db.lead.updateMany({
     where: { companyId: estimate.companyId, customerId: estimate.customerId },
-    data: { pipelineStage: "WON" }
+    data: { pipelineStage: "WON", wonAt: new Date() }
   });
 
   const existingContract = await db.contract.findFirst({
@@ -74,5 +74,6 @@ export async function runEstimateApprovalWorkflow(estimate: {
     amount: Number(estimate.totalAmount)
   });
 }
+
 
 
