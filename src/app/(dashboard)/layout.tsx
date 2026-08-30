@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       className="flex min-h-screen"
       style={{ ["--brand-accent" as string]: ctx.company.brandAccentColor }}
     >
-      <Sidebar companyName={ctx.company.name} logoUrl={ctx.company.logoUrl} />
+      <Sidebar companyName={ctx.company.name} logoUrl={ctx.company.logoUrl} userRole={ctx.user.role} />
       <div className="flex-1 flex flex-col min-h-screen">
         {isViewingAsDemo && <ReturnToAdminBanner />}
         <TopNav userName={ctx.user.name} userRole={ctx.user.role} />
@@ -35,3 +35,4 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </div>
   );
 }
+
