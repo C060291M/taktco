@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { InsufficientCreditsModal } from "@/components/ui/InsufficientCreditsModal";
+import { MarkdownLite } from "./MarkdownLite";
 
 type Message = { role: "user" | "assistant" | "error"; text: string };
 
@@ -67,7 +68,7 @@ export function NovaChat({ companyName }: { companyName: string }) {
                   : "bg-graphite-700 text-graphite-100"
               }`}
             >
-              {m.text}
+              {m.role === "assistant" ? <MarkdownLite text={m.text} /> : m.text}
             </div>
           </div>
         ))}
@@ -94,3 +95,4 @@ export function NovaChat({ companyName }: { companyName: string }) {
     </div>
   );
 }
+
