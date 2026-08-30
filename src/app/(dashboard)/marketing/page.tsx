@@ -2,6 +2,7 @@
 import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { MarketingGenerator } from "@/features/marketing/MarketingGenerator";
+import { ProjectSelector } from "@/features/marketing/ProjectSelector";
 
 const PLATFORM_LABELS: Record<string, string> = {
   FACEBOOK: "Facebook",
@@ -21,6 +22,15 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
     take: 50
   });
 
+  const projectsWithPhotos = await db.job.findMany({
+    where: { companyId: ctx.company.id, photos: { some: {} }, portfolioHidden: false },
+    include: { customer: true, photos: true },
+    orderBy: { createdAt: "desc" }
+  });
+  const projectOptions = projectsWithPhotos.map(function (j) {
+    return { id: j.id, label: j.customer.name + " (" + j.photos.length + " photo" + (j.photos.length === 1 ? "" : "s") + ")" };
+  });
+
   const jobId = searchParams.jobId;
   const job = jobId
     ? await db.job.findFirst({ where: { id: jobId, companyId: ctx.company.id }, include: { photos: true } })
@@ -37,6 +47,8 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
         <h1 className="text-xl font-semibold text-white">Marketing AI</h1>
         <p className="text-sm text-graphite-400">Generate social posts, blog content, and updates in your brand voice.</p>
       </div>
+
+      <ProjectSelector projects={projectOptions} selectedJobId={jobId} />
 
       {job && hasPhotos ? (
         <div className="card p-5">
