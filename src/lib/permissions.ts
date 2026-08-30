@@ -1,4 +1,4 @@
-﻿// Central permission matrix for the multi-role system. OWNER and ADMIN have
+// Central permission matrix for the multi-role system. OWNER and ADMIN have
 // full access everywhere (their distinction is delete capability, enforced
 // separately per-route in each DELETE handler). FIELD_TECH and SALES_REP are
 // scoped down here - every page in a blocked section calls
@@ -40,6 +40,7 @@ export function isBlockedFrom(role: string, section: string): boolean {
 // list, Sales Reps go to the pipeline (their real home base).
 export function fallbackPathFor(role: string): string {
   if (role === "FIELD_TECH") return "/jobs";
-  if (role === "SALES_REP") return "/pipeline";
+  if (role === "SALES_REP") return "/dashboard";
   return "/dashboard";
 }
+
