@@ -23,6 +23,8 @@ export async function generateContractPdf(params: {
   const styles = pdfStyles(params.accentColor || "#1EAEC4");
   const tz = params.timeZone || "America/Chicago";
 
+  const contentLines = params.content ? params.content.split("\n") : [];
+
   const body = React.createElement(
     React.Fragment,
     {},
@@ -37,11 +39,17 @@ export async function generateContractPdf(params: {
     }),
     PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress] }),
 
-    params.content
+    contentLines.length > 0
       ? React.createElement(
           View,
           { style: { marginTop: 4, marginBottom: 20 } },
-          React.createElement(Text, { style: { fontSize: 9.5, color: "#333", lineHeight: 1.6 } }, params.content)
+          ...contentLines.map(function (line, i) {
+            return React.createElement(
+              Text,
+              { key: i, style: { fontSize: 9.5, color: "#333", lineHeight: 1.5, minHeight: line.trim() === "" ? 8 : undefined } },
+              line.trim() === "" ? " " : line
+            );
+          })
         )
       : null,
 
