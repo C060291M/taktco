@@ -1,4 +1,4 @@
-﻿// Generates a downloadable, Canva-style marketing flyer for a single job -
+// Generates a downloadable, Canva-style marketing flyer for a single job -
 // distinct from the document-style PDFs (contract/estimate/invoice), this
 // is photo-forward: big before/after hero images, a short headline, and a
 // contact-info footer band. Meant to be shared directly (printed, texted,
@@ -36,7 +36,7 @@ export async function generateFlyerPdf(params: {
   const styles = StyleSheet.create({
     page: { fontFamily: "Helvetica" },
     header: { backgroundColor: deep, padding: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-    logo: { width: 40, height: 40, objectFit: "contain" },
+    logo: { width: 50, height: 50, objectFit: "contain" },
     companyName: { color: "#ffffff", fontSize: 16, fontWeight: 700 },
     photoRow: { flexDirection: "row" },
     halfPhoto: { width: "50%", height: 320, objectFit: "cover" },
@@ -117,3 +117,4 @@ export async function generateFlyerPdf(params: {
 
   return renderToBuffer(doc);
 }
+

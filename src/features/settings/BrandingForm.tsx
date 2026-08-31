@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogoDropzone } from "@/components/forms/LogoDropzone";
@@ -63,7 +63,7 @@ export function BrandingForm({ company }: { company: Company }) {
 
       <div>
         <label className="block text-xs text-graphite-300 mb-2">Logo</label>
-        <LogoDropzone onChange={(dataUrl) => setLogoUrl(dataUrl)} />
+        <LogoDropzone onChange={(dataUrl) => setLogoUrl(dataUrl)} onColorDetected={(hex) => setAccent(hex)} />
         {logoUrl && logoUrl.startsWith("data:") && (
           <p className="text-[11px] text-graphite-500 mt-1">
             Stored locally for now - production should move this to real file storage (S3/R2). See README.
@@ -134,3 +134,4 @@ export function BrandingForm({ company }: { company: Company }) {
     </div>
   );
 }
+

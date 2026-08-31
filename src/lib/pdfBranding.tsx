@@ -1,4 +1,4 @@
-﻿// Shared branding building blocks for all three PDF generators
+// Shared branding building blocks for all three PDF generators
 // (generateContractPdf, generateEstimatePdf, generateInvoicePdf).
 // Every visual element here is driven by the company's own
 // Company.logoUrl and Company.brandAccentColor - nothing hardcoded.
@@ -34,7 +34,7 @@ export function pdfStyles(accentColor: string) {
     outerBorder: { position: "absolute", top: 20, left: 20, right: 20, bottom: 20, border: "1pt solid #ccc" },
     content: { padding: 20 },
     headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 },
-    logo: { width: 44, height: 44, marginBottom: 6, objectFit: "contain" },
+    logo: { width: 62, height: 62, marginBottom: 8, objectFit: "contain" },
     companyName: { fontSize: 15, fontWeight: 700, color: deep, marginBottom: 3 },
     companyMeta: { fontSize: 8.5, color: "#555", marginBottom: 1 },
     docTypeHeading: { fontSize: 28, fontWeight: 700, color: deep, textAlign: "right", letterSpacing: 1.5 },
@@ -157,3 +157,4 @@ export function PdfPageFrame(params: { styles: ReturnType<typeof pdfStyles>; chi
     React.createElement(View, { style: styles.content }, params.children)
   );
 }
+

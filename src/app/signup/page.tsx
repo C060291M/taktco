@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -147,7 +147,7 @@ export default function SignupPage() {
               <div className="space-y-4">
                 <div>
                   <p className="text-xs font-medium text-graphite-300 uppercase tracking-wide mb-2">Your logo</p>
-                  <LogoDropzone onChange={(dataUrl) => setLogoUrl(dataUrl)} />
+                  <LogoDropzone onChange={(dataUrl) => setLogoUrl(dataUrl)} onColorDetected={(hex) => setAccent(hex)} />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-graphite-300 uppercase tracking-wide mb-2">Brand color</p>
@@ -210,3 +210,4 @@ export default function SignupPage() {
     </div>
   );
 }
+

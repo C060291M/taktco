@@ -1,11 +1,18 @@
-"use client";
+﻿"use client";
 import { useRef, useState } from "react";
 import { uploadFileSmart } from "@/lib/uploadFile";
+import { extractLogoColor } from "@/lib/extractLogoColor";
 
 const ACCEPTED = ["image/png", "image/jpeg", "image/svg+xml", "image/webp", "application/pdf"];
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB
 
-export function LogoDropzone({ onChange }: { onChange: (url: string | null, fileName: string | null) => void }) {
+export function LogoDropzone({
+  onChange,
+  onColorDetected
+}: {
+  onChange: (url: string | null, fileName: string | null) => void;
+  onColorDetected?: (hex: string) => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -31,6 +38,11 @@ export function LogoDropzone({ onChange }: { onChange: (url: string | null, file
     if (file.type !== "application/pdf") {
       const localPreview = URL.createObjectURL(file);
       setPreview(localPreview);
+      if (onColorDetected) {
+        extractLogoColor(localPreview).then(function (color) {
+          if (color) onColorDetected(color);
+        });
+      }
     }
 
     setUploading(true);
@@ -75,11 +87,11 @@ export function LogoDropzone({ onChange }: { onChange: (url: string | null, file
           // eslint-disable-next-line @next/next/no-img-element
           <img src={preview} alt="Logo preview" className="h-16 w-16 object-contain mx-auto rounded" />
         ) : isPdf && fileName ? (
-          <div className="text-graphite-200 text-sm">📄 {fileName}</div>
+          <div className="text-graphite-200 text-sm">Document: {fileName}</div>
         ) : (
           <>
             <p className="text-sm text-graphite-300">Drag and drop your logo here</p>
-            <p className="text-xs text-graphite-500 mt-1">or click to browse — PNG, JPG, SVG, WEBP, or PDF</p>
+            <p className="text-xs text-graphite-500 mt-1">or click to browse - PNG, JPG, SVG, WEBP, or PDF</p>
           </>
         )}
         <input
@@ -101,7 +113,7 @@ export function LogoDropzone({ onChange }: { onChange: (url: string | null, file
       )}
       {isPdf && (
         <p className="text-[11px] text-amber-400 mt-1">
-          PDF received — for best results on quotes and invoices, a PNG or SVG version will look sharper. You can swap it later in Settings.
+          PDF received - for best results on quotes and invoices, a PNG or SVG version will look sharper. You can swap it later in Settings.
         </p>
       )}
       {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
