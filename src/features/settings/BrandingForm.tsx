@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogoDropzone } from "@/components/forms/LogoDropzone";
+import { extractLogoColor } from "@/lib/extractLogoColor";
 import { COMMON_US_TIMEZONES } from "@/lib/formatDate";
 
 const PRESET_COLORS = ["#1EAEC4", "#22D3EE", "#3B82F6", "#A855F7", "#F97316", "#22C55E"];
@@ -28,6 +29,15 @@ export function BrandingForm({ company }: { company: Company }) {
   const [theme, setTheme] = useState(company.dashboardTheme || "solid");
   const [timeZone, setTimeZone] = useState(company.timeZone || "America/Chicago");
   const [saving, setSaving] = useState(false);
+  const [detecting, setDetecting] = useState(false);
+
+  async function suggestFromCurrentLogo() {
+    if (!logoUrl) return;
+    setDetecting(true);
+    const color = await extractLogoColor(logoUrl);
+    setDetecting(false);
+    if (color) setAccent(color);
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -72,7 +82,14 @@ export function BrandingForm({ company }: { company: Company }) {
       </div>
 
       <div>
-        <label className="block text-xs text-graphite-300 mb-2">Accent color</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-xs text-graphite-300">Accent color</label>
+          {logoUrl && (
+            <button type="button" className="text-xs text-accent hover:underline" disabled={detecting} onClick={suggestFromCurrentLogo}>
+              {detecting ? "Analyzing..." : "Suggest from my logo"}
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-2 flex-wrap">
           {PRESET_COLORS.map((c) => (
             <button
@@ -134,4 +151,5 @@ export function BrandingForm({ company }: { company: Company }) {
     </div>
   );
 }
+
 
