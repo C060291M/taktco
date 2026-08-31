@@ -54,6 +54,26 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
   const primaryLead = customer.leads[0] ?? null;
   const lifetimeValue = customer.invoices.flatMap(function (i) { return i.payments; }).reduce(function (sum, p) { return sum + Number(p.amount); }, 0);
 
+  function deriveRelationshipStage(lead: { pipelineStage: string } | null, jobs: { status: string }[]) {
+    const job = jobs[0];
+    if (job) {
+      if (job.status === "COMPLETE" || job.status === "CLOSED") return { label: "Complete", color: "green" };
+      if (job.status === "SCHEDULED") return { label: "Scheduled", color: "blue" };
+      if (job.status === "ARCHIVED") return { label: "Archived", color: "gray" };
+      return { label: "In Progress", color: "yellow" };
+    }
+    if (lead) {
+      if (lead.pipelineStage === "NEW_LEAD") return { label: "New Lead", color: "gray" };
+      if (lead.pipelineStage === "CONTACTED") return { label: "Contacted", color: "blue" };
+      if (lead.pipelineStage === "APPOINTMENT_SCHEDULED") return { label: "Scheduled", color: "blue" };
+      if (lead.pipelineStage === "ESTIMATE_REQUESTED" || lead.pipelineStage === "ESTIMATE_SENT" || lead.pipelineStage === "NEGOTIATION") return { label: "Quoting", color: "yellow" };
+      if (lead.pipelineStage === "WON") return { label: "Won", color: "green" };
+      if (lead.pipelineStage === "LOST") return { label: "Lost", color: "red" };
+      if (lead.pipelineStage === "ARCHIVED") return { label: "Archived", color: "gray" };
+    }
+    return { label: "New", color: "gray" };
+  }
+  const stage = deriveRelationshipStage(customer.leads[0] || null, customer.jobs);
   const singleCustomerList = [{ id: customer.id, name: customer.name }];
   const jobOptions = customer.jobs.map(function (j) { return { id: j.id, label: "Job - " + money(j.quotedCost) + " quoted" }; });
   const mapsUrl = customer.address ? "https://maps.google.com/?q=" + encodeURIComponent(customer.address) : "";
@@ -66,6 +86,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
             <h1 className="text-xl font-semibold text-white">{customer.name}</h1>
             {customer.vip && <Badge color="yellow">VIP</Badge>}
             {customer.flagged && <Badge color="red">Flagged</Badge>}
+            <Badge color={stage.color}>{stage.label}</Badge>
           </div>
           <p className="text-sm text-graphite-400">
             {customer.phone || "No phone"} - {customer.email || "No email"} - {customer.address || "No address"}
@@ -242,4 +263,6 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
     </div>
   );
 }
+
+
 
