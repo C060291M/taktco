@@ -3,38 +3,54 @@
 // Every visual element here is driven by the company's own
 // Company.logoUrl and Company.brandAccentColor - nothing hardcoded.
 //
-// v2: added a full outer page border, real per-cell table borders
-// (not just a colored header strip), and tightened spacing to more
-// closely match the reference quote template - logo + company info
-// top-left, big document-type label + metadata top-right, underlined
-// "PREPARED FOR" block, bordered itemized table, boxed total, and a
-// bordered footer band.
+// v3: (1) fixed a real layout bug where the footer's absolute
+// positioning could overlap the status banner/signature block on
+// short one-page documents - footer now flows naturally at the end
+// of the content instead. (2) added a computed "deep" shade of
+// whatever accent color a company picks, used for large-surface
+// elements (heading, table fill) so any bright/light brand color
+// still reads as professional weight rather than washed-out, while
+// the literal brand color stays for smaller accents (labels,
+// borders) - this works for any company's own color choice, not
+// just one hardcoded scheme.
 import { View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import React from "react";
 
+function darken(hex: string, amount: number): string {
+  const clean = hex.replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map(function (c) { return c + c; }).join("") : clean;
+  const r = Math.max(0, Math.round(parseInt(full.substring(0, 2), 16) * (1 - amount)));
+  const g = Math.max(0, Math.round(parseInt(full.substring(2, 4), 16) * (1 - amount)));
+  const b = Math.max(0, Math.round(parseInt(full.substring(4, 6), 16) * (1 - amount)));
+  return "#" + [r, g, b].map(function (v) { return v.toString(16).padStart(2, "0"); }).join("");
+}
+
 export function pdfStyles(accentColor: string) {
+  const accent = accentColor || "#1EAEC4";
+  const deep = darken(accent, 0.35);
+
   return StyleSheet.create({
     page: { padding: 32, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a" },
     outerBorder: { position: "absolute", top: 20, left: 20, right: 20, bottom: 20, border: "1pt solid #ccc" },
     content: { padding: 20 },
     headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 },
     logo: { width: 44, height: 44, marginBottom: 6, objectFit: "contain" },
-    companyName: { fontSize: 15, fontWeight: 700, color: accentColor, marginBottom: 3 },
+    companyName: { fontSize: 15, fontWeight: 700, color: deep, marginBottom: 3 },
     companyMeta: { fontSize: 8.5, color: "#555", marginBottom: 1 },
-    docTypeHeading: { fontSize: 28, fontWeight: 700, color: accentColor, textAlign: "right", letterSpacing: 1.5 },
+    docTypeHeading: { fontSize: 28, fontWeight: 700, color: deep, textAlign: "right", letterSpacing: 1.5 },
     metaBlock: { marginTop: 10, alignItems: "flex-end" },
     metaRow: { flexDirection: "row", marginBottom: 2 },
     metaLabel: { fontSize: 8, color: "#888", width: 70, textAlign: "right", marginRight: 6 },
     metaValue: { fontSize: 9, fontWeight: 700, color: "#1a1a1a" },
     divider: { borderBottom: "1pt solid #ddd", marginBottom: 16 },
     preparedForBox: { marginBottom: 16, paddingBottom: 10, borderBottom: "1pt solid #ddd" },
-    preparedForLabel: { fontSize: 8, color: accentColor, fontWeight: 700, letterSpacing: 0.5, marginBottom: 4 },
+    preparedForLabel: { fontSize: 8, color: accent, fontWeight: 700, letterSpacing: 0.5, marginBottom: 4 },
     clientName: { fontSize: 12, fontWeight: 700, marginBottom: 2 },
     clientLine: { fontSize: 9, color: "#555" },
     table: { border: "1pt solid #ddd", borderRadius: 2 },
-    tableHeaderRow: { flexDirection: "row", backgroundColor: accentColor, paddingVertical: 7, paddingHorizontal: 10 },
+    tableHeaderRow: { flexDirection: "row", backgroundColor: deep, paddingVertical: 7, paddingHorizontal: 10 },
     tableHeaderCell: { fontSize: 9, fontWeight: 700, color: "#fff" },
-    tableRow: { flexDirection: "row", paddingVertical: 7, paddingHorizontal: 10, borderTop: "1pt solid #eee" },
+    tableRow: { flexDirection: "row", paddingVertical: 7, paddingHorizontal: 10, borderTop: "0.5pt solid #eee" },
     tableCell: { fontSize: 9.5, color: "#333" },
     colDesc: { flex: 3 },
     colQty: { flex: 1, textAlign: "right" },
@@ -55,11 +71,11 @@ export function pdfStyles(accentColor: string) {
       alignItems: "center"
     },
     grandTotalLabel: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" },
-    grandTotalValue: { fontSize: 15, fontWeight: 700, color: accentColor },
+    grandTotalValue: { fontSize: 15, fontWeight: 700, color: deep },
     statusBanner: { marginTop: 22, padding: 12, borderRadius: 4, alignItems: "center", border: "1pt solid #c8e6c9" },
     statusBannerText: { fontSize: 11, fontWeight: 700 },
-    footer: { position: "absolute", bottom: 28, left: 32, right: 32, textAlign: "center", borderTop: "1pt solid #eee", paddingTop: 10 },
-    footerThanks: { fontSize: 12, fontStyle: "italic", color: accentColor, marginBottom: 3 },
+    footer: { marginTop: 30, paddingTop: 12, borderTop: "1pt solid #eee", textAlign: "center" },
+    footerThanks: { fontSize: 12, fontStyle: "italic", color: deep, marginBottom: 3 },
     footerSub: { fontSize: 8, color: "#999" }
   });
 }

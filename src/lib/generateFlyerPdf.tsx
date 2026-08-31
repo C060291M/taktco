@@ -3,8 +3,22 @@
 // is photo-forward: big before/after hero images, a short headline, and a
 // contact-info footer band. Meant to be shared directly (printed, texted,
 // posted) rather than kept as a business record.
+//
+// v2: uses a computed "deep" shade of the company's own accent color for
+// the header band, so any bright/light brand color still reads as
+// professional weight against the dark footer bar, matching the same
+// darkening technique used for the document PDFs.
 import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
+
+function darken(hex: string, amount: number): string {
+  const clean = hex.replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map(function (c) { return c + c; }).join("") : clean;
+  const r = Math.max(0, Math.round(parseInt(full.substring(0, 2), 16) * (1 - amount)));
+  const g = Math.max(0, Math.round(parseInt(full.substring(2, 4), 16) * (1 - amount)));
+  const b = Math.max(0, Math.round(parseInt(full.substring(4, 6), 16) * (1 - amount)));
+  return "#" + [r, g, b].map(function (v) { return v.toString(16).padStart(2, "0"); }).join("");
+}
 
 export async function generateFlyerPdf(params: {
   companyName: string;
@@ -18,9 +32,10 @@ export async function generateFlyerPdf(params: {
   singlePhotoUrl?: string | null;
 }) {
   const accent = params.accentColor || "#1EAEC4";
+  const deep = darken(accent, 0.35);
   const styles = StyleSheet.create({
     page: { fontFamily: "Helvetica" },
-    header: { backgroundColor: accent, padding: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    header: { backgroundColor: deep, padding: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     logo: { width: 40, height: 40, objectFit: "contain" },
     companyName: { color: "#ffffff", fontSize: 16, fontWeight: 700 },
     photoRow: { flexDirection: "row" },
