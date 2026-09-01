@@ -9,7 +9,11 @@ const schema = z.object({
   brandPrimaryColor: z.string().optional(),
   brandAccentColor: z.string().optional(),
   dashboardTheme: z.enum(["solid", "gradient", "grid"]).optional(),
-  timeZone: z.string().optional()
+  timeZone: z.string().optional(),
+  businessPhone: z.string().optional(),
+  businessEmail: z.string().email().optional().or(z.literal("")),
+  businessAddress: z.string().optional(),
+  serviceArea: z.string().optional()
 });
 
 export async function GET() {

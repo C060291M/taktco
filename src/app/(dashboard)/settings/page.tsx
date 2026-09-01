@@ -28,7 +28,11 @@ export default async function SettingsPage() {
             logoUrl: ctx.company.logoUrl,
             brandAccentColor: ctx.company.brandAccentColor,
             dashboardTheme: ctx.company.dashboardTheme,
-            timeZone: ctx.company.timeZone
+            timeZone: ctx.company.timeZone,
+            businessPhone: ctx.company.businessPhone,
+            businessEmail: ctx.company.businessEmail,
+            businessAddress: ctx.company.businessAddress,
+            serviceArea: ctx.company.serviceArea
           }}
         />
       </div>
@@ -110,6 +114,7 @@ export default async function SettingsPage() {
     </div>
   );
 }
+
 
 
 

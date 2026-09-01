@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { LogoDropzone } from "@/components/forms/LogoDropzone";
 import { extractLogoColor } from "@/lib/extractLogoColor";
 import { COMMON_US_TIMEZONES } from "@/lib/formatDate";
-import { getContrastingTextColor } from "@/lib/getContrastingTextColor";
 
 const PRESET_COLORS = ["#1EAEC4", "#22D3EE", "#3B82F6", "#A855F7", "#F97316", "#22C55E"];
 
@@ -20,6 +19,10 @@ type Company = {
   brandAccentColor: string;
   dashboardTheme: string;
   timeZone: string;
+  businessPhone: string | null;
+  businessEmail: string | null;
+  businessAddress: string | null;
+  serviceArea: string | null;
 };
 
 export function BrandingForm({ company }: { company: Company }) {
@@ -29,6 +32,10 @@ export function BrandingForm({ company }: { company: Company }) {
   const [accent, setAccent] = useState(company.brandAccentColor);
   const [theme, setTheme] = useState(company.dashboardTheme || "solid");
   const [timeZone, setTimeZone] = useState(company.timeZone || "America/Chicago");
+  const [businessPhone, setBusinessPhone] = useState(company.businessPhone || "");
+  const [businessEmail, setBusinessEmail] = useState(company.businessEmail || "");
+  const [businessAddress, setBusinessAddress] = useState(company.businessAddress || "");
+  const [serviceArea, setServiceArea] = useState(company.serviceArea || "");
   const [saving, setSaving] = useState(false);
   const [detecting, setDetecting] = useState(false);
 
@@ -45,7 +52,17 @@ export function BrandingForm({ company }: { company: Company }) {
     await fetch("/api/company", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, logoUrl: logoUrl || "", brandAccentColor: accent, dashboardTheme: theme, timeZone })
+      body: JSON.stringify({
+        name,
+        logoUrl: logoUrl || "",
+        brandAccentColor: accent,
+        dashboardTheme: theme,
+        timeZone,
+        businessPhone,
+        businessEmail,
+        businessAddress,
+        serviceArea
+      })
     });
     setSaving(false);
     router.refresh();
@@ -66,10 +83,30 @@ export function BrandingForm({ company }: { company: Company }) {
   }
 
   return (
-    <div className="space-y-5" style={{ ["--brand-accent" as string]: accent, ["--brand-accent-foreground" as string]: getContrastingTextColor(accent) }}>
+    <div className="space-y-5" style={{ ["--brand-accent" as string]: accent }}>
       <div>
         <label className="block text-xs text-graphite-300 mb-1">Company name</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-graphite-300 mb-1">Business phone</label>
+          <input className="input" placeholder="(555) 123-4567" value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-xs text-graphite-300 mb-1">Business email</label>
+          <input className="input" placeholder="hello@yourcompany.com" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs text-graphite-300 mb-1">Business address</label>
+        <input className="input" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)} />
+      </div>
+      <div>
+        <label className="block text-xs text-graphite-300 mb-1">Service area</label>
+        <input className="input" placeholder="e.g. Houston & surrounding areas" value={serviceArea} onChange={(e) => setServiceArea(e.target.value)} />
+        <p className="text-[11px] text-graphite-500 mt-1">Shows on marketing flyers and customer-facing documents.</p>
       </div>
 
       <div>
@@ -152,6 +189,4 @@ export function BrandingForm({ company }: { company: Company }) {
     </div>
   );
 }
-
-
 
