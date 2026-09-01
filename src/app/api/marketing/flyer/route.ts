@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
     accentColor: ctx.company.brandAccentColor,
     companyPhone: ctx.company.businessPhone,
     serviceArea: ctx.company.serviceArea,
+    tradeType: ctx.company.tradeType,
     headline: headline,
     beforePhotoUrl: beforePhoto ? beforePhoto.url : null,
     afterPhotoUrl: afterPhoto ? afterPhoto.url : null,
@@ -57,4 +58,5 @@ export async function GET(req: NextRequest) {
     }
   });
 }
+
 
