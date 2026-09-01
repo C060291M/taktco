@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { verifyWebhookSignature, isConnectAccountReady, tierForPriceId, TIER_INCLUDED_CREDITS } from "@/services/stripe";
 import { notify } from "@/lib/notify";
 import { logError } from "@/lib/errorLog";
 import { generateInvoicePdf } from "@/lib/generateInvoicePdf";
+import { generateReceiptPdf } from "@/lib/generateReceiptPdf";
 import { sendTrackedEmail } from "@/services/resend";
 import { brandedEmail } from "@/emails/brandedEmail";
 import Stripe from "stripe";
@@ -22,6 +23,11 @@ import Stripe from "stripe";
 // account finishes onboarding and a real payment triggers this webhook. The
 // logic mirrors the already-working contract/estimate PDF flows, but treat
 // it as unverified until a real payment confirms it.
+//
+// Customer gets a clean payment Receipt PDF (distinct document type from
+// the invoice, per the design goal of "receipt = proof of payment, not a
+// re-itemized invoice"). The company's own copy keeps the full itemized
+// invoice PDF, since that's their actual bookkeeping record.
 function pdfFilenameFor(label: string) {
   return label.replace(/[^a-z0-9]+/gi, "_") + "_paid.pdf";
 }
@@ -108,8 +114,28 @@ export async function POST(req: NextRequest) {
           // UNTESTED - see file header. Mirrors the working contract/estimate
           // PDF flows; not yet exercised by a real payment.
           try {
+            const allPayments = await db.payment.findMany({ where: { invoiceId: invoice.id, status: "succeeded" } });
+            const totalPaid = allPayments.reduce(function (sum, p) { return sum + Number(p.amount); }, 0);
+            const remainingBalance = Math.max(0, Number(invoice.amount) - totalPaid);
+
+            const receiptBuffer = await generateReceiptPdf({
+              companyName: invoice.company.name,
+              logoUrl: invoice.company.logoUrl,
+              accentColor: invoice.company.brandAccentColor,
+              timeZone: invoice.company.timeZone,
+              companyPhone: invoice.company.businessPhone,
+              companyEmail: invoice.company.businessEmail,
+              customerName: invoice.customer.name,
+              customerAddress: invoice.customer.address,
+              invoiceNumber: invoice.invoiceNumber,
+              paymentAmount: Number(invoice.amount),
+              paymentMethod: "Card",
+              paidAt,
+              remainingBalance
+            });
+
             const lineItems = invoice.lineItems as unknown as { description: string; qty: number; unit: string; unitPrice: number }[];
-            const pdfBuffer = await generateInvoicePdf({
+            const invoicePdfBuffer = await generateInvoicePdf({
               companyName: invoice.company.name,
               logoUrl: invoice.company.logoUrl,
               accentColor: invoice.company.brandAccentColor,
@@ -127,8 +153,10 @@ export async function POST(req: NextRequest) {
               paymentMethod: "card",
               createdAt: invoice.createdAt
             });
+
             const label = invoice.invoiceNumber || "invoice";
-            const filename = pdfFilenameFor(label);
+            const receiptFilename = label.replace(/[^a-z0-9]+/gi, "_") + "_receipt.pdf";
+            const invoiceFilename = pdfFilenameFor(label);
 
             if (invoice.customer.email) {
               await sendTrackedEmail({
@@ -144,7 +172,7 @@ export async function POST(req: NextRequest) {
                   bodyHtml: `Thank you for your payment. A PDF receipt is attached for your records.`
                 }),
                 kind: "invoice_paid_confirmation",
-                attachments: [{ filename, content: pdfBuffer }]
+                attachments: [{ filename: receiptFilename, content: receiptBuffer }]
               });
             }
 
@@ -161,11 +189,11 @@ export async function POST(req: NextRequest) {
                   bodyHtml: `${invoice.customer.name} just paid their invoice. A copy is attached.`
                 }),
                 kind: "invoice_paid_company_copy",
-                attachments: [{ filename, content: pdfBuffer }]
+                attachments: [{ filename: invoiceFilename, content: invoicePdfBuffer }]
               });
             }
           } catch (err) {
-            console.error("Failed to generate/send paid invoice PDF:", err);
+            console.error("Failed to generate/send payment receipt/invoice PDF:", err);
           }
         }
       }
@@ -283,5 +311,3 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ received: true });
 }
-
-
