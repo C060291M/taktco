@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { generateFlyerPdf } from "@/lib/generateFlyerPdf";
@@ -8,6 +8,17 @@ import { generateFlyerPdf } from "@/lib/generateFlyerPdf";
 // the main Marketing AI generator produces. Pulls the most recent
 // generated post for this job (if any) as the flyer headline, falling
 // back to a generic one otherwise.
+function cleanHeadline(raw: string, maxLen: number): string {
+  // Strip emoji/non-ASCII - the PDF font (Helvetica) has no emoji glyphs
+  // and renders them as corrupted characters.
+  let text = raw.replace(/[^\x00-\x7F]/g, "").replace(/\s+/g, " ").trim();
+  if (text.length <= maxLen) return text;
+  // Truncate at the last full word inside the limit, not mid-word.
+  const cut = text.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut) + "...";
+}
+
 export async function GET(req: NextRequest) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,15 +45,17 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" }
   });
 
-  const headline = latestPost
-    ? latestPost.content.split("\n")[0].replace(/^["']|["']$/g, "").slice(0, 140)
+  const rawHeadline = latestPost
+    ? latestPost.content.split("\n")[0].replace(/^["']|["']$/g, "")
     : "Another project done right by " + ctx.company.name + "!";
+  const headline = cleanHeadline(rawHeadline, 140);
 
   const pdfBuffer = await generateFlyerPdf({
     companyName: ctx.company.name,
     logoUrl: ctx.company.logoUrl,
     accentColor: ctx.company.brandAccentColor,
     companyPhone: ctx.company.businessPhone,
+    companyEmail: ctx.company.businessEmail,
     serviceArea: ctx.company.serviceArea,
     tradeType: ctx.company.tradeType,
     headline: headline,
@@ -58,5 +71,3 @@ export async function GET(req: NextRequest) {
     }
   });
 }
-
-

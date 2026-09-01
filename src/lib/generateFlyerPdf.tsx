@@ -1,4 +1,4 @@
-﻿// Generates a downloadable, modern marketing flyer for a single job -
+// Generates a downloadable, modern marketing flyer for a single job -
 // dark background, bold headline, before/after photo pair, a feature-value
 // grid with simple icon badges, a CTA band, and an icon-based contact
 // footer. All content is either real job/company data or generic,
@@ -189,7 +189,7 @@ export async function generateFlyerPdf(params: {
             React.createElement(
               View,
               { style: { marginLeft: 10 } },
-              React.createElement(Text, { style: styles.ctaHeading }, "Ready for your " + React.createElement(Text, { style: styles.ctaHeadingAccent }, trade + " project?")),
+              React.createElement(Text, { style: styles.ctaHeading }, "Ready for your ", React.createElement(Text, { style: styles.ctaHeadingAccent }, trade + " project?")),
               React.createElement(Text, { style: styles.ctaSub }, "Get a fast, free quote today.")
             )
           ),
@@ -251,3 +251,4 @@ export async function generateFlyerPdf(params: {
 
   return renderToBuffer(doc);
 }
+
