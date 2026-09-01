@@ -1,9 +1,9 @@
-// Generates a downloadable, modern marketing flyer for a single job -
-// dark background, bold headline, before/after photo pair, a feature-value
-// grid with simple icon badges, a CTA band, and an icon-based contact
-// footer. All content is either real job/company data or generic,
-// trade-agnostic marketing copy - nothing company-specific is invented.
-import { Document, Page, Text, View, Image, StyleSheet, Svg, Path, Circle, Rect, renderToBuffer } from "@react-pdf/renderer";
+﻿// Generates a downloadable, modern marketing flyer for a single job -
+// gradient dark background, glowing icon badges, before/after photo pair,
+// feature-value grid, CTA band, and icon-based contact footer. All content
+// is either real job/company data or generic, trade-agnostic marketing
+// copy - nothing company-specific is invented.
+import { Document, Page, Text, View, Image, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Rect, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 
 function darken(hex: string, amount: number): string {
@@ -15,16 +15,42 @@ function darken(hex: string, amount: number): string {
   return "#" + [r, g, b].map(function (v) { return v.toString(16).padStart(2, "0"); }).join("");
 }
 
+function GradientBackground(params: { accent: string; pageW: number; pageH: number }) {
+  return React.createElement(
+    Svg,
+    { style: { position: "absolute", top: 0, left: 0 }, width: params.pageW, height: params.pageH, viewBox: `0 0 ${params.pageW} ${params.pageH}` },
+    React.createElement(
+      Defs,
+      {},
+      React.createElement(
+        LinearGradient,
+        { id: "bg", x1: "0", y1: "0", x2: "1", y2: "1" },
+        React.createElement(Stop, { offset: "0", stopColor: "#0a0d12" }),
+        React.createElement(Stop, { offset: "0.55", stopColor: "#0e1116" }),
+        React.createElement(Stop, { offset: "1", stopColor: darken(params.accent, 0.82) })
+      )
+    ),
+    React.createElement(Rect, { x: 0, y: 0, width: params.pageW, height: params.pageH, fill: "url(#bg)" })
+  );
+}
+
 function IconBadge(params: { accent: string; children: React.ReactNode; size?: number }) {
   const size = params.size || 44;
   return React.createElement(
     View,
-    { style: { width: size, height: size, borderRadius: size / 2, border: `1.5pt solid ${params.accent}`, alignItems: "center", justifyContent: "center", alignSelf: "center" } },
-    React.createElement(
-      Svg,
-      { width: size * 0.5, height: size * 0.5, viewBox: "0 0 24 24" },
-      params.children
-    )
+    {
+      style: {
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: params.accent + "22",
+        border: `1.3pt solid ${params.accent}`,
+        alignItems: "center",
+        justifyContent: "center",
+        alignSelf: "center"
+      }
+    },
+    React.createElement(Svg, { width: size * 0.48, height: size * 0.48, viewBox: "0 0 24 24" }, params.children)
   );
 }
 
@@ -53,44 +79,45 @@ export async function generateFlyerPdf(params: {
   singlePhotoUrl?: string | null;
 }) {
   const accent = params.accentColor || "#1EAEC4";
-  const deep = darken(accent, 0.25);
   const trade = params.tradeType || "construction";
+  const PAGE_W = 612;
+  const PAGE_H = 792;
 
   const styles = StyleSheet.create({
-    page: { fontFamily: "Helvetica", backgroundColor: "#0e1116" },
+    page: { fontFamily: "Helvetica" },
     content: { padding: 28 },
     headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 26 },
     logo: { width: 44, height: 44, objectFit: "contain", marginRight: 12 },
     companyName: { color: "#ffffff", fontSize: 15, fontWeight: 700 },
-    tagline: { color: accent, fontSize: 9, marginTop: 2 },
+    tagline: { color: accent, fontSize: 9, marginTop: 2, letterSpacing: 0.3 },
     dividerV: { width: 1, height: 40, backgroundColor: "#2a2f38", marginHorizontal: 18 },
-    eyebrow: { color: accent, fontSize: 9, fontWeight: 700, letterSpacing: 1, marginBottom: 3 },
+    eyebrow: { color: accent, fontSize: 9.5, fontWeight: 700, letterSpacing: 1.5, marginBottom: 3 },
     headerSub: { color: "#c4cad4", fontSize: 9, lineHeight: 1.4 },
-    headlineWhite: { color: "#ffffff", fontSize: 26, fontWeight: 700, textAlign: "center", lineHeight: 1.15 },
-    headlineAccent: { color: accent, fontSize: 26, fontWeight: 700, textAlign: "center", lineHeight: 1.15 },
-    subText: { color: "#9aa4b2", fontSize: 10, textAlign: "center", marginTop: 10, marginBottom: 18 },
+    headlineWhite: { color: "#ffffff", fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
+    headlineAccent: { color: accent, fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
+    subText: { color: "#9aa4b2", fontSize: 10, textAlign: "center", marginTop: 10, marginBottom: 20, lineHeight: 1.5, paddingHorizontal: 30 },
     photoLabelRow: { flexDirection: "row" },
-    photoLabelBefore: { flex: 1, textAlign: "center", backgroundColor: "#20242c", color: "#ffffff", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 1 },
-    photoLabelAfter: { flex: 1, textAlign: "center", backgroundColor: accent, color: "#0e1116", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 1 },
-    photoRow: { flexDirection: "row", border: `1pt solid ${accent}` },
+    photoLabelBefore: { flex: 1, textAlign: "center", backgroundColor: "#20242c", color: "#ffffff", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 1.5 },
+    photoLabelAfter: { flex: 1, textAlign: "center", backgroundColor: accent, color: "#0e1116", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 1.5 },
+    photoRow: { flexDirection: "row", border: `1.3pt solid ${accent}` },
     halfPhoto: { width: "50%", height: 230, objectFit: "cover" },
-    featureGrid: { flexDirection: "row", marginTop: 22, borderTop: "1pt solid #262b34", paddingTop: 18 },
+    featureGrid: { flexDirection: "row", marginTop: 24, borderTop: "1pt solid #262b34", paddingTop: 20 },
     featureCol: { flex: 1, alignItems: "center", paddingHorizontal: 6 },
-    featureLabel: { color: "#ffffff", fontSize: 8.5, fontWeight: 700, textAlign: "center", marginTop: 8, marginBottom: 3 },
-    featureDesc: { color: "#8891a0", fontSize: 7.5, textAlign: "center", lineHeight: 1.3 },
-    ctaBand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 24, backgroundColor: "#161a21", padding: 16, borderRadius: 4 },
+    featureLabel: { color: "#ffffff", fontSize: 8.5, fontWeight: 700, textAlign: "center", marginTop: 9, marginBottom: 3, letterSpacing: 0.3 },
+    featureDesc: { color: "#8891a0", fontSize: 7.5, textAlign: "center", lineHeight: 1.35 },
+    ctaBand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 26, backgroundColor: "#161a2199", padding: 18, borderRadius: 6, border: "0.5pt solid #262b34" },
     ctaLeft: { flexDirection: "row", alignItems: "center" },
-    ctaHeading: { color: "#ffffff", fontSize: 12, fontWeight: 700 },
-    ctaHeadingAccent: { color: accent, fontSize: 12, fontWeight: 700 },
+    ctaHeading: { color: "#ffffff", fontSize: 12.5, fontWeight: 700 },
+    ctaHeadingAccent: { color: accent, fontSize: 12.5, fontWeight: 700 },
     ctaSub: { color: "#8891a0", fontSize: 8.5, marginTop: 2 },
-    ctaButton: { backgroundColor: accent, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 3 },
-    ctaButtonText: { color: "#0e1116", fontSize: 9.5, fontWeight: 700 },
-    footer: { flexDirection: "row", justifyContent: "space-around", marginTop: 20, paddingTop: 16, borderTop: "1pt solid #262b34" },
+    ctaButton: { backgroundColor: accent, paddingVertical: 11, paddingHorizontal: 18, borderRadius: 4 },
+    ctaButtonText: { color: "#0e1116", fontSize: 9.5, fontWeight: 700, letterSpacing: 0.3 },
+    footer: { flexDirection: "row", justifyContent: "space-around", marginTop: 22, paddingTop: 18, borderTop: "1pt solid #262b34" },
     footerItem: { flexDirection: "row", alignItems: "center" },
-    footerIconBox: { width: 26, height: 26, borderRadius: 13, border: `1pt solid ${accent}`, alignItems: "center", justifyContent: "center", marginRight: 6 },
+    footerIconBox: { width: 26, height: 26, borderRadius: 13, backgroundColor: accent + "22", border: `1pt solid ${accent}`, alignItems: "center", justifyContent: "center", marginRight: 6 },
     footerText: { color: "#ffffff", fontSize: 8.5, fontWeight: 700 },
     footerSub: { color: "#6b7280", fontSize: 7 },
-    footerTagline: { color: accent, fontSize: 9, fontWeight: 700, textAlign: "center", marginTop: 16, letterSpacing: 1 }
+    footerTagline: { color: accent, fontSize: 9.5, fontWeight: 700, textAlign: "center", marginTop: 18, letterSpacing: 1.5 }
   });
 
   const hasBeforeAfter = params.beforePhotoUrl && params.afterPhotoUrl;
@@ -117,6 +144,7 @@ export async function generateFlyerPdf(params: {
     React.createElement(
       Page,
       { size: "LETTER", style: styles.page },
+      GradientBackground({ accent, pageW: PAGE_W, pageH: PAGE_H }),
       React.createElement(
         View,
         { style: styles.content },
@@ -129,7 +157,7 @@ export async function generateFlyerPdf(params: {
             View,
             {},
             React.createElement(Text, { style: styles.companyName }, params.companyName),
-            React.createElement(Text, { style: styles.tagline }, "Real work. Real results.")
+            React.createElement(Text, { style: styles.tagline }, "REAL WORK. REAL RESULTS.")
           ),
           React.createElement(View, { style: styles.dividerV }),
           React.createElement(
@@ -162,7 +190,7 @@ export async function generateFlyerPdf(params: {
               )
             )
           : heroPhoto
-          ? React.createElement(Image, { src: heroPhoto, style: [styles.halfPhoto, { width: "100%", border: `1pt solid ${accent}` }] })
+          ? React.createElement(Image, { src: heroPhoto, style: [styles.halfPhoto, { width: "100%", border: `1.3pt solid ${accent}` }] })
           : null,
 
         React.createElement(
@@ -172,7 +200,7 @@ export async function generateFlyerPdf(params: {
             return React.createElement(
               View,
               { style: styles.featureCol, key: i },
-              IconBadge({ accent, size: 36, children: React.createElement(React.Fragment, {}, React.cloneElement(f.icon as React.ReactElement, { style: { color: accent } })) }),
+              IconBadge({ accent, size: 38, children: React.cloneElement(f.icon as React.ReactElement, { style: { color: accent } }) }),
               React.createElement(Text, { style: styles.featureLabel }, f.label),
               React.createElement(Text, { style: styles.featureDesc }, f.desc)
             );
@@ -185,10 +213,10 @@ export async function generateFlyerPdf(params: {
           React.createElement(
             View,
             { style: styles.ctaLeft },
-            IconBadge({ accent, size: 34, children: React.cloneElement(ICONS.calendar as React.ReactElement, { style: { color: accent } }) }),
+            IconBadge({ accent, size: 36, children: React.cloneElement(ICONS.calendar as React.ReactElement, { style: { color: accent } }) }),
             React.createElement(
               View,
-              { style: { marginLeft: 10 } },
+              { style: { marginLeft: 12 } },
               React.createElement(Text, { style: styles.ctaHeading }, "Ready for your ", React.createElement(Text, { style: styles.ctaHeadingAccent }, trade + " project?")),
               React.createElement(Text, { style: styles.ctaSub }, "Get a fast, free quote today.")
             )
@@ -251,4 +279,3 @@ export async function generateFlyerPdf(params: {
 
   return renderToBuffer(doc);
 }
-
