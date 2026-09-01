@@ -20,7 +20,7 @@ const config: Config = {
         },
         accent: {
           DEFAULT: "var(--brand-accent, #3B82F6)",
-          foreground: "#0E0F11"
+          foreground: "var(--brand-accent-foreground, #0E0F11)"
         }
       },
       fontFamily: {
@@ -34,3 +34,4 @@ const config: Config = {
   plugins: []
 };
 export default config;
+

@@ -7,6 +7,7 @@ import { CommandPalette } from "@/features/search/CommandPalette";
 import { QuickActionButton } from "@/features/dashboard/QuickActionButton";
 import { ReturnToAdminBanner } from "@/features/admin/ReturnToAdminBanner";
 import { dashboardBackgroundStyle } from "@/lib/dashboardTheme";
+import { getContrastingTextColor } from "@/lib/getContrastingTextColor";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireSession();
@@ -16,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div
       className="flex min-h-screen"
-      style={{ ["--brand-accent" as string]: ctx.company.brandAccentColor }}
+      style={{ ["--brand-accent" as string]: ctx.company.brandAccentColor, ["--brand-accent-foreground" as string]: getContrastingTextColor(ctx.company.brandAccentColor) }}
     >
       <Sidebar companyName={ctx.company.name} logoUrl={ctx.company.logoUrl} userRole={ctx.user.role} />
       <div className="flex-1 flex flex-col min-h-screen">
@@ -35,4 +36,5 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </div>
   );
 }
+
 

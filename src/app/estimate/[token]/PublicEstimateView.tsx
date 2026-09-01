@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { formatDateInTz } from "@/lib/formatDate";
+import { getContrastingTextColor } from "@/lib/getContrastingTextColor";
 
 type LineItem = { description: string; qty: number; unit: string; unitPrice: number };
 type Company = { name: string; logoUrl: string | null; brandAccentColor: string; timeZone: string };
@@ -58,7 +59,7 @@ export function PublicEstimateView({
   const expiredDate = validUntil ? formatDateInTz(validUntil, company.timeZone) : null;
 
   return (
-    <div className="min-h-screen bg-graphite-950 flex items-center justify-center p-4" style={{ ["--brand-accent" as string]: company.brandAccentColor }}>
+    <div className="min-h-screen bg-graphite-950 flex items-center justify-center p-4" style={{ ["--brand-accent" as string]: company.brandAccentColor, ["--brand-accent-foreground" as string]: getContrastingTextColor(company.brandAccentColor) }}>
       <div className="w-full max-w-lg">
         <div className="flex items-center gap-3 mb-6 justify-center">
           {company.logoUrl ? (
@@ -157,5 +158,6 @@ export function PublicEstimateView({
     </div>
   );
 }
+
 
 

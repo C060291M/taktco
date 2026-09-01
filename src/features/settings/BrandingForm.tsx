@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { LogoDropzone } from "@/components/forms/LogoDropzone";
 import { extractLogoColor } from "@/lib/extractLogoColor";
 import { COMMON_US_TIMEZONES } from "@/lib/formatDate";
+import { getContrastingTextColor } from "@/lib/getContrastingTextColor";
 
 const PRESET_COLORS = ["#1EAEC4", "#22D3EE", "#3B82F6", "#A855F7", "#F97316", "#22C55E"];
 
@@ -65,7 +66,7 @@ export function BrandingForm({ company }: { company: Company }) {
   }
 
   return (
-    <div className="space-y-5" style={{ ["--brand-accent" as string]: accent }}>
+    <div className="space-y-5" style={{ ["--brand-accent" as string]: accent, ["--brand-accent-foreground" as string]: getContrastingTextColor(accent) }}>
       <div>
         <label className="block text-xs text-graphite-300 mb-1">Company name</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
@@ -151,5 +152,6 @@ export function BrandingForm({ company }: { company: Company }) {
     </div>
   );
 }
+
 
 

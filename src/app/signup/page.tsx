@@ -8,6 +8,7 @@ import { NovaBanner } from "@/components/marketing/NovaBanner";
 import { LogoDropzone } from "@/components/forms/LogoDropzone";
 import { WizardSteps } from "@/components/forms/WizardSteps";
 import { COMMON_US_TIMEZONES } from "@/lib/formatDate";
+import { getContrastingTextColor } from "@/lib/getContrastingTextColor";
 
 const PRESET_COLORS = ["#1EAEC4", "#22D3EE", "#3B82F6", "#A855F7", "#F97316", "#22C55E"];
 const STEPS = ["Business", "Contact & tax", "Branding", "Your account"];
@@ -81,7 +82,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-graphite-950" style={{ ["--brand-accent" as string]: accent }}>
+    <div className="min-h-screen bg-graphite-950" style={{ ["--brand-accent" as string]: accent, ["--brand-accent-foreground" as string]: getContrastingTextColor(accent) }}>
       <NovaBanner />
       <div className="flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
@@ -210,4 +211,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
 
