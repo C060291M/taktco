@@ -1,4 +1,4 @@
-﻿import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { pdfStyles, PdfHeader, PdfPreparedFor, PdfFooter, PdfPageFrame } from "@/lib/pdfBranding";
 import { formatDateInTz } from "@/lib/formatDate";
@@ -46,7 +46,7 @@ export async function generateInvoicePdf(params: {
         ...(params.dueDate ? [{ label: "Due", value: formatDateInTz(params.dueDate, tz) }] : [])
       ]
     }),
-    PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress] }),
+    PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress], accentColor: params.accentColor }),
 
     React.createElement(
       View,
@@ -61,7 +61,7 @@ export async function generateInvoicePdf(params: {
       ...params.lineItems.map((li, i) =>
         React.createElement(
           View,
-          { style: styles.tableRow, key: i },
+          { style: i % 2 === 1 ? styles.tableRowAlt : styles.tableRow, key: i },
           React.createElement(Text, { style: [styles.tableCell, styles.colDesc] }, li.description),
           React.createElement(Text, { style: [styles.tableCell, styles.colQty] }, `${li.qty} ${li.unit}`),
           React.createElement(Text, { style: [styles.tableCell, styles.colPrice] }, money(li.qty * li.unitPrice))
@@ -111,3 +111,5 @@ export async function generateInvoicePdf(params: {
 
   return renderToBuffer(doc);
 }
+
+

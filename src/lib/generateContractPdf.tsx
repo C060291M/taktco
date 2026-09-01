@@ -1,4 +1,4 @@
-﻿import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { pdfStyles, PdfHeader, PdfPreparedFor, PdfFooter, PdfPageFrame } from "@/lib/pdfBranding";
 import { formatDateInTz } from "@/lib/formatDate";
@@ -37,7 +37,7 @@ export async function generateContractPdf(params: {
       docType: params.title.toUpperCase(),
       metaRows: [{ label: "Date", value: formatDateInTz(params.createdAt, tz) }]
     }),
-    PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress] }),
+    PdfPreparedFor({ styles, name: params.customerName, addressLines: [params.customerAddress], accentColor: params.accentColor }),
 
     contentLines.length > 0
       ? React.createElement(
@@ -97,3 +97,4 @@ export async function generateContractPdf(params: {
 
   return renderToBuffer(doc);
 }
+

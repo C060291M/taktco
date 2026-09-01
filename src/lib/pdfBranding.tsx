@@ -1,19 +1,14 @@
-// Shared branding building blocks for all three PDF generators
-// (generateContractPdf, generateEstimatePdf, generateInvoicePdf).
-// Every visual element here is driven by the company's own
-// Company.logoUrl and Company.brandAccentColor - nothing hardcoded.
+﻿// Shared branding building blocks for all three document PDFs
+// (generateContractPdf, generateEstimatePdf, generateInvoicePdf). Every
+// visual element here is driven by the company's own Company.logoUrl and
+// Company.brandAccentColor - nothing hardcoded.
 //
-// v3: (1) fixed a real layout bug where the footer's absolute
-// positioning could overlap the status banner/signature block on
-// short one-page documents - footer now flows naturally at the end
-// of the content instead. (2) added a computed "deep" shade of
-// whatever accent color a company picks, used for large-surface
-// elements (heading, table fill) so any bright/light brand color
-// still reads as professional weight rather than washed-out, while
-// the literal brand color stays for smaller accents (labels,
-// borders) - this works for any company's own color choice, not
-// just one hardcoded scheme.
-import { View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+// v4: polish pass matching the flyer's quality bar while staying on a
+// light, print-friendly background - these are documents a customer needs
+// to read, print, sign, and file, not a marketing piece. Adds a small icon
+// accent next to "PREPARED FOR" and subtle alternating table row tinting
+// for readability, without changing the overall document tone.
+import { View, Text, Image, StyleSheet, Svg, Path, Circle } from "@react-pdf/renderer";
 import React from "react";
 
 function darken(hex: string, amount: number): string {
@@ -43,14 +38,17 @@ export function pdfStyles(accentColor: string) {
     metaLabel: { fontSize: 8, color: "#888", width: 70, textAlign: "right", marginRight: 6 },
     metaValue: { fontSize: 9, fontWeight: 700, color: "#1a1a1a" },
     divider: { borderBottom: "1pt solid #ddd", marginBottom: 16 },
+    preparedForRow: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
+    preparedForIconBox: { width: 16, height: 16, borderRadius: 8, backgroundColor: accent + "18", alignItems: "center", justifyContent: "center", marginRight: 6 },
     preparedForBox: { marginBottom: 16, paddingBottom: 10, borderBottom: "1pt solid #ddd" },
-    preparedForLabel: { fontSize: 8, color: accent, fontWeight: 700, letterSpacing: 0.5, marginBottom: 4 },
+    preparedForLabel: { fontSize: 8, color: accent, fontWeight: 700, letterSpacing: 0.5 },
     clientName: { fontSize: 12, fontWeight: 700, marginBottom: 2 },
     clientLine: { fontSize: 9, color: "#555" },
     table: { border: "1pt solid #ddd", borderRadius: 2 },
     tableHeaderRow: { flexDirection: "row", backgroundColor: deep, paddingVertical: 7, paddingHorizontal: 10 },
     tableHeaderCell: { fontSize: 9, fontWeight: 700, color: "#fff" },
     tableRow: { flexDirection: "row", paddingVertical: 7, paddingHorizontal: 10, borderTop: "0.5pt solid #eee" },
+    tableRowAlt: { flexDirection: "row", paddingVertical: 7, paddingHorizontal: 10, borderTop: "0.5pt solid #eee", backgroundColor: "#fafafa" },
     tableCell: { fontSize: 9.5, color: "#333" },
     colDesc: { flex: 3 },
     colQty: { flex: 1, textAlign: "right" },
@@ -126,13 +124,29 @@ export function PdfPreparedFor(params: {
   styles: ReturnType<typeof pdfStyles>;
   name: string;
   addressLines?: (string | null | undefined)[];
+  accentColor?: string;
 }) {
   const { styles } = params;
+  const accent = params.accentColor || "#1EAEC4";
   const lines = (params.addressLines || []).filter(Boolean) as string[];
   return React.createElement(
     View,
     { style: styles.preparedForBox },
-    React.createElement(Text, { style: styles.preparedForLabel }, "PREPARED FOR"),
+    React.createElement(
+      View,
+      { style: styles.preparedForRow },
+      React.createElement(
+        View,
+        { style: styles.preparedForIconBox },
+        React.createElement(
+          Svg,
+          { width: 9, height: 9, viewBox: "0 0 24 24" },
+          React.createElement(Circle, { cx: 12, cy: 8, r: 4, fill: "none", stroke: accent, strokeWidth: 2 }),
+          React.createElement(Path, { d: "M4 21 C4 16 7.5 14 12 14 C16.5 14 20 16 20 21", fill: "none", stroke: accent, strokeWidth: 2 })
+        )
+      ),
+      React.createElement(Text, { style: styles.preparedForLabel }, "PREPARED FOR")
+    ),
     React.createElement(Text, { style: styles.clientName }, params.name),
     ...lines.map((line, i) => React.createElement(Text, { style: styles.clientLine, key: i }, line))
   );
@@ -157,4 +171,3 @@ export function PdfPageFrame(params: { styles: ReturnType<typeof pdfStyles>; chi
     React.createElement(View, { style: styles.content }, params.children)
   );
 }
-
