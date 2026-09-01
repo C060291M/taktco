@@ -837,6 +837,7 @@ model ChangeOrder {
   status       ChangeOrderStatus @default(DRAFT)
   signedByName String?
   signedAt     DateTime?
+  signingToken String            @unique @default(cuid())
   createdAt    DateTime          @default(now())
 
   @@index([companyId])
@@ -1618,6 +1619,7 @@ model CampaignQueueItem {
   @@index([campaignId, status])
   @@index([companyId, status])
 }
+
 
 
 
