@@ -4,11 +4,20 @@ import { requireSession } from "@/lib/auth";
 import { askClaude } from "@/lib/ai";
 
 // True AI-designed flyer - unlike the fixed-template generateFlyerPdf,
-// this hands the AI a complete creative brief (logo, real accent color,
-// trade type, photos, contact info, project description) and lets it
-// design the actual HTML/CSS layout, palette, and typography itself.
-// Rendered client-side via html2canvas + jsPDF - no server-side headless
-// browser, so no Puppeteer-style deployment risk.
+// this hands the AI a complete creative brief (trade type, contact info,
+// project description, and where each image goes) and lets it design the
+// actual HTML/CSS layout, palette, and typography itself. Rendered
+// client-side via html2canvas + jsPDF - no server-side headless browser,
+// so no Puppeteer-style deployment risk.
+//
+// IMPORTANT: actual image URLs (logo, photos) are NEVER sent to the AI in
+// the prompt. In this environment they're often base64 data URIs (no
+// object storage configured), which can run into the millions of
+// characters - sent as prompt text that blows past any token limit
+// instantly. Instead the AI writes placeholder tokens into its <img> src
+// attributes, and those get swapped for the real URLs server-side after
+// the AI responds, via plain string replacement - the AI never needs to
+// see the actual image bytes to design a good layout around them.
 export async function POST(req: NextRequest) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,40 +43,57 @@ export async function POST(req: NextRequest) {
     orderBy: { createdAt: "desc" }
   });
 
+  const hasLogo = Boolean(ctx.company.logoUrl);
+  const hasBeforeAfter = Boolean(beforePhoto && afterPhoto);
+  const hasSinglePhoto = !hasBeforeAfter && Boolean(anyPhoto);
+
   const systemPrompt = `You are a professional graphic designer creating a single-page marketing flyer as a complete, self-contained HTML document.
 
 HARD REQUIREMENTS:
 - Output ONLY raw HTML starting with <!DOCTYPE html> - no markdown code fences, no explanation before or after.
 - The whole document must be exactly one page sized 850px wide by 1100px tall (set this on the body or a root wrapper div, box-sizing: border-box).
 - All CSS must be inline in a single <style> tag in the <head> - no external stylesheets, no external fonts, no JavaScript, no <script> tags of any kind.
-- Only use the exact image URLs given to you - do not invent or reference any other image URLs.
-- Only use the real facts given to you (company name, phone, email, service area, trade type, photos). Never invent a slogan, statistic, or claim that wasn't provided.
+- Only use the real facts given to you (company name, phone, email, service area, trade type, project description). Never invent a slogan, statistic, or claim that wasn't provided.
 - Use web-safe fonts only (Arial, Helvetica, Georgia, Times New Roman, Verdana, Trebuchet MS) since custom font loading isn't available.
+
+IMAGES - use these EXACT placeholder tokens as the src attribute of <img> tags, verbatim, with no modification. Real images will be substituted in after you respond, so you will never see the actual photos:
+${hasLogo ? '- Company logo: <img src="{{LOGO}}"> - use this small, once, in the header area' : "- No logo provided - use a text-based company name treatment instead"}
+${hasBeforeAfter ? '- Before photo: <img src="{{BEFORE_PHOTO}}">\n- After photo: <img src="{{AFTER_PHOTO}}">\nDesign a clear before/after comparison section - these are real job-site photos, treat them as the visual centerpiece.' : ""}
+${hasSinglePhoto ? '- Project photo: <img src="{{PROJECT_PHOTO}}"> - a real job-site photo, treat it as the visual centerpiece.' : ""}
 
 CREATIVE FREEDOM - this is the actual point of this task:
 - You choose the layout, composition, color palette (the given accent color is a starting point/inspiration, not a rule - feel free to build a complementary palette around it), typography choices, and overall visual concept.
-- Design something that looks like it came from a real professional design agency - confident, modern, and tailored to the specific trade and photos given.
+- Design something that looks like it came from a real professional design agency - confident, modern, and tailored to the specific trade.
 - Different flyers for different projects/trades should look meaningfully different from each other, not like the same template with colors swapped.
 - You may use CSS gradients, shapes, borders, shadows, and creative layout techniques (flexbox/grid) freely.`;
 
   const userPrompt = JSON.stringify({
     companyName: ctx.company.name,
-    logoUrl: ctx.company.logoUrl,
     accentColor: ctx.company.brandAccentColor,
     tradeType: ctx.company.tradeType,
     companyPhone: ctx.company.businessPhone,
     companyEmail: ctx.company.businessEmail,
     serviceArea: ctx.company.serviceArea,
     projectDescription: latestPost ? latestPost.content.slice(0, 500) : null,
-    beforePhotoUrl: beforePhoto ? beforePhoto.url : null,
-    afterPhotoUrl: afterPhoto ? afterPhoto.url : null,
-    singlePhotoUrl: !beforePhoto && !afterPhoto && anyPhoto ? anyPhoto.url : null
+    hasLogo,
+    hasBeforeAfterPhotos: hasBeforeAfter,
+    hasSinglePhoto
   });
 
   try {
     let html = await askClaude(systemPrompt, userPrompt);
     // Strip any script tags as a safety net, even though the prompt already forbids them.
     html = html.replace(/<script[\s\S]*?<\/script>/gi, "");
+
+    // Swap the AI's placeholder tokens for the real (possibly very large
+    // base64) image URLs - done here, never sent to the AI itself.
+    if (hasLogo && ctx.company.logoUrl) html = html.split("{{LOGO}}").join(ctx.company.logoUrl);
+    if (hasBeforeAfter) {
+      html = html.split("{{BEFORE_PHOTO}}").join(beforePhoto!.url);
+      html = html.split("{{AFTER_PHOTO}}").join(afterPhoto!.url);
+    }
+    if (hasSinglePhoto && anyPhoto) html = html.split("{{PROJECT_PHOTO}}").join(anyPhoto.url);
+
     return NextResponse.json({ html });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "AI flyer generation failed." }, { status: 500 });
