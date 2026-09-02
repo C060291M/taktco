@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { askClaude } from "@/lib/ai";
@@ -61,11 +61,18 @@ ${hasLogo ? '- Company logo: <img src="{{LOGO}}"> - use this small, once, in the
 ${hasBeforeAfter ? '- Before photo: <img src="{{BEFORE_PHOTO}}">\n- After photo: <img src="{{AFTER_PHOTO}}">\nDesign a clear before/after comparison section - these are real job-site photos, treat them as the visual centerpiece.' : ""}
 ${hasSinglePhoto ? '- Project photo: <img src="{{PROJECT_PHOTO}}"> - a real job-site photo, treat it as the visual centerpiece.' : ""}
 
-CREATIVE FREEDOM - this is the actual point of this task:
-- You choose the layout, composition, color palette (the given accent color is a starting point/inspiration, not a rule - feel free to build a complementary palette around it), typography choices, and overall visual concept.
-- Design something that looks like it came from a real professional design agency - confident, modern, and tailored to the specific trade.
-- Different flyers for different projects/trades should look meaningfully different from each other, not like the same template with colors swapped.
-- You may use CSS gradients, shapes, borders, shadows, and creative layout techniques (flexbox/grid) freely.`;
+REQUIRED SECTIONS - every flyer must include all of these, though you choose how each looks:
+  1. Header: company name/logo area plus a short tagline or descriptor.
+  2. ${hasBeforeAfter ? 'Before/after comparison with a clear BEFORE and AFTER label on each photo' : 'A featured project photo section'}.
+  3. A 3-4 item feature/benefit row using simple CSS-drawn icons or symbols (no external icon libraries) - e.g. quality, craftsmanship, reliability, value - phrased naturally for the given trade type. Do not invent specific certifications or claims not given to you.
+  4. A call-to-action band with a visually distinct button-style element, e.g. "Get Your Free Quote".
+  5. A footer with the real contact facts you were given (phone, email, service area) - omit any field that is null rather than inventing one.
+
+  CREATIVE FREEDOM within that structure:
+  - You choose the layout, composition, color palette (the given accent color is a starting point/inspiration, not a rule - feel free to build a complementary palette around it), typography choices, icon styles, and overall visual concept for each of the five sections above.
+  - Design something that looks like it came from a real professional design agency - confident, modern, and tailored to the specific trade.
+  - Different flyers for different projects/trades should look meaningfully different from each other in color/style/icon choices, not like the same template with colors swapped.
+  - You may use CSS gradients, shapes, borders, shadows, and creative layout techniques (flexbox/grid) freely.`;
 
   const userPrompt = JSON.stringify({
     companyName: ctx.company.name,
