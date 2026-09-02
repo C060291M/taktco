@@ -64,7 +64,7 @@ ${hasSinglePhoto ? '- Project photo: <img src="{{PROJECT_PHOTO}}"> - a real job-
 REQUIRED SECTIONS - every flyer must include all of these, though you choose how each looks:
   1. Header: company name/logo area plus a short tagline or descriptor.
   2. ${hasBeforeAfter ? 'Before/after comparison with a clear BEFORE and AFTER label on each photo' : 'A featured project photo section'}.
-  3. A 3-4 item feature/benefit row using simple CSS-drawn icons or symbols (no external icon libraries) - e.g. quality, craftsmanship, reliability, value - phrased naturally for the given trade type. Do not invent specific certifications or claims not given to you.
+  3. A 3-4 item feature/benefit row using simple CSS-drawn icons or symbols (no external icon libraries, hand-built with CSS shapes or inline SVG paths) - each icon's shape must clearly and literally represent its label's meaning (e.g. a shield or checkmark for quality/guarantee, a wrench or crossed-tools shape for craftsmanship, a house outline for property value or curb appeal, a padlock for security or reliability, a clock for durability or longevity). Never use a generic, unrelated shape (a plain star, triangle, or dollar sign) just to fill a slot - if you cannot design an icon that clearly matches a chosen label, pick a different label whose meaning you can represent clearly. Phrase labels naturally for the given trade type. Do not invent specific certifications or claims not given to you.
   4. A call-to-action band with a visually distinct button-style element, e.g. "Get Your Free Quote".
   5. A footer with the real contact facts you were given (phone, email, service area) - omit any field that is null rather than inventing one.
 
