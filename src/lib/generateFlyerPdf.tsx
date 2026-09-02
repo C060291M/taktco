@@ -1,8 +1,9 @@
-// Generates a downloadable, modern marketing flyer for a single job -
-// gradient dark background, glowing icon badges, before/after photo pair,
-// feature-value grid, CTA band, and icon-based contact footer. All content
-// is either real job/company data or generic, trade-agnostic marketing
-// copy - nothing company-specific is invented.
+﻿// Generates a downloadable, modern marketing flyer for a single job -
+// gradient dark background, glowing icon badges, before/after photo pair
+// with an overlapping quality-seal badge, feature-value grid, CTA band,
+// and icon-based contact footer. All content is either real job/company
+// data or generic, trade-agnostic marketing copy - nothing company-
+// specific is invented.
 import { Document, Page, Text, View, Image, StyleSheet, Svg, Path, Defs, LinearGradient, Stop, Rect, renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 
@@ -62,7 +63,8 @@ const ICONS = {
   calendar: React.createElement(Path, { d: "M4 6 H20 V21 H4 Z M4 10 H20 M8 3 V7 M16 3 V7 M8 14 L10 16 L15 11", fill: "none", stroke: "currentColor", strokeWidth: 1.6 }),
   phone: React.createElement(Path, { d: "M5 4 L9 4 L11 9 L8 11 C9 14 10 15 13 16 L15 13 L20 15 L20 19 C20 20 19 21 18 21 C10 21 3 14 3 6 C3 5 4 4 5 4 Z", fill: "none", stroke: "currentColor", strokeWidth: 1.6 }),
   mail: React.createElement(Path, { d: "M4 6 H20 V18 H4 Z M4 6 L12 13 L20 6", fill: "none", stroke: "currentColor", strokeWidth: 1.6 }),
-  pin: React.createElement(Path, { d: "M12 2 C8 2 5 5 5 9 C5 14 12 22 12 22 C12 22 19 14 19 9 C19 5 16 2 12 2 Z M12 12 A3 3 0 1 0 12 6 A3 3 0 0 0 12 12 Z", fill: "none", stroke: "currentColor", strokeWidth: 1.6 })
+  pin: React.createElement(Path, { d: "M12 2 C8 2 5 5 5 9 C5 14 12 22 12 22 C12 22 19 14 19 9 C19 5 16 2 12 2 Z M12 12 A3 3 0 1 0 12 6 A3 3 0 0 0 12 12 Z", fill: "none", stroke: "currentColor", strokeWidth: 1.6 }),
+  star: React.createElement(Path, { d: "M12 2 L14.5 8.5 L21 9 L16 13.5 L17.5 20 L12 16.5 L6.5 20 L8 13.5 L3 9 L9.5 8.5 Z", fill: "currentColor", stroke: "none" })
 };
 
 export async function generateFlyerPdf(params: {
@@ -80,6 +82,7 @@ export async function generateFlyerPdf(params: {
 }) {
   const accent = params.accentColor || "#1EAEC4";
   const trade = params.tradeType || "construction";
+  const tradeLower = trade.toLowerCase();
   const PAGE_W = 612;
   const PAGE_H = 792;
 
@@ -87,20 +90,34 @@ export async function generateFlyerPdf(params: {
     page: { fontFamily: "Helvetica" },
     content: { padding: 28 },
     headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 26 },
-    logo: { width: 44, height: 44, objectFit: "contain", marginRight: 12 },
+    logo: { width: 58, height: 58, objectFit: "contain", marginRight: 14 },
     companyName: { color: "#ffffff", fontSize: 15, fontWeight: 700 },
-    tagline: { color: accent, fontSize: 9, marginTop: 2, letterSpacing: 0.3 },
-    dividerV: { width: 1, height: 40, backgroundColor: "#2a2f38", marginHorizontal: 18 },
-    eyebrow: { color: accent, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6, marginBottom: 3 },
-    headerSub: { color: "#c4cad4", fontSize: 9, lineHeight: 1.4 },
+    dividerV: { width: 1, height: 46, backgroundColor: "#2a2f38", marginHorizontal: 18 },
+    eyebrow: { color: accent, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6, marginBottom: 4 },
+    headerSub: { color: "#c4cad4", fontSize: 9.5, lineHeight: 1.55 },
     headlineWhite: { color: "#ffffff", fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
     headlineAccent: { color: accent, fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
     subText: { color: "#9aa4b2", fontSize: 10, textAlign: "center", marginTop: 10, marginBottom: 20, lineHeight: 1.5, paddingHorizontal: 30 },
+    photoWrap: { position: "relative" },
     photoLabelRow: { flexDirection: "row" },
     photoLabelBefore: { flex: 1, textAlign: "center", backgroundColor: "#20242c", color: "#ffffff", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 0.6 },
     photoLabelAfter: { flex: 1, textAlign: "center", backgroundColor: accent, color: "#0e1116", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 0.6 },
     photoRow: { flexDirection: "row", border: `1.3pt solid ${accent}` },
     halfPhoto: { width: "50%", height: 230, objectFit: "cover" },
+    seal: {
+      position: "absolute",
+      top: 130,
+      left: "50%",
+      marginLeft: -62,
+      width: 124,
+      backgroundColor: "#0e1116ee",
+      border: `1.3pt solid ${accent}`,
+      borderRadius: 6,
+      padding: 10,
+      alignItems: "center"
+    },
+    sealLabel: { color: "#ffffff", fontSize: 8.5, fontWeight: 700, textAlign: "center", lineHeight: 1.35, marginTop: 6 },
+    sealStars: { flexDirection: "row", marginTop: 5 },
     featureGrid: { flexDirection: "row", marginTop: 24, borderTop: "1pt solid #262b34", paddingTop: 20 },
     featureCol: { flex: 1, alignItems: "center", paddingHorizontal: 6 },
     featureLabel: { color: "#ffffff", fontSize: 8.5, fontWeight: 700, textAlign: "center", marginTop: 9, marginBottom: 3, letterSpacing: 0.3 },
@@ -138,6 +155,10 @@ export async function generateFlyerPdf(params: {
     );
   }
 
+  function star(i: number) {
+    return React.createElement(Svg, { key: i, width: 9, height: 9, viewBox: "0 0 24 24", style: { color: accent, marginHorizontal: 1 } }, ICONS.star);
+  }
+
   const doc = React.createElement(
     Document,
     {},
@@ -153,18 +174,17 @@ export async function generateFlyerPdf(params: {
           View,
           { style: styles.headerRow },
           params.logoUrl ? React.createElement(Image, { src: params.logoUrl, style: styles.logo }) : null,
-          React.createElement(
-            View,
-            {},
-            React.createElement(Text, { style: styles.companyName }, params.companyName),
-            React.createElement(Text, { style: styles.tagline }, "REAL WORK. REAL RESULTS.")
-          ),
+          !params.logoUrl ? React.createElement(Text, { style: styles.companyName }, params.companyName) : null,
           React.createElement(View, { style: styles.dividerV }),
           React.createElement(
             View,
             {},
             React.createElement(Text, { style: styles.eyebrow }, "PROJECT SPOTLIGHT"),
-            React.createElement(Text, { style: styles.headerSub }, "Real projects, built right.")
+            React.createElement(
+              Text,
+              { style: styles.headerSub },
+              "Real " + tradeLower + ". Real results.\nBuilt to elevate your property."
+            )
           )
         ),
 
@@ -174,8 +194,8 @@ export async function generateFlyerPdf(params: {
 
         hasBeforeAfter
           ? React.createElement(
-              React.Fragment,
-              {},
+              View,
+              { style: styles.photoWrap },
               React.createElement(
                 View,
                 { style: styles.photoLabelRow },
@@ -187,6 +207,17 @@ export async function generateFlyerPdf(params: {
                 { style: styles.photoRow },
                 React.createElement(Image, { src: params.beforePhotoUrl!, style: styles.halfPhoto }),
                 React.createElement(Image, { src: params.afterPhotoUrl!, style: styles.halfPhoto })
+              ),
+              React.createElement(
+                View,
+                { style: styles.seal },
+                IconBadge({ accent, size: 30, children: React.cloneElement(ICONS.shield as React.ReactElement, { style: { color: accent } }) }),
+                React.createElement(Text, { style: styles.sealLabel }, "QUALITY GUARANTEED"),
+                React.createElement(
+                  View,
+                  { style: styles.sealStars },
+                  star(0), star(1), star(2)
+                )
               )
             )
           : heroPhoto
@@ -279,4 +310,3 @@ export async function generateFlyerPdf(params: {
 
   return renderToBuffer(doc);
 }
-
