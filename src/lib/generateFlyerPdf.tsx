@@ -1,4 +1,4 @@
-﻿// Generates a downloadable, modern marketing flyer for a single job -
+// Generates a downloadable, modern marketing flyer for a single job -
 // gradient dark background, glowing icon badges, before/after photo pair
 // with an overlapping quality-seal badge, feature-value grid, CTA band,
 // and icon-based contact footer. All content is either real job/company
@@ -107,8 +107,7 @@ export async function generateFlyerPdf(params: {
     seal: {
       position: "absolute",
       top: 130,
-      left: "50%",
-      marginLeft: -62,
+      left: 216,
       width: 124,
       backgroundColor: "#0e1116ee",
       border: `1.3pt solid ${accent}`,
@@ -310,3 +309,4 @@ export async function generateFlyerPdf(params: {
 
   return renderToBuffer(doc);
 }
+
