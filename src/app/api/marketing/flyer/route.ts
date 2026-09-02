@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { generateFlyerPdf } from "@/lib/generateFlyerPdf";
@@ -67,7 +67,9 @@ export async function GET(req: NextRequest) {
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": "attachment; filename=\"flyer.pdf\""
+      "Content-Disposition": "attachment; filename=\"flyer.pdf\"",
+      "Cache-Control": "no-store"
     }
   });
 }
+
