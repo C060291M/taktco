@@ -1,4 +1,4 @@
-﻿// Generates a downloadable, modern marketing flyer for a single job -
+// Generates a downloadable, modern marketing flyer for a single job -
 // gradient dark background, glowing icon badges, before/after photo pair,
 // feature-value grid, CTA band, and icon-based contact footer. All content
 // is either real job/company data or generic, trade-agnostic marketing
@@ -91,14 +91,14 @@ export async function generateFlyerPdf(params: {
     companyName: { color: "#ffffff", fontSize: 15, fontWeight: 700 },
     tagline: { color: accent, fontSize: 9, marginTop: 2, letterSpacing: 0.3 },
     dividerV: { width: 1, height: 40, backgroundColor: "#2a2f38", marginHorizontal: 18 },
-    eyebrow: { color: accent, fontSize: 9.5, fontWeight: 700, letterSpacing: 1.5, marginBottom: 3 },
+    eyebrow: { color: accent, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6, marginBottom: 3 },
     headerSub: { color: "#c4cad4", fontSize: 9, lineHeight: 1.4 },
     headlineWhite: { color: "#ffffff", fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
     headlineAccent: { color: accent, fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
     subText: { color: "#9aa4b2", fontSize: 10, textAlign: "center", marginTop: 10, marginBottom: 20, lineHeight: 1.5, paddingHorizontal: 30 },
     photoLabelRow: { flexDirection: "row" },
-    photoLabelBefore: { flex: 1, textAlign: "center", backgroundColor: "#20242c", color: "#ffffff", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 1.5 },
-    photoLabelAfter: { flex: 1, textAlign: "center", backgroundColor: accent, color: "#0e1116", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 1.5 },
+    photoLabelBefore: { flex: 1, textAlign: "center", backgroundColor: "#20242c", color: "#ffffff", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 0.6 },
+    photoLabelAfter: { flex: 1, textAlign: "center", backgroundColor: accent, color: "#0e1116", fontSize: 9, fontWeight: 700, paddingVertical: 6, letterSpacing: 0.6 },
     photoRow: { flexDirection: "row", border: `1.3pt solid ${accent}` },
     halfPhoto: { width: "50%", height: 230, objectFit: "cover" },
     featureGrid: { flexDirection: "row", marginTop: 24, borderTop: "1pt solid #262b34", paddingTop: 20 },
@@ -117,7 +117,7 @@ export async function generateFlyerPdf(params: {
     footerIconBox: { width: 26, height: 26, borderRadius: 13, backgroundColor: accent + "22", border: `1pt solid ${accent}`, alignItems: "center", justifyContent: "center", marginRight: 6 },
     footerText: { color: "#ffffff", fontSize: 8.5, fontWeight: 700 },
     footerSub: { color: "#6b7280", fontSize: 7 },
-    footerTagline: { color: accent, fontSize: 9.5, fontWeight: 700, textAlign: "center", marginTop: 18, letterSpacing: 1.5 }
+    footerTagline: { color: accent, fontSize: 9.5, fontWeight: 700, textAlign: "center", marginTop: 18, letterSpacing: 0.6 }
   });
 
   const hasBeforeAfter = params.beforePhotoUrl && params.afterPhotoUrl;
@@ -279,3 +279,4 @@ export async function generateFlyerPdf(params: {
 
   return renderToBuffer(doc);
 }
+
