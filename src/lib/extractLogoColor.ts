@@ -1,4 +1,4 @@
-﻿// Extracts a representative brand color from an uploaded logo image, so a
+// Extracts a representative brand color from an uploaded logo image, so a
 // new company gets sensible branding the moment they upload their logo
 // instead of having to manually pick a color. Runs entirely client-side via
 // Canvas pixel sampling - no server round trip, no new dependency.
@@ -58,9 +58,18 @@ export function extractLogoColor(imageUrl: string): Promise<string | null> {
           return;
         }
 
-        const r = Math.round(winner.r / winner.count);
-        const g = Math.round(winner.g / winner.count);
-        const b = Math.round(winner.b / winner.count);
+        const rawR = winner.r / winner.count;
+        const rawG = winner.g / winner.count;
+        const rawB = winner.b / winner.count;
+        // Blend 16% toward the color's own luminance (grayscale value) -
+        // softens vivid/electric extractions into a more premium, muted
+        // tone while staying clearly derived from the logo's real hue.
+        // Applies universally, not tuned for any one company's logo.
+        const gray = 0.299 * rawR + 0.587 * rawG + 0.114 * rawB;
+        const blend = 0.16;
+        const r = Math.round(rawR + (gray - rawR) * blend);
+        const g = Math.round(rawG + (gray - rawG) * blend);
+        const b = Math.round(rawB + (gray - rawB) * blend);
         const hex = "#" + [r, g, b].map(function (v) { return v.toString(16).padStart(2, "0"); }).join("");
         resolve(hex);
       } catch {
@@ -73,3 +82,4 @@ export function extractLogoColor(imageUrl: string): Promise<string | null> {
     img.src = imageUrl;
   });
 }
+
