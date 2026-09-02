@@ -1,8 +1,9 @@
-﻿import { db } from "@/database/client";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { MarketingGenerator } from "@/features/marketing/MarketingGenerator";
 import { ProjectSelector } from "@/features/marketing/ProjectSelector";
+import { AiFlyerGenerator } from "@/features/marketing/AiFlyerGenerator";
 
 const PLATFORM_LABELS: Record<string, string> = {
   FACEBOOK: "Facebook",
@@ -79,6 +80,8 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
         </div>
       ) : null}
 
+      {job && hasPhotos ? <AiFlyerGenerator jobId={job.id} /> : null}
+
       <MarketingGenerator />
 
       <div className="space-y-3">
@@ -103,3 +106,4 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
     </div>
   );
 }
+
