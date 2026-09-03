@@ -1,4 +1,4 @@
-﻿// Generates a downloadable, bright and bold marketing flyer for a single
+// Generates a downloadable, bright and bold marketing flyer for a single
 // job - classic local-business flyer energy: solid accent-color header
 // band, filled icon badges (not thin outlines), bold before/after photo
 // section with an overlapping quality seal, feature grid, and a punchy CTA
@@ -66,16 +66,16 @@ export async function generateFlyerPdf(params: {
     headerDividerV: { width: 1, height: 44, backgroundColor: onAccent + "55", marginHorizontal: 18 },
     eyebrow: { color: onAccent, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.6, marginBottom: 4 },
     headerSub: { color: onAccent, opacity: 0.9, fontSize: 9.5, lineHeight: 1.5 },
-    content: { padding: 28 },
+    content: { paddingHorizontal: 28, paddingTop: 20, paddingBottom: 18 },
     headlineDark: { color: "#1a1a1a", fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
     headlineAccent: { color: accent, fontSize: 28, fontWeight: 700, textAlign: "center", lineHeight: 1.1, letterSpacing: -0.3 },
-    subText: { color: "#666666", fontSize: 10, textAlign: "center", marginTop: 10, marginBottom: 20, lineHeight: 1.5, paddingHorizontal: 30 },
+    subText: { color: "#666666", fontSize: 10, textAlign: "center", marginTop: 8, marginBottom: 14, lineHeight: 1.5, paddingHorizontal: 30 },
     photoWrap: { position: "relative" },
     photoLabelRow: { flexDirection: "row" },
     photoLabelBefore: { flex: 1, textAlign: "center", backgroundColor: "#2a2f38", color: "#ffffff", fontSize: 9, fontWeight: 700, paddingVertical: 7, letterSpacing: 0.6 },
     photoLabelAfter: { flex: 1, textAlign: "center", backgroundColor: accent, color: onAccent, fontSize: 9, fontWeight: 700, paddingVertical: 7, letterSpacing: 0.6 },
     photoRow: { flexDirection: "row", border: `2pt solid ${accent}` },
-    halfPhoto: { width: "50%", height: 230, objectFit: "cover" },
+    halfPhoto: { width: "50%", height: 190, objectFit: "cover" },
     seal: {
       position: "absolute",
       top: 130,
@@ -90,22 +90,22 @@ export async function generateFlyerPdf(params: {
     sealIconBg: { backgroundColor: "#ffffff22" },
     sealLabel: { color: onAccent, fontSize: 8.5, fontWeight: 700, textAlign: "center", lineHeight: 1.35, marginTop: 6 },
     sealStars: { flexDirection: "row", marginTop: 5 },
-    featureGrid: { flexDirection: "row", marginTop: 26, borderTop: "2pt solid #f0f0f0", paddingTop: 22 },
+    featureGrid: { flexDirection: "row", marginTop: 18, borderTop: "2pt solid #f0f0f0", paddingTop: 14 },
     featureCol: { flex: 1, alignItems: "center", paddingHorizontal: 6 },
     featureLabel: { color: "#1a1a1a", fontSize: 8.5, fontWeight: 700, textAlign: "center", marginTop: 9, marginBottom: 3, letterSpacing: 0.3 },
     featureDesc: { color: "#888888", fontSize: 7.5, textAlign: "center", lineHeight: 1.35 },
-    ctaBand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 28, backgroundColor: accent, padding: 20, borderRadius: 8 },
+    ctaBand: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20, backgroundColor: accent, padding: 16, borderRadius: 8 },
     ctaLeft: { flexDirection: "row", alignItems: "center" },
     ctaHeading: { color: onAccent, fontSize: 13, fontWeight: 700 },
     ctaSub: { color: onAccent, opacity: 0.85, fontSize: 8.5, marginTop: 2 },
     ctaButton: { backgroundColor: "#ffffff", paddingVertical: 12, paddingHorizontal: 18, borderRadius: 5 },
     ctaButtonText: { color: accent, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.3 },
-    footer: { flexDirection: "row", justifyContent: "space-around", marginTop: 24, paddingTop: 20, paddingHorizontal: 28, backgroundColor: "#f7f7f8", paddingBottom: 20 },
+    footer: { flexDirection: "row", justifyContent: "space-around", marginTop: 16, paddingTop: 14, paddingHorizontal: 28, backgroundColor: "#f7f7f8", paddingBottom: 14 },
     footerItem: { flexDirection: "row", alignItems: "center" },
     footerIconBox: { width: 30, height: 30, borderRadius: 15, backgroundColor: accent, alignItems: "center", justifyContent: "center", marginRight: 7 },
     footerText: { color: "#1a1a1a", fontSize: 8.5, fontWeight: 700 },
     footerSub: { color: "#888888", fontSize: 7 },
-    footerTaglineWrap: { backgroundColor: "#f7f7f8", paddingBottom: 18, paddingTop: 4 },
+    footerTaglineWrap: { backgroundColor: "#f7f7f8", paddingBottom: 12, paddingTop: 4 },
     footerTagline: { color: accent, fontSize: 9.5, fontWeight: 700, textAlign: "center", letterSpacing: 0.6 }
   });
 

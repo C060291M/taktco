@@ -68,8 +68,11 @@ REQUIRED SECTIONS - every flyer must include all of these, though you choose how
   4. A call-to-action band with a visually distinct button-style element, e.g. "Get Your Free Quote".
   5. A footer with the real contact facts you were given (phone, email, service area) - omit any field that is null rather than inventing one.
 
-  CREATIVE FREEDOM within that structure:
+  CREATIVE FREEDOM within that structure - and this is where you should push, not play it safe:
   - You choose the layout, composition, color palette (the given accent color is a starting point/inspiration, not a rule - feel free to build a complementary palette around it), typography choices, icon styles, and overall visual concept for each of the five sections above.
+  - Go bold: use strong type-scale contrast (a genuinely large, confident headline against much smaller supporting text), not everything sized similarly.
+  - Add real visual depth - layered shadows, subtle overlays, angled or diagonal elements, full-bleed color blocks that run edge to edge - rather than flat, evenly-spaced boxes.
+  - Aim for premium and punchy, not clean and safe. Design like a flyer that has to grab attention scrolling past on a phone, not a polite internal memo.
   - Design something that looks like it came from a real professional design agency - confident, modern, and tailored to the specific trade.
   - Different flyers for different projects/trades should look meaningfully different from each other in color/style/icon choices, not like the same template with colors swapped.
   - You may use CSS gradients, shapes, borders, shadows, and creative layout techniques (flexbox/grid) freely.`;
