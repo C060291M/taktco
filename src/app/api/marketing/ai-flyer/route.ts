@@ -69,10 +69,12 @@ REQUIRED SECTIONS - every flyer must include all of these, though you choose how
   5. A footer with the real contact facts you were given (phone, email, service area) - omit any field that is null rather than inventing one.
 
   CREATIVE FREEDOM within that structure - and this is where you should push, not play it safe:
-  - You choose the layout, composition, color palette (the given accent color is a starting point/inspiration, not a rule - feel free to build a complementary palette around it), typography choices, icon styles, and overall visual concept for each of the five sections above.
+  - Color: the given accent color is the flyer's primary brand color and must be clearly recognizable as dominant throughout the design - never swap it for an unrelated palette. Build the rest of the palette AROUND it: one or two complementary or analogous colors (a deeper or lighter shade of the same hue, or a neutral like navy, charcoal, or cream) for contrast and hierarchy. Someone glancing at the flyer should immediately connect its colors to the brand's own accent color.
+  - Shapes: every icon badge, border, and geometric element must be precise and clean - true circles (not ovals or blob shapes), straight lines, exact and consistent corner radii. No wavy, hand-drawn, or organic-looking edges anywhere.
+  - Typography, composition, and overall visual concept are yours to choose freely within that palette and shape language.
   - Go bold: use strong type-scale contrast (a genuinely large, confident headline against much smaller supporting text), not everything sized similarly.
   - Add real visual depth - layered shadows, subtle overlays, angled or diagonal elements, full-bleed color blocks that run edge to edge - rather than flat, evenly-spaced boxes.
-  - Aim for premium and punchy, not clean and safe. Design like a flyer that has to grab attention scrolling past on a phone, not a polite internal memo.
+  - Aim for premium and punchy: bold color use and confident type, executed with precision - not sloppy, not timid.
   - Design something that looks like it came from a real professional design agency - confident, modern, and tailored to the specific trade.
   - Different flyers for different projects/trades should look meaningfully different from each other in color/style/icon choices, not like the same template with colors swapped.
   - You may use CSS gradients, shapes, borders, shadows, and creative layout techniques (flexbox/grid) freely.`;
