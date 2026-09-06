@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/ui/StatCard";
 import { PayButton } from "@/features/invoices/PayButton";
+import { totalPaidOnInvoice } from "@/lib/invoicePayments";
 import { DeleteInvoiceButton } from "@/features/invoices/DeleteInvoiceButton";
 import { NewInvoiceForm } from "@/features/invoices/NewInvoiceForm";
 import { DollarSign, AlertCircle, Clock } from "lucide-react";
@@ -19,7 +20,7 @@ export default async function InvoicesPage() {
   const companyId = ctx.company.id;
 
   const [invoices, customers, jobs] = await Promise.all([
-    db.invoice.findMany({ where: { companyId, deletedAt: null }, include: { customer: true }, orderBy: { createdAt: "desc" } }),
+    db.invoice.findMany({ where: { companyId, deletedAt: null }, include: { customer: true, payments: true }, orderBy: { createdAt: "desc" } }),
     db.customer.findMany({ where: { companyId, deletedAt: null }, orderBy: { name: "asc" } }),
     db.job.findMany({ where: { companyId }, include: { customer: true }, orderBy: { createdAt: "desc" } })
   ]);
@@ -98,7 +99,7 @@ export default async function InvoicesPage() {
                   </Badge>
                 </td>
                 <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                  {inv.status !== "PAID" && <PayButton invoiceId={inv.id} disabled={!ctx.company.payoutsEnabled} />}
+                  {inv.status !== "PAID" && <PayButton invoiceId={inv.id} disabled={!ctx.company.payoutsEnabled} kind={inv.kind} amount={Number(inv.amount)} totalPaid={totalPaidOnInvoice(inv.payments)} depositPercent={ctx.company.defaultDepositPercent ? Number(ctx.company.defaultDepositPercent) : null} />}
                   {(ctx.user.role === "OWNER") && (
                     <DeleteInvoiceButton invoiceId={inv.id} invoiceNumber={inv.invoiceNumber} redirectAfterDelete={false} />
                   )}
