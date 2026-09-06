@@ -85,3 +85,62 @@ export async function promoteFinalBalanceIfDepositPaid(invoiceId: string) {
 
   return updated;
 }
+
+// Splits an existing STANDARD invoice into a DEPOSIT + FINAL_BALANCE pair,
+// using the invoice's own amount (not a job's estimate - this works whether
+// or not a job was linked when the invoice was created). The original
+// invoice is soft-deleted, same pattern as every other financial record in
+// this app - never hard-destroyed, just filtered out of active views. This
+// runs for any eligible invoice going forward, not just a one-time fix.
+export async function splitInvoiceIntoDepositAndBalance(params: { companyId: string; invoiceId: string }) {
+  const [company, invoice] = await Promise.all([
+    db.company.findUnique({ where: { id: params.companyId } }),
+    db.invoice.findFirst({ where: { id: params.invoiceId, companyId: params.companyId, deletedAt: null } })
+  ]);
+
+  if (!company || !invoice) throw new Error("Invoice not found.");
+  if (!company.defaultDepositPercent) throw new Error("Set a default deposit % in Settings -> Invoice Defaults first.");
+  if (invoice.kind !== "STANDARD") throw new Error("This invoice can't be split - it's already a deposit or final balance invoice.");
+  if (invoice.status === "PAID") throw new Error("This invoice is already paid and can't be split.");
+
+  const total = Number(invoice.amount);
+  const depositPercent = Number(company.defaultDepositPercent);
+  const depositAmount = Math.round(total * (depositPercent / 100) * 100) / 100;
+  const remainingAmount = Math.round((total - depositAmount) * 100) / 100;
+
+  const depositInvoiceNumber = await claimNextInvoiceNumber(params.companyId);
+  const deposit = await db.invoice.create({
+    data: {
+      companyId: params.companyId,
+      jobId: invoice.jobId,
+      customerId: invoice.customerId,
+      invoiceNumber: depositInvoiceNumber,
+      amount: depositAmount,
+      lineItems: [{ description: `Deposit (${depositPercent}% of $${total.toLocaleString()})`, qty: 1, unit: "ea", unitPrice: depositAmount }],
+      kind: "DEPOSIT",
+      status: "UNPAID",
+      dueDate: invoice.dueDate
+    }
+  });
+
+  const finalBalanceInvoiceNumber = await claimNextInvoiceNumber(params.companyId);
+  const finalBalance = await db.invoice.create({
+    data: {
+      companyId: params.companyId,
+      jobId: invoice.jobId,
+      customerId: invoice.customerId,
+      invoiceNumber: finalBalanceInvoiceNumber,
+      amount: remainingAmount,
+      lineItems: [{ description: `Remaining balance (after ${depositPercent}% deposit)`, qty: 1, unit: "ea", unitPrice: remainingAmount }],
+      kind: "FINAL_BALANCE",
+      status: "DRAFT",
+      pairedInvoiceId: deposit.id,
+      dueDate: invoice.dueDate
+    }
+  });
+
+  await db.invoice.update({ where: { id: deposit.id }, data: { pairedInvoiceId: finalBalance.id } });
+  await db.invoice.update({ where: { id: invoice.id }, data: { deletedAt: new Date() } });
+
+  return { deposit, finalBalance };
+}

@@ -9,6 +9,7 @@ import { DeleteInvoiceButton } from "@/features/invoices/DeleteInvoiceButton";
 import { CopyPublicLink } from "@/components/forms/CopyPublicLink";
 import { PrintButton } from "@/components/ui/PrintButton";
 import { SendInvoiceButton } from "@/features/invoices/SendInvoiceButton";
+import { SplitDepositButton } from "@/features/invoices/SplitDepositButton";
 
 function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -67,6 +68,15 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
             {ctx.company.payoutsEnabled ? "Collect this payment now." : "Payment collection is locked until verification is complete."}
           </p>
           <PayButton invoiceId={invoice.id} disabled={!ctx.company.payoutsEnabled} />
+        </div>
+      )}
+
+            {invoice.kind === "STANDARD" && invoice.status !== "PAID" && ctx.company.defaultDepositPercent && (
+        <div className="card p-5 flex items-center justify-between">
+          <p className="text-sm text-graphite-300">
+            This company has a default deposit % set - split this invoice into a deposit and final balance instead.
+          </p>
+          <SplitDepositButton invoiceId={invoice.id} />
         </div>
       )}
 
