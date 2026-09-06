@@ -4,6 +4,7 @@ import { verifyWebhookSignature, isConnectAccountReady, tierForPriceId, TIER_INC
 import { notify } from "@/lib/notify";
 import { logError } from "@/lib/errorLog";
 import { promoteFinalBalanceIfDepositPaid } from "@/lib/depositInvoices";
+import { recordInvoicePayment, totalPaidOnInvoice } from "@/lib/invoicePayments";
 import { generateInvoicePdf } from "@/lib/generateInvoicePdf";
 import { generateReceiptPdf } from "@/lib/generateReceiptPdf";
 import { sendTrackedEmail } from "@/services/resend";
@@ -29,6 +30,13 @@ import Stripe from "stripe";
 // the invoice, per the design goal of "receipt = proof of payment, not a
 // re-itemized invoice"). The company's own copy keeps the full itemized
 // invoice PDF, since that's their actual bookkeeping record.
+//
+// STANDARD invoices go through the shared recordInvoicePayment helper (same
+// one the manual staff button and public dev-stub use), using the actual
+// amount Stripe charged (session.amount_total) - this correctly handles
+// deposit/full/remaining, not always the full invoice amount. Legacy
+// DEPOSIT/FINAL_BALANCE invoices (kind !== STANDARD) keep their original,
+// unchanged always-pay-in-full behavior.
 function pdfFilenameFor(label: string) {
   return label.replace(/[^a-z0-9]+/gi, "_") + "_paid.pdf";
 }
@@ -91,33 +99,47 @@ export async function POST(req: NextRequest) {
       if (invoiceId) {
         const invoice = await db.invoice.findUnique({ where: { id: invoiceId }, include: { customer: true, company: true } });
         if (invoice && invoice.status !== "PAID") {
-          await db.payment.create({
-            data: {
-              companyId: invoice.companyId,
-              invoiceId: invoice.id,
-              amount: invoice.amount,
-              method: "card",
-              stripeCheckoutSessionId: session.id,
-              stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : undefined,
-              status: "succeeded"
-            }
-          });
           const paidAt = new Date();
-          await db.invoice.update({ where: { id: invoice.id }, data: { status: "PAID" } });
-          await promoteFinalBalanceIfDepositPaid(invoice.id);
-          await notify({
-            companyId: invoice.companyId,
-            category: "INVOICE_PAID",
-            title: `Payment received from ${invoice.customer.name}`,
-            body: `$${Number(invoice.amount).toLocaleString()} paid via Stripe.`,
-            linkUrl: `/invoices/${invoice.id}`
-          });
+          let chargedAmount = Number(invoice.amount);
+
+          if (invoice.kind !== "STANDARD") {
+            await db.payment.create({
+              data: {
+                companyId: invoice.companyId,
+                invoiceId: invoice.id,
+                amount: invoice.amount,
+                method: "card",
+                stripeCheckoutSessionId: session.id,
+                stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : undefined,
+                status: "succeeded"
+              }
+            });
+            await db.invoice.update({ where: { id: invoice.id }, data: { status: "PAID" } });
+            await promoteFinalBalanceIfDepositPaid(invoice.id);
+            await notify({
+              companyId: invoice.companyId,
+              category: "INVOICE_PAID",
+              title: `Payment received from ${invoice.customer.name}`,
+              body: `$${Number(invoice.amount).toLocaleString()} paid via Stripe.`,
+              linkUrl: `/invoices/${invoice.id}`
+            });
+          } else {
+            chargedAmount = (session.amount_total || 0) / 100;
+            await recordInvoicePayment({
+              invoiceId: invoice.id,
+              companyId: invoice.companyId,
+              amount: chargedAmount,
+              method: "card",
+              stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : undefined,
+              stripeCheckoutSessionId: session.id
+            });
+          }
 
           // UNTESTED - see file header. Mirrors the working contract/estimate
           // PDF flows; not yet exercised by a real payment.
           try {
             const allPayments = await db.payment.findMany({ where: { invoiceId: invoice.id, status: "succeeded" } });
-            const totalPaid = allPayments.reduce(function (sum, p) { return sum + Number(p.amount); }, 0);
+            const totalPaid = totalPaidOnInvoice(allPayments);
             const remainingBalance = Math.max(0, Number(invoice.amount) - totalPaid);
 
             const receiptBuffer = await generateReceiptPdf({
@@ -130,7 +152,7 @@ export async function POST(req: NextRequest) {
               customerName: invoice.customer.name,
               customerAddress: invoice.customer.address,
               invoiceNumber: invoice.invoiceNumber,
-              paymentAmount: Number(invoice.amount),
+              paymentAmount: chargedAmount,
               paymentMethod: "Card",
               paidAt,
               remainingBalance
