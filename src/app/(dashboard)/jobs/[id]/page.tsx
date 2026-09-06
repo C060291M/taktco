@@ -9,7 +9,6 @@ import { PunchListPanel } from "@/features/jobs/PunchListPanel";
 import { CrewAndStatus } from "@/features/jobs/CrewAndStatus";
 import { DeleteJobButton } from "@/features/jobs/DeleteJobButton";
 import { TechSignOff } from "@/features/jobs/TechSignOff";
-import { GenerateDepositInvoicesButton } from "@/features/jobs/GenerateDepositInvoicesButton";
 
 function money(n: number | { toString(): string }) {
   return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -145,10 +144,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         <div className="card p-5">
           <h2 className="text-sm font-medium text-white mb-3">Invoices for this job</h2>
           {job.invoices.length === 0 ? (
-            <div className="space-y-3">
-              <p className="text-sm text-graphite-400">No invoices yet.</p>
-              <GenerateDepositInvoicesButton jobId={job.id} />
-            </div>
+            <p className="text-sm text-graphite-400">No invoices yet.</p>
           ) : (
             <div className="space-y-2">
               {job.invoices.map(function (i) {

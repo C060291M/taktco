@@ -217,7 +217,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
             defaultCustomerId={customer.id}
             jobs={jobOptions}
             defaultDueDays={ctx.company.defaultInvoiceDueDays}
-            hasDepositPercent={Boolean(ctx.company.defaultDepositPercent)}
+            
           />
         </div>
       </div>

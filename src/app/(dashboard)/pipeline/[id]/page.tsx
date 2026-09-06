@@ -139,7 +139,7 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
             defaultCustomerId={lead.customer.id}
             jobs={jobOptions}
             defaultDueDays={ctx.company.defaultInvoiceDueDays}
-            hasDepositPercent={Boolean(ctx.company.defaultDepositPercent)}
+            
           />
         </div>
       </div>

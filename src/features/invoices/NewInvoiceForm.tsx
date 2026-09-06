@@ -9,13 +9,11 @@ export function NewInvoiceForm({
   customers,
   jobs,
   defaultDueDays,
-  hasDepositPercent,
   defaultCustomerId
 }: {
   customers: { id: string; name: string }[];
   jobs: JobOption[];
   defaultDueDays?: number | null;
-  hasDepositPercent?: boolean;
   defaultCustomerId?: string;
 })  {
   const router = useRouter();
@@ -23,8 +21,6 @@ export function NewInvoiceForm({
   const [loading, setLoading] = useState(false);
   const [customerId, setCustomerId] = useState(defaultCustomerId || "");
   const [jobId, setJobId] = useState("");
-  const [splitting, setSplitting] = useState(false);
-  const [splitError, setSplitError] = useState<string | null>(null);
   const [items, setItems] = useState<LineItem[]>([{ description: "", qty: 1, unit: "ea", unitPrice: 0 }]);
   const [taxAmount, setTaxAmount] = useState("0");
   const [dueDate, setDueDate] = useState(() => {
@@ -47,26 +43,11 @@ export function NewInvoiceForm({
     if (!id) return;
     setPulling(true);
     const res = await fetch(`/api/jobs/${id}/estimate-items`);
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json().catch(function () { return {}; });
     setPulling(false);
     if (res.ok) {
       setCustomerId(data.customerId);
       if (data.lineItems?.length) setItems(data.lineItems);
-    }
-  }
-
-  async function splitIntoDepositAndBalance() {
-    if (!jobId) return;
-    setSplitting(true);
-    setSplitError(null);
-    const res = await fetch(`/api/jobs/${jobId}/deposit-invoices`, { method: "POST" });
-    const data = await res.json().catch(() => ({}));
-    setSplitting(false);
-    if (res.ok) {
-      setOpen(false);
-      router.refresh();
-    } else {
-      setSplitError(data.error || "Could not split into deposit + balance.");
     }
   }
 
@@ -110,29 +91,16 @@ export function NewInvoiceForm({
         <h2 className="text-white font-medium">New invoice</h2>
 
         {jobs.length > 0 && (
-          <>
-            <div>
-              <label className="block text-xs text-graphite-300 mb-1">Pull from a job (optional)</label>
-              <select className="input" value={jobId} onChange={(e) => pullFromJob(e.target.value)}>
-                <option value="">Manual entry</option>
-                {jobs.map((j) => (
-                  <option key={j.id} value={j.id}>{j.label}</option>
-                ))}
-              </select>
-              {pulling && <p className="text-xs text-graphite-400 mt-1">Pulling line items...</p>}
-            </div>
-            {jobId && hasDepositPercent && (
-              <div className="mt-2 p-3 rounded-lg border border-accent/30 bg-accent/5">
-                <p className="text-xs text-graphite-300 mb-2">
-                  This company has a default deposit % set - you can split this into two invoices instead of one.
-                </p>
-                <button type="button" className="btn-secondary text-xs" disabled={splitting} onClick={splitIntoDepositAndBalance}>
-                  {splitting ? "Creating..." : "Split into deposit + final balance"}
-                </button>
-                {splitError && <p className="text-xs text-red-400 mt-1">{splitError}</p>}
-              </div>
-            )}
-          </>
+          <div>
+            <label className="block text-xs text-graphite-300 mb-1">Pull from a job (optional)</label>
+            <select className="input" value={jobId} onChange={(e) => pullFromJob(e.target.value)}>
+              <option value="">Manual entry</option>
+              {jobs.map((j) => (
+                <option key={j.id} value={j.id}>{j.label}</option>
+              ))}
+            </select>
+            {pulling && <p className="text-xs text-graphite-400 mt-1">Pulling line items...</p>}
+          </div>
         )}
 
         <select className="input" value={customerId} onChange={(e) => setCustomerId(e.target.value)} required disabled={!!jobId}>
@@ -172,6 +140,8 @@ export function NewInvoiceForm({
           <span className="text-white font-semibold">${total.toLocaleString()}</span>
         </div>
 
+        <p className="text-[11px] text-graphite-500">Deposit, full, or remaining-balance payment options are offered automatically when this invoice is paid.</p>
+
         <div className="flex gap-2 justify-end pt-2">
           <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
           <button type="submit" disabled={loading || !customerId} className="btn-primary">{loading ? "Saving..." : "Save invoice"}</button>
@@ -180,6 +150,3 @@ export function NewInvoiceForm({
     </div>
   );
 }
-
-
-
