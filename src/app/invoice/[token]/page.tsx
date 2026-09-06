@@ -1,6 +1,7 @@
 import { db } from "@/database/client";
 import { notFound } from "next/navigation";
 import { PublicInvoiceView } from "./PublicInvoiceView";
+import { totalPaidOnInvoice } from "@/lib/invoicePayments";
 
 export default async function PublicInvoicePage({ params }: { params: { token: string } }) {
   const invoice = await db.invoice.findUnique({
@@ -28,6 +29,9 @@ export default async function PublicInvoicePage({ params }: { params: { token: s
       dueDate={invoice.dueDate ? invoice.dueDate.toISOString() : null}
       payments={invoice.payments.map((p) => ({ amount: Number(p.amount), paidAt: p.paidAt.toISOString(), method: p.method }))}
       payoutsEnabled={invoice.company.payoutsEnabled}
+      kind={invoice.kind}
+      totalPaid={totalPaidOnInvoice(invoice.payments)}
+      depositPercent={invoice.company.defaultDepositPercent ? Number(invoice.company.defaultDepositPercent) : null}
     />
   );
 }

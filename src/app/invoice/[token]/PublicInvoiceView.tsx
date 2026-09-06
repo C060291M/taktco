@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { getContrastingTextColor } from "@/lib/getContrastingTextColor";
 import { formatDateInTz } from "@/lib/formatDate";
@@ -22,7 +22,10 @@ export function PublicInvoiceView({
   lineItems,
   dueDate,
   payments,
-  payoutsEnabled
+  payoutsEnabled,
+  kind,
+  totalPaid,
+  depositPercent
 }: {
   token: string;
   customerName: string;
@@ -35,21 +38,31 @@ export function PublicInvoiceView({
   dueDate: string | null;
   payments: PaymentRow[];
   payoutsEnabled: boolean;
+  kind: string;
+  totalPaid: number;
+  depositPercent: number | null;
 }) {
   const [status, setStatus] = useState(initialStatus);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function pay() {
-    setLoading(true);
+  const remaining = Math.max(0, amount - totalPaid);
+  const depositAmount = depositPercent ? Math.round(amount * (depositPercent / 100) * 100) / 100 : null;
+
+  async function pay(choice?: "deposit" | "full" | "remaining") {
+    setLoading(choice || "legacy");
     setError(null);
-    const res = await fetch(`/api/public/invoices/${token}`, { method: "POST" });
-    const data = await res.json().catch(() => ({}));
+    const res = await fetch(`/api/public/invoices/${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(choice ? { choice } : {})
+    });
+    const data = await res.json().catch(function () { return {}; });
     if (res.ok && data.checkoutUrl) {
       window.location.href = data.checkoutUrl;
       return;
     }
-    setLoading(false);
+    setLoading(null);
     if (res.ok) setStatus(data.status);
     else setError(data.error || "Payment failed.");
   }
@@ -105,8 +118,8 @@ export function PublicInvoiceView({
           )}
 
           <div className="flex items-center justify-between pb-4 border-b border-graphite-700">
-            <span className="text-graphite-300">Amount due</span>
-            <span className="text-white text-xl font-semibold">{money(amount)}</span>
+            <span className="text-graphite-300">{totalPaid > 0 && status !== "PAID" ? "Remaining balance" : "Amount due"}</span>
+            <span className="text-white text-xl font-semibold">{money(status === "PAID" ? amount : remaining)}</span>
           </div>
 
           {payments.length > 0 && (
@@ -114,7 +127,7 @@ export function PublicInvoiceView({
               <p className="text-xs text-graphite-400 uppercase tracking-wide mb-2">Payment history</p>
               {payments.map((p, i) => (
                 <div key={i} className="flex items-center justify-between text-sm text-graphite-300">
-                  <span>{formatDateInTz(p.paidAt, company.timeZone)} · {p.method}</span>
+                  <span>{formatDateInTz(p.paidAt, company.timeZone)} - {p.method}</span>
                   <span>{money(p.amount)}</span>
                 </div>
               ))}
@@ -123,13 +136,28 @@ export function PublicInvoiceView({
 
           <div className="pt-6">
             {status === "PAID" ? (
-              <p className="text-emerald-400 text-sm font-medium text-center">✓ Paid in full. Thank you!</p>
+              <p className="text-emerald-400 text-sm font-medium text-center">Paid in full. Thank you!</p>
             ) : !payoutsEnabled ? (
-              <p className="text-xs text-graphite-500 text-center">Online payment isn't set up yet for this invoice — contact {company.name} directly.</p>
-            ) : (
-              <button className="btn-primary w-full" disabled={loading} onClick={pay}>
+              <p className="text-xs text-graphite-500 text-center">Online payment isn't set up yet for this invoice - contact {company.name} directly.</p>
+            ) : kind !== "STANDARD" ? (
+              <button className="btn-primary w-full" disabled={!!loading} onClick={() => pay()}>
                 {loading ? "Processing..." : `Pay ${money(amount)}`}
               </button>
+            ) : totalPaid > 0 ? (
+              <button className="btn-primary w-full" disabled={!!loading} onClick={() => pay("remaining")}>
+                {loading ? "Processing..." : `Pay Remaining Balance (${money(remaining)})`}
+              </button>
+            ) : (
+              <div className="space-y-2">
+                {depositAmount !== null && (
+                  <button className="btn-secondary w-full" disabled={!!loading} onClick={() => pay("deposit")}>
+                    {loading === "deposit" ? "Processing..." : `Pay Deposit (${money(depositAmount)})`}
+                  </button>
+                )}
+                <button className="btn-primary w-full" disabled={!!loading} onClick={() => pay("full")}>
+                  {loading === "full" ? "Processing..." : `Pay in Full (${money(amount)})`}
+                </button>
+              </div>
             )}
             {error && <p className="text-xs text-red-400 mt-2 text-center">{error}</p>}
           </div>
@@ -139,6 +167,3 @@ export function PublicInvoiceView({
     </div>
   );
 }
-
-
-
