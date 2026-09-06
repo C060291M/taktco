@@ -70,6 +70,26 @@ export default async function SettingsPage() {
       <div className="card p-5">
         <div className="flex items-center justify-between">
           <div>
+            <h2 className="text-sm font-medium text-white">Estimate defaults</h2>
+            <p className="text-xs text-graphite-400 mt-1">Markup, labor rate, warranty text, and expiration.</p>
+          </div>
+          <a href="/settings/estimates" className="btn-secondary">Manage</a>
+        </div>
+      </div>
+
+      <div className="card p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-medium text-white">Invoice defaults</h2>
+            <p className="text-xs text-graphite-400 mt-1">Due days, late fee, deposit percentage, and footer text.</p>
+          </div>
+          <a href="/settings/invoices" className="btn-secondary">Manage</a>
+        </div>
+      </div>
+
+      <div className="card p-5">
+        <div className="flex items-center justify-between">
+          <div>
             <h2 className="text-sm font-medium text-white">CRM settings</h2>
             <p className="text-xs text-graphite-400 mt-1">Manage customer tags and lead sources.</p>
           </div>
