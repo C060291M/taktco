@@ -3,6 +3,7 @@ import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { runTrigger } from "@/lib/automationEngine";
 import { notify } from "@/lib/notify";
+import { promoteFinalBalanceIfDepositPaid } from "@/lib/depositInvoices";
 
 // Local dev stub for the internal "mark as paid" button. The real customer-facing
 // path is /api/public/invoices/[token], which uses live Stripe Checkout when
@@ -33,6 +34,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   });
 
   const updated = await db.invoice.update({ where: { id: invoice.id }, data: { status: "PAID" } });
+  await promoteFinalBalanceIfDepositPaid(invoice.id);
 
   await notify({
     companyId: ctx.company.id,

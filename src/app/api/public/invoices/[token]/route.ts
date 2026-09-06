@@ -4,6 +4,7 @@ import { createInvoiceCheckoutSession, stripeConfigured } from "@/services/strip
 import { runTrigger } from "@/lib/automationEngine";
 import { notify } from "@/lib/notify";
 import { checkRateLimit, clientIp } from "@/lib/rateLimit";
+import { promoteFinalBalanceIfDepositPaid } from "@/lib/depositInvoices";
 
 export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
   const invoice = await db.invoice.findUnique({
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     data: { companyId: invoice.companyId, invoiceId: invoice.id, amount: invoice.amount, method: "manual", status: "succeeded" }
   });
   const updated = await db.invoice.update({ where: { id: invoice.id }, data: { status: "PAID" } });
+  await promoteFinalBalanceIfDepositPaid(invoice.id);
 
   await notify({
     companyId: invoice.companyId,

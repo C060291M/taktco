@@ -1,8 +1,9 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { verifyWebhookSignature, isConnectAccountReady, tierForPriceId, TIER_INCLUDED_CREDITS } from "@/services/stripe";
 import { notify } from "@/lib/notify";
 import { logError } from "@/lib/errorLog";
+import { promoteFinalBalanceIfDepositPaid } from "@/lib/depositInvoices";
 import { generateInvoicePdf } from "@/lib/generateInvoicePdf";
 import { generateReceiptPdf } from "@/lib/generateReceiptPdf";
 import { sendTrackedEmail } from "@/services/resend";
@@ -103,6 +104,7 @@ export async function POST(req: NextRequest) {
           });
           const paidAt = new Date();
           await db.invoice.update({ where: { id: invoice.id }, data: { status: "PAID" } });
+          await promoteFinalBalanceIfDepositPaid(invoice.id);
           await notify({
             companyId: invoice.companyId,
             category: "INVOICE_PAID",
