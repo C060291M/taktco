@@ -1,4 +1,4 @@
-﻿import { db } from "@/database/client";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
@@ -9,6 +9,7 @@ import { PunchListPanel } from "@/features/jobs/PunchListPanel";
 import { CrewAndStatus } from "@/features/jobs/CrewAndStatus";
 import { DeleteJobButton } from "@/features/jobs/DeleteJobButton";
 import { TechSignOff } from "@/features/jobs/TechSignOff";
+import { GenerateDepositInvoicesButton } from "@/features/jobs/GenerateDepositInvoicesButton";
 
 function money(n: number | { toString(): string }) {
   return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -144,13 +145,21 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         <div className="card p-5">
           <h2 className="text-sm font-medium text-white mb-3">Invoices for this job</h2>
           {job.invoices.length === 0 ? (
-            <p className="text-sm text-graphite-400">No invoices yet.</p>
+            <div className="space-y-3">
+              <p className="text-sm text-graphite-400">No invoices yet.</p>
+              <GenerateDepositInvoicesButton jobId={job.id} />
+            </div>
           ) : (
             <div className="space-y-2">
               {job.invoices.map(function (i) {
                 return (
                   <div key={i.id} className="flex items-center justify-between text-sm">
-                    <span className="text-graphite-200">{money(i.amount)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-graphite-200">{money(i.amount)}</span>
+                      {i.kind && i.kind !== "STANDARD" && (
+                        <span className="text-[10px] uppercase tracking-wide text-graphite-500">{i.kind.replace("_", " ")}</span>
+                      )}
+                    </div>
                     <Badge color={i.status === "PAID" ? "green" : "yellow"}>{i.status.replace("_", " ")}</Badge>
                   </div>
                 );

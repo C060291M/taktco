@@ -24,6 +24,11 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
   });
   if (!invoice) notFound();
 
+  const totalPaid = invoice.payments
+    .filter(function (p) { return p.status === "succeeded"; })
+    .reduce(function (sum, p) { return sum + Number(p.amount) - Number(p.refundedAmount || 0); }, 0);
+  const amountDue = Math.max(0, Number(invoice.amount) - totalPaid);
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="card p-5 print-document">
@@ -52,7 +57,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
         </div>
         <div className="flex items-center justify-between pt-4 border-t border-graphite-700">
           <span className="text-graphite-300">Amount due</span>
-          <span className="text-white text-2xl font-semibold">{money(invoice.amount)}</span>
+          <span className="text-white text-2xl font-semibold">{money(amountDue)}</span>
         </div>
       </div>
 
