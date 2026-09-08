@@ -86,6 +86,18 @@ export function LeadQuickActions({
     router.refresh();
   }
 
+  async function setStage(stage: "WON" | "LOST") {
+    if (!confirm(stage === "WON" ? "Mark this lead as Won? The deal is closed and ready to move to a job." : "Mark this lead as Lost? The customer did not move forward.")) return;
+    setBusy(true);
+    await fetch("/api/leads", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leadId, pipelineStage: stage })
+    });
+    setBusy(false);
+    router.refresh();
+  }
+
   async function remove() {
     if (!confirm("Delete this lead? This can't be undone.")) return;
     setBusy(true);
@@ -154,6 +166,16 @@ export function LeadQuickActions({
         ))}
       </select>
 
+      {pipelineStage !== "WON" && pipelineStage !== "LOST" && pipelineStage !== "ARCHIVED" && (
+        <>
+          <button className="btn-primary text-xs" disabled={busy} onClick={() => setStage("WON")}>
+            Mark Won
+          </button>
+          <button className="text-xs px-3 py-1.5 rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10" disabled={busy} onClick={() => setStage("LOST")}>
+            Mark Lost
+          </button>
+        </>
+      )}
       <button className="btn-secondary text-xs" disabled={busy} onClick={archive}>
         Archive
       </button>
