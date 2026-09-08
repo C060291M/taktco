@@ -23,6 +23,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+# scripts/ isn't part of the Next standalone trace (nothing in the app
+# imports it), so it has to be copied explicitly - this is what the
+# taktco-cron Railway service runs via `node scripts/cron.js`.
+COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 EXPOSE 3000
