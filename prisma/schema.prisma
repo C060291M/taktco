@@ -1598,6 +1598,11 @@ model EstimatingQuestion {
 
 enum CampaignQueueStatus {
   PENDING
+  // Claimed by a process-queue run and currently mid-send. Exists so a row
+  // can be reserved atomically BEFORE the email/SMS actually goes out - two
+  // overlapping cron runs can't both grab the same PENDING recipient and
+  // send the campaign to them twice. Resolves to SENT or FAILED.
+  SENDING
   SENT
   FAILED
 }
