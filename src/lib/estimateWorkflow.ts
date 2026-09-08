@@ -2,6 +2,7 @@ import { db } from "@/database/client";
 import { getContractTemplate } from "@/lib/contractTemplates";
 import { runTrigger } from "@/lib/automationEngine";
 import { notify } from "@/lib/notify";
+import { claimNextJobNumber } from "@/lib/documentNumbers";
 
 // Runs everything that should happen automatically when a customer (or staff,
 // simulating one) approves an estimate: create the Job, move the Lead to Won,
@@ -19,11 +20,13 @@ export async function runEstimateApprovalWorkflow(estimate: {
 
   const existingJob = await db.job.findUnique({ where: { estimateId: estimate.id } });
   if (!existingJob) {
+    const jobNumber = await claimNextJobNumber(estimate.companyId);
     await db.job.create({
       data: {
         companyId: estimate.companyId,
         customerId: estimate.customerId,
         estimateId: estimate.id,
+        jobNumber,
         quotedCost: estimate.totalAmount as never,
         status: "SCHEDULED"
       }
@@ -59,12 +62,15 @@ export async function runEstimateApprovalWorkflow(estimate: {
     }
   }
 
+  const estimateRecord = await db.estimate.findUnique({ where: { id: estimate.id }, select: { estimateNumber: true } });
+  const fullEstimateNumber = estimateRecord?.estimateNumber;
+
   await notify({
     companyId: estimate.companyId,
     category: "ESTIMATE_APPROVED",
     title: `${customer?.name || "A customer"} approved their estimate`,
     body: `$${Number(estimate.totalAmount).toLocaleString()} — a job and starter contract were created automatically.`,
-    linkUrl: `/estimates/${estimate.id}`
+    linkUrl: fullEstimateNumber ? `/estimates/${fullEstimateNumber}` : undefined
   });
 
   await runTrigger(estimate.companyId, "ESTIMATE_APPROVED", {

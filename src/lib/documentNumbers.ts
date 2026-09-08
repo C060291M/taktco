@@ -26,6 +26,16 @@ export async function claimNextEstimateNumber(companyId: string): Promise<string
   return `EST-${String(claimed).padStart(4, "0")}`;
 }
 
+export async function claimNextJobNumber(companyId: string): Promise<string> {
+  const company = await db.company.update({
+    where: { id: companyId },
+    data: { nextJobNumber: { increment: 1 } },
+    select: { nextJobNumber: true }
+  });
+  const claimed = company.nextJobNumber - 1;
+  return `JOB-${String(claimed).padStart(4, "0")}`;
+}
+
 export async function claimNextLeadNumber(companyId: string): Promise<number> {
   const company = await db.company.update({
     where: { id: companyId },

@@ -195,6 +195,7 @@ model Company {
   nextInvoiceNumber  Int      @default(1)
   nextEstimateNumber Int      @default(1)
   nextLeadNumber     Int      @default(1)
+  nextJobNumber      Int      @default(1)
   // Business Rules (Phase 9.5) - fed into the AI estimate prompt alongside
   // the Pricing Matrix. Deliberately a small, real set rather than a full
   // rate-multiplier engine (no commercial/residential/overtime/emergency
@@ -442,6 +443,11 @@ model Job {
   // hard delete would either fail outright or silently destroy months of
   // real records. Filtered out of active lists/lookups once set.
   deletedAt       DateTime?
+  // Human-readable per-company number (JOB-0001) used in the URL instead of
+  // the raw cuid - same pattern as Estimate.estimateNumber and
+  // Invoice.invoiceNumber. Nullable only so existing rows can be backfilled;
+  // every newly created job gets one via claimNextJobNumber().
+  jobNumber       String?
   estimateId      String?   @unique
   estimate        Estimate? @relation(fields: [estimateId], references: [id])
   status          JobStatus @default(SCHEDULED)
@@ -460,6 +466,8 @@ model Job {
   portfolioFeatured Boolean @default(false)
   portfolioHidden Boolean   @default(false) // privacy control - exclude from Portfolio even if photos exist
   createdAt       DateTime  @default(now())
+
+  @@unique([companyId, jobNumber])
 
   photos   JobPhoto[]
   invoices Invoice[]
