@@ -3,6 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AutomationsList } from "@/features/automations/AutomationsList";
 import { NewWorkflowForm } from "@/features/automations/NewWorkflowForm";
+import { AutomationTemplates } from "@/features/automations/AutomationTemplates";
 
 export default async function AutomationsPage() {
   const ctx = await requireSession();
@@ -20,10 +21,13 @@ export default async function AutomationsPage() {
         <div>
           <h1 className="text-xl font-semibold text-white">Automations</h1>
           <p className="text-sm text-graphite-400">
-            Rule-based workflows: trigger → conditions → actions. A visual builder is coming later — this same data will power it.
+            Put your follow-up on autopilot. Automations send emails and texts, create tasks, and update records for you when something happens - a job wraps up, a lead comes in, an invoice gets paid.
           </p>
         </div>
-        <NewWorkflowForm />
+        <div className="flex items-center gap-2 shrink-0">
+          <AutomationTemplates existingTriggers={workflows.map(function (w) { return w.trigger; })} />
+          <NewWorkflowForm />
+        </div>
       </div>
 
       <AutomationsList
