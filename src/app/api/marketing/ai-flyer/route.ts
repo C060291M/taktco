@@ -120,6 +120,10 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   - Never place body text directly over a photograph unless it sits on a solid or heavily darkened panel.
   - Headlines are not exempt. A large headline in a barely-different shade of its background is invisible, not subtle.
   - Before finishing, walk through every text element and name the background behind it. Fix any light-on-light or dark-on-dark pairing.
+  - Body copy must be at FULL strength - a deep neutral on a light canvas, or near-white on a dark one. Never render body text in a faded grey, a tint of the background, or at reduced opacity. "Soft" body copy is the single most common way these flyers become hard to read. Opacity below 1 is not permitted on any text.
+  - Nothing may cross or clip type. Headlines especially must sit entirely within their own band with clear space around them - never let a photo, color block, or section edge cut through a letterform or its descenders.
+
+  ICONOGRAPHY - every feature cell needs a hand-built icon above its label (inline SVG or CSS shapes), and each icon must literally depict its label's meaning. A cell with an empty gap where an icon should be looks unfinished. Draw them at a size that reads clearly, in a color with strong contrast against the cell behind it.
 
   BORDERS AND FRAMING - be assertive, not tentative:
   - Where you use borders, dividers, rules, or frames, make them substantial enough to read as a deliberate design choice - a confident 3-6px accent rule, a solid framed panel, a heavy top border on a section. Hairline 1px greys look like an unstyled default.
@@ -130,6 +134,8 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   - Vary the composition meaningfully between projects: where the headline sits, whether the photo leads or follows, horizontal versus vertical splits, asymmetric versus centered arrangements, diagonal color blocks, oversized numerals or trade-relevant graphic elements.
   - Take a real design position rather than defaulting to a safe stack of centered rows. A flyer that could have been produced by filling in a template has failed even if nothing about it is technically wrong.
   - Push harder than feels necessary on scale contrast and color blocking; restraint reads as blandness at this size.
+  - Commit to a strong visual idea for each flyer rather than arranging safe rows: a full-bleed photo with the headline reversed out of a solid block over it, a bold split down the page, an oversized accent shape anchoring a corner, a heavy color band carrying the headline. Pick one organizing idea and execute it decisively.
+  - Contrast is a creative tool, not just a legibility rule - deep darks against bright accents, big against small, dense against open. Timid, evenly-toned flyers are the failure mode to avoid.
 
   LAYOUT SAFETY - the previous version of this flyer had the footer render on top of the content above it, cutting text in half:
   - Everything must sit in normal document flow. Do NOT use position: absolute or position: fixed for the footer, CTA, or any section-level block. Absolute positioning is permitted ONLY for the single overlapping accent element described above.
@@ -161,6 +167,9 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   - Does the footer or CTA sit on top of the content above it, or run past the bottom edge?
   - Name the background behind every text element - is any of it light-on-light or dark-on-dark?
   - Do the borders and section transitions look deliberate, or like unstyled defaults?
+  - Is any body copy faded, greyed, or below full opacity? Restore it to full strength.
+  - Does any photo, band, or edge cut through a headline or its descenders?
+  - Does every feature cell actually have its icon drawn, or is there an empty gap?
   - Is the headline unmistakably the largest element, or does it merely blend in?
   - Do the photos feel generous and full-bleed, or cramped inside boxes?
   - Are margins consistent and alignment clean?
