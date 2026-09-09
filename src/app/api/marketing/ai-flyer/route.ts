@@ -125,6 +125,22 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
 
   ICONOGRAPHY - every feature cell needs a hand-built icon above its label (inline SVG or CSS shapes), and each icon must literally depict its label's meaning. A cell with an empty gap where an icon should be looks unfinished. Draw them at a size that reads clearly, in a color with strong contrast against the cell behind it.
 
+  COMPOSITION - the difference between a designed piece and a stack of blocks. Stacking full-width horizontal strips of roughly equal weight is what makes a flyer look auto-generated, and it is the main thing to avoid:
+  - Do not run every element edge-to-edge. Establish a consistent page margin and let most content sit inside it. Reserve true full-bleed for ONE deliberate moment - typically the hero photograph or a single color band - so that when something does break the margin it reads as intentional.
+  - Vary the weight and rhythm of sections. Some should be tall and dominant, others compressed. Six sections of similar height stacked vertically is the failure pattern.
+  - Not everything needs to be a full-width row. Use side-by-side arrangements where they suit the content: a headline beside the badge, contact details in columns, an icon paired with CTA text, a vertical divider rule separating a logo from a tagline.
+  - Give a headline real clearance. Nothing - photo, band, or panel - may sit flush against a headline's baseline; leave clear vertical space beneath it so descenders are never clipped.
+
+  TYPOGRAPHY CRAFT:
+  - Prefer ONE family used across a wide range of weights and sizes over two mismatched families. A single sans at 900 weight for the headline, 700 for labels, and 400 for body reads more designed than a serif headline paired with a default-looking body font.
+  - Use letter-spacing deliberately: tightened on large headlines, widened on small uppercase labels. Untracked type is what makes text look unstyled.
+
+  DEPTH AND DETAIL - flat fills alone read cheap. Add restrained richness:
+  - Use a subtle gradient or tonal shift within large dark fields rather than one flat color.
+  - Add fine accent-colored hairlines or short rules as separators and accents.
+  - Small graphic details earn their place: a directional arrow in a button, a thin rule under a section label, a shaped badge rather than a plain rectangle, a repeated motif drawn from the trade.
+  - Keep every one of these subtle. The goal is a piece that rewards a second look, not one crowded with ornament.
+
   BORDERS AND FRAMING - be assertive, not tentative:
   - Where you use borders, dividers, rules, or frames, make them substantial enough to read as a deliberate design choice - a confident 3-6px accent rule, a solid framed panel, a heavy top border on a section. Hairline 1px greys look like an unstyled default.
   - Photos benefit from a decisive edge: a thick accent border, a solid color block behind them, or a hard-cropped full-bleed edge. Avoid soft, barely-there outlines.
@@ -168,7 +184,9 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   - Name the background behind every text element - is any of it light-on-light or dark-on-dark?
   - Do the borders and section transitions look deliberate, or like unstyled defaults?
   - Is any body copy faded, greyed, or below full opacity? Restore it to full strength.
-  - Does any photo, band, or edge cut through a headline or its descenders?
+  - Does any photo, band, or edge cut through a headline or its descenders, or sit flush against its baseline?
+  - Is this a stack of similar full-width strips, or a composed page with margins, varied section weight, and at least one side-by-side arrangement?
+  - Would a commercial client believe a design agency produced this, or does it look generated?
   - Does every feature cell actually have its icon drawn, or is there an empty gap?
   - Is the headline unmistakably the largest element, or does it merely blend in?
   - Do the photos feel generous and full-bleed, or cramped inside boxes?
