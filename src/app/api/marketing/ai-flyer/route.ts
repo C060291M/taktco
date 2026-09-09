@@ -107,7 +107,7 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   Choose deliberately based on what this specific project actually has. Different projects should produce genuinely different layouts.
 
   PRODUCTION QUALITY - this is what separates a flyer a contractor is proud to hand out from one that looks auto-generated. Apply all of it:
-  - Canvas: choose a light or dark treatment based on what suits this company's brand color and photography. A dark canvas (deep charcoal, near-black, or a very dark shade of the brand hue) makes photos and accent color pop and generally reads more premium - prefer it unless the brand color is dark enough that it would disappear against it. Either way, the palette must derive from the company's own accent color, never a generic default.
+  - Canvas: choose ONE treatment - light or dark - used by every section of the flyer, based on what suits this company's brand color and photography. A dark canvas (deep charcoal, near-black, or a very dark shade of the brand hue) makes photos and accent color pop and generally reads more premium - prefer it unless the brand color is dark enough that it would disappear against it. Either way, the palette must derive from the company's own accent color, never a generic default.
   - Headline: genuinely large and dominant - the single biggest thing on the page by a wide margin. A timid headline is the most common way these flyers look cheap. Two-tone headlines (one line in the neutral, one in the accent) read as deliberate design.
   - Photography: run photos edge-to-edge or full-bleed within their section rather than floating them in small boxes with wide margins. The photos are the product; give them the room.
   - Depth: include exactly one element that overlaps or breaks a boundary - a badge over a photo seam, a card straddling two sections, a label overlapping an image edge. One is confident; several is cluttered.
@@ -116,7 +116,9 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
 
   CONTRAST - non-negotiable, and the most damaging thing to get wrong. A flyer whose text cannot be read is worthless no matter how well composed it is:
   - Every piece of text must be strongly readable against the exact background it actually sits on. Light text belongs only on dark backgrounds; dark text only on light backgrounds.
-  - Decide your canvas FIRST, then choose text colors for it. Do not write light-canvas markup and then style text as though the canvas were dark - near-white text on a white page, and dark text on a saturated accent band, are the two failures that keep recurring.
+  - COMMIT TO ONE CANVAS FOR THE ENTIRE FLYER. Choose light or dark once, at the start, and use that single canvas as the background for every content section. Do NOT mix a dark header with a white body and a cream panel - mixing backgrounds is what causes a text color chosen for one section to be reused on another where it becomes invisible, and it has produced unreadable flyers repeatedly. One background, one set of text colors, applied throughout.
+  - Accent-colored bands (a CTA strip, a label, a footer band) are the ONE permitted exception - they may differ from the canvas, but text on them must be explicitly colored for that band, never inherited from the canvas.
+  - Having committed to a canvas, define your text colors once: on a dark canvas, near-white for body and headlines; on a light canvas, a deep neutral. Use those same colors throughout. Never introduce a cream, tint, or pale color for text on a light canvas.
   - Never place body text directly over a photograph unless it sits on a solid or heavily darkened panel.
   - Headlines are not exempt. A large headline in a barely-different shade of its background is invisible, not subtle.
   - Before finishing, walk through every text element and name the background behind it. Fix any light-on-light or dark-on-dark pairing.
@@ -181,7 +183,9 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   - Is one element clearly dominant, or does everything compete?
   - Does any text overlap, clip, or run outside the page?
   - Does the footer or CTA sit on top of the content above it, or run past the bottom edge?
+  - Is the SAME canvas background used by every content section, or did sections drift between light and dark?
   - Name the background behind every text element - is any of it light-on-light or dark-on-dark?
+  - Are the phone, email, and service area actually present in the footer? (A recent build dropped them entirely.)
   - Do the borders and section transitions look deliberate, or like unstyled defaults?
   - Is any body copy faded, greyed, or below full opacity? Restore it to full strength.
   - Does any photo, band, or edge cut through a headline or its descenders, or sit flush against its baseline?
