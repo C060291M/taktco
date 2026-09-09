@@ -57,6 +57,7 @@ HARD REQUIREMENTS:
 - Use web-safe fonts only (Arial, Helvetica, Georgia, Times New Roman, Verdana, Trebuchet MS) since custom font loading isn't available.
 
 IMAGES - use these EXACT placeholder tokens as the src attribute of <img> tags, verbatim, with no modification. Real images will be substituted in after you respond, so you will never see the actual photos:
+EVERY <img> tag you write MUST include crossorigin="anonymous" as an attribute. The real images are served from a different domain than the app, and the flyer is rasterized to a canvas in the browser - without this attribute the browser refuses to let the canvas read the image and it renders as a blank white box. This is not optional.
 ${hasLogo ? '- Company logo: <img src="{{LOGO}}"> - use this small, once, in the header area' : "- No logo provided - use a text-based company name treatment instead"}
 ${hasBeforeAfter ? '- Before photo: <img src="{{BEFORE_PHOTO}}">\n- After photo: <img src="{{AFTER_PHOTO}}">\nDesign a clear before/after comparison section - these are real job-site photos, treat them as the visual centerpiece.' : ""}
 ${hasSinglePhoto ? '- Project photo: <img src="{{PROJECT_PHOTO}}"> - a real job-site photo, treat it as the visual centerpiece.' : ""}
@@ -124,6 +125,14 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
     let html = await askClaude(systemPrompt, userPrompt);
     // Strip any script tags as a safety net, even though the prompt already forbids them.
     html = html.replace(/<script[\s\S]*?<\/script>/gi, "");
+
+    // Safety net: images come from cdn.taktco.org, a different origin than the
+    // app, and the flyer is rasterized client-side via html2canvas. Without
+    // crossorigin="anonymous" the browser won't let the canvas read those
+    // pixels and every photo renders as a blank white box. The prompt asks the
+    // AI to include it, but a silently blank flyer is too bad a failure to
+    // leave to chance - force it on any <img> that's missing it.
+    html = html.replace(/<img(?![^>]*\bcrossorigin=)/gi, '<img crossorigin="anonymous"');
 
     // Swap the AI's placeholder tokens for the real (possibly very large
     // base64) image URLs - done here, never sent to the AI itself.
