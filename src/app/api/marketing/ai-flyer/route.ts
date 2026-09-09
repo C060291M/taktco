@@ -114,10 +114,27 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   - Feature cells: give each feature both a short bold label AND a brief supporting line beneath it. Labels alone read thin. Group them in a bounded panel or separate them with thin dividers rather than leaving them floating.
   - Footer: build it as two or three distinct horizontal bands (call-to-action band, then contact details, optionally a short closing tagline strip) rather than one undifferentiated block. Bands create rhythm.
 
+  CONTRAST - non-negotiable, and the most damaging thing to get wrong. A flyer whose text cannot be read is worthless no matter how well composed it is:
+  - Every piece of text must be strongly readable against the exact background it actually sits on. Light text belongs only on dark backgrounds; dark text only on light backgrounds.
+  - Decide your canvas FIRST, then choose text colors for it. Do not write light-canvas markup and then style text as though the canvas were dark - near-white text on a white page, and dark text on a saturated accent band, are the two failures that keep recurring.
+  - Never place body text directly over a photograph unless it sits on a solid or heavily darkened panel.
+  - Headlines are not exempt. A large headline in a barely-different shade of its background is invisible, not subtle.
+  - Before finishing, walk through every text element and name the background behind it. Fix any light-on-light or dark-on-dark pairing.
+
+  BORDERS AND FRAMING - be assertive, not tentative:
+  - Where you use borders, dividers, rules, or frames, make them substantial enough to read as a deliberate design choice - a confident 3-6px accent rule, a solid framed panel, a heavy top border on a section. Hairline 1px greys look like an unstyled default.
+  - Photos benefit from a decisive edge: a thick accent border, a solid color block behind them, or a hard-cropped full-bleed edge. Avoid soft, barely-there outlines.
+  - Section transitions should be obvious - a color band, a heavy rule, or a clear change of background - rather than relying on whitespace alone to separate everything.
+
+  CREATIVE RANGE - two flyers from the same company should be recognizably the same brand but visibly different pieces of design:
+  - Vary the composition meaningfully between projects: where the headline sits, whether the photo leads or follows, horizontal versus vertical splits, asymmetric versus centered arrangements, diagonal color blocks, oversized numerals or trade-relevant graphic elements.
+  - Take a real design position rather than defaulting to a safe stack of centered rows. A flyer that could have been produced by filling in a template has failed even if nothing about it is technically wrong.
+  - Push harder than feels necessary on scale contrast and color blocking; restraint reads as blandness at this size.
+
   LAYOUT SAFETY - the previous version of this flyer had the footer render on top of the content above it, cutting text in half:
   - Everything must sit in normal document flow. Do NOT use position: absolute or position: fixed for the footer, CTA, or any section-level block. Absolute positioning is permitted ONLY for the single overlapping accent element described above.
   - No element may cover, clip, or overlap another element's text. The one intentional overlap must sit over a photo or empty space, never over type.
-  - The full page content must fit within the fixed height. If it does not, tighten padding and type sizes until it does.
+  - The full page content must fit within the fixed height. Budget vertical space across your sections BEFORE writing them - header, photo, summary, features, and footer must all fit, with the final element ending above the bottom edge. If it runs long, shrink the photo section first, then padding, then type sizes. A CTA or footer sliced off by the page edge is a failed flyer.
 
   VISUAL HIERARCHY:
   - Exactly ONE dominant element per flyer. A viewer must understand what they are looking at within about two seconds.
@@ -141,7 +158,9 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   SELF-CRITIQUE before you output - review your own design and fix what fails:
   - Is one element clearly dominant, or does everything compete?
   - Does any text overlap, clip, or run outside the page?
-  - Does the footer or CTA sit on top of the content above it? (This is the single most common failure - check it specifically.)
+  - Does the footer or CTA sit on top of the content above it, or run past the bottom edge?
+  - Name the background behind every text element - is any of it light-on-light or dark-on-dark?
+  - Do the borders and section transitions look deliberate, or like unstyled defaults?
   - Is the headline unmistakably the largest element, or does it merely blend in?
   - Do the photos feel generous and full-bleed, or cramped inside boxes?
   - Are margins consistent and alignment clean?
