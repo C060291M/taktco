@@ -18,6 +18,36 @@ import { askClaude } from "@/lib/ai";
 // attributes, and those get swapped for the real URLs server-side after
 // the AI responds, via plain string replacement - the AI never needs to
 // see the actual image bytes to design a good layout around them.
+// Fetches an image server-side and returns it as a base64 data URI.
+//
+// Why: photos and logos live on cdn.taktco.org, a different origin than the
+// app. The flyer is rasterized in the browser via html2canvas, and a canvas
+// cannot read cross-origin pixels unless the CDN's CORS preflight cooperates -
+// which, in practice, it did not. Rather than keep negotiating with CORS,
+// the server fetches the bytes and inlines them, so the browser makes no
+// cross-origin image request at all and there is nothing to block.
+//
+// This runs AFTER the AI has responded. The AI still only ever sees
+// {{LOGO}} / {{BEFORE_PHOTO}} placeholder tokens, never image data - the
+// enormous-prompt problem that motivated the token design stays solved.
+//
+// Already-inlined base64 URLs (uploads from before object storage existed)
+// are passed straight through. A fetch failure returns null so the caller can
+// fall back to the raw URL rather than dropping the image entirely.
+async function toDataUri(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith("data:")) return url;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const buffer = Buffer.from(await res.arrayBuffer());
+    return `data:${contentType};base64,${buffer.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
   const ctx = await requireSession();
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -136,12 +166,20 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
 
     // Swap the AI's placeholder tokens for the real (possibly very large
     // base64) image URLs - done here, never sent to the AI itself.
-    if (hasLogo && ctx.company.logoUrl) html = html.split("{{LOGO}}").join(ctx.company.logoUrl);
-    if (hasBeforeAfter) {
-      html = html.split("{{BEFORE_PHOTO}}").join(beforePhoto!.url);
-      html = html.split("{{AFTER_PHOTO}}").join(afterPhoto!.url);
+    if (hasLogo && ctx.company.logoUrl) {
+      const logoData = await toDataUri(ctx.company.logoUrl);
+      html = html.split("{{LOGO}}").join(logoData || ctx.company.logoUrl);
     }
-    if (hasSinglePhoto && anyPhoto) html = html.split("{{PROJECT_PHOTO}}").join(anyPhoto.url);
+    if (hasBeforeAfter) {
+      const beforeData = await toDataUri(beforePhoto!.url);
+      html = html.split("{{BEFORE_PHOTO}}").join(beforeData || beforePhoto!.url);
+      const afterData = await toDataUri(afterPhoto!.url);
+      html = html.split("{{AFTER_PHOTO}}").join(afterData || afterPhoto!.url);
+    }
+    if (hasSinglePhoto && anyPhoto) {
+      const photoData = await toDataUri(anyPhoto.url);
+      html = html.split("{{PROJECT_PHOTO}}").join(photoData || anyPhoto.url);
+    }
 
     return NextResponse.json({ html });
   } catch (err) {
