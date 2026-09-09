@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
@@ -31,13 +32,32 @@ export default async function JobDetailPage({ params }: { params: { number: stri
 
   const [job, teamMembers, dailyLogs] = await Promise.all([
     db.job.findFirst({
-      where: { OR: [{ jobNumber: params.number }, { id: params.number }], companyId: ctx.company.id, deletedAt: null },
+      where: { OR: [{ jobNumber: params.number }, { id: params.number }], companyId: ctx.company.id },
       include: { customer: true, photos: true, invoices: true, estimate: true, changeOrders: true, punchListItems: true }
     }),
     db.user.findMany({ where: { companyId: ctx.company.id }, select: { id: true, name: true } }),
     db.dailyLog.findMany({ where: { companyId: ctx.company.id, job: { OR: [{ jobNumber: params.number }, { id: params.number }] } }, include: { author: true }, orderBy: { date: "desc" } })
   ]);
   if (!job) notFound();
+
+  // A notification or insight created before this record was deleted still
+  // links to it. A bare 404 tells the user nothing, so explain what happened.
+  if (job.deletedAt) {
+    return (
+      <div className="max-w-lg">
+        <div className="card p-8 text-center space-y-3">
+          <h1 className="text-lg font-semibold text-white">This project was deleted</h1>
+          <p className="text-sm text-graphite-400">
+            {job.jobNumber || "This project"} for {job.customer.name} was deleted. The link you followed was created before that.
+          </p>
+          <p className="text-xs text-graphite-500">
+            Its history is kept on file and no longer appears in your projects list.
+          </p>
+          <Link href="/jobs" className="btn-secondary text-xs inline-block mt-2">Back to projects</Link>
+        </div>
+      </div>
+    );
+  }
   if (isFieldTech && !job.assignedUserIds.includes(ctx.user.id)) notFound();
 
   return (
