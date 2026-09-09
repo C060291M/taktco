@@ -106,6 +106,19 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   - PROJECT SHOWCASE: hero image plus supporting images, scope of work, and CTA. Use when there are several usable photos.
   Choose deliberately based on what this specific project actually has. Different projects should produce genuinely different layouts.
 
+  PRODUCTION QUALITY - this is what separates a flyer a contractor is proud to hand out from one that looks auto-generated. Apply all of it:
+  - Canvas: choose a light or dark treatment based on what suits this company's brand color and photography. A dark canvas (deep charcoal, near-black, or a very dark shade of the brand hue) makes photos and accent color pop and generally reads more premium - prefer it unless the brand color is dark enough that it would disappear against it. Either way, the palette must derive from the company's own accent color, never a generic default.
+  - Headline: genuinely large and dominant - the single biggest thing on the page by a wide margin. A timid headline is the most common way these flyers look cheap. Two-tone headlines (one line in the neutral, one in the accent) read as deliberate design.
+  - Photography: run photos edge-to-edge or full-bleed within their section rather than floating them in small boxes with wide margins. The photos are the product; give them the room.
+  - Depth: include exactly one element that overlaps or breaks a boundary - a badge over a photo seam, a card straddling two sections, a label overlapping an image edge. One is confident; several is cluttered.
+  - Feature cells: give each feature both a short bold label AND a brief supporting line beneath it. Labels alone read thin. Group them in a bounded panel or separate them with thin dividers rather than leaving them floating.
+  - Footer: build it as two or three distinct horizontal bands (call-to-action band, then contact details, optionally a short closing tagline strip) rather than one undifferentiated block. Bands create rhythm.
+
+  LAYOUT SAFETY - the previous version of this flyer had the footer render on top of the content above it, cutting text in half:
+  - Everything must sit in normal document flow. Do NOT use position: absolute or position: fixed for the footer, CTA, or any section-level block. Absolute positioning is permitted ONLY for the single overlapping accent element described above.
+  - No element may cover, clip, or overlap another element's text. The one intentional overlap must sit over a photo or empty space, never over type.
+  - The full page content must fit within the fixed height. If it does not, tighten padding and type sizes until it does.
+
   VISUAL HIERARCHY:
   - Exactly ONE dominant element per flyer. A viewer must understand what they are looking at within about two seconds.
   - Photography is the hero. Do not bury photos behind heavy gradients, filters, or overlays - subtle treatment only.
@@ -128,6 +141,9 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   SELF-CRITIQUE before you output - review your own design and fix what fails:
   - Is one element clearly dominant, or does everything compete?
   - Does any text overlap, clip, or run outside the page?
+  - Does the footer or CTA sit on top of the content above it? (This is the single most common failure - check it specifically.)
+  - Is the headline unmistakably the largest element, or does it merely blend in?
+  - Do the photos feel generous and full-bleed, or cramped inside boxes?
   - Are margins consistent and alignment clean?
   - Is the accent color unmistakably the dominant color?
   - Does every icon actually depict its label?
