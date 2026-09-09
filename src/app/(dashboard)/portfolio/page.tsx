@@ -35,7 +35,7 @@ export default async function PortfolioPage() {
             const cover = after || before || job.photos[0];
             return (
               <div key={job.id} className="card overflow-hidden hover:border-accent/50 transition-colors">
-                <Link href={`/jobs/${job.id}`} className="block">
+                <Link href={`/jobs/${job.jobNumber}`} className="block">
                   {before && after ? (
                     <div className="grid grid-cols-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}

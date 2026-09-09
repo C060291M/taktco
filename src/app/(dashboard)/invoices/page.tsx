@@ -90,7 +90,7 @@ export default async function InvoicesPage() {
               <tr key={inv.id} className="border-b border-graphite-700 last:border-0 hover:bg-graphite-800/60">
                 <td className="px-4 py-3 text-graphite-400 text-xs">{inv.invoiceNumber || "—"}</td>
                 <td className="px-4 py-3 text-graphite-100">
-                  <Link href={`/invoices/${inv.id}`} className="hover:text-accent">{inv.customer.name}</Link>
+                  <Link href={`/invoices/${inv.invoiceNumber}`} className="hover:text-accent">{inv.customer.name}</Link>
                 </td>
                 <td className="px-4 py-3 text-graphite-300">{money(inv.amount)}</td>
                 <td className="px-4 py-3">

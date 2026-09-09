@@ -93,7 +93,7 @@ export async function recordInvoicePayment(params: {
     body: isFullyPaid
       ? `$${params.amount.toLocaleString()} paid in full.`
       : `$${params.amount.toLocaleString()} received. Remaining balance: $${(Number(invoice.amount) - totalPaidNow).toLocaleString()}.`,
-    linkUrl: `/invoices/${invoice.id}`
+    linkUrl: `/invoices/${invoice.invoiceNumber}`
   });
 
   if (isFullyPaid) {

@@ -15,12 +15,12 @@ function money(n: number | { toString(): string }) {
   return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
-export default async function InvoiceDetailPage({ params }: { params: { id: string } }) {
+export default async function InvoiceDetailPage({ params }: { params: { number: string } }) {
   const ctx = await requireSession();
   if (!ctx) redirect("/login");
 
   const invoice = await db.invoice.findFirst({
-    where: { id: params.id, companyId: ctx.company.id, deletedAt: null },
+    where: { OR: [{ invoiceNumber: params.number }, { id: params.number }], companyId: ctx.company.id, deletedAt: null },
     include: { customer: true, job: true, payments: true }
   });
   if (!invoice) notFound();

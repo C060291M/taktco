@@ -16,6 +16,7 @@ export default async function JobsPage() {
   const serializable = jobs.map((j) => ({
     id: j.id,
     status: j.status,
+    jobNumber: j.jobNumber,
     customerName: j.customer.name,
     quotedCost: Number(j.quotedCost)
   }));

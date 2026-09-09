@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
               category: "INVOICE_PAID",
               title: `Payment received from ${invoice.customer.name}`,
               body: `$${Number(invoice.amount).toLocaleString()} paid via Stripe.`,
-              linkUrl: `/invoices/${invoice.id}`
+              linkUrl: `/invoices/${invoice.invoiceNumber}`
             });
           } else {
             chargedAmount = (session.amount_total || 0) / 100;

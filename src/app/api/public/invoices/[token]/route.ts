@@ -115,7 +115,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
       category: "INVOICE_PAID",
       title: `Payment received from ${invoice.customer.name}`,
       body: `$${Number(invoice.amount).toLocaleString()} paid online.`,
-      linkUrl: `/invoices/${invoice.id}`
+      linkUrl: `/invoices/${invoice.invoiceNumber}`
     });
     await runTrigger(invoice.companyId, "INVOICE_PAID", {
       companyId: invoice.companyId,

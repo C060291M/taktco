@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type JobCard = { id: string; status: string; customerName: string; quotedCost: number };
+type JobCard = { id: string; jobNumber: string | null; status: string; customerName: string; quotedCost: number };
 
 const STATUSES = [
   { key: "SCHEDULED", label: "Scheduled" },
@@ -86,7 +86,7 @@ export function JobsBoard({ initialJobs, hideCost }: { initialJobs: JobCard[]; h
                     onDragEnd={function () { setDragging(null); }}
                     className="card p-3 cursor-grab active:cursor-grabbing hover:border-accent/50 transition-colors"
                   >
-                    <Link href={"/jobs/" + job.id} className="text-sm text-graphite-100 hover:text-accent block">
+                    <Link href={"/jobs/" + job.jobNumber} className="text-sm text-graphite-100 hover:text-accent block">
                       {job.customerName}
                     </Link>
                     {!hideCost && <p className="text-xs text-graphite-400 mt-1">${job.quotedCost.toLocaleString()}</p>}

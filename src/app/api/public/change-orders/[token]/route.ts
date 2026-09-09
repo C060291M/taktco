@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { notify } from "@/lib/notify";
@@ -77,7 +77,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { token: str
       category: "PROJECT_STATUS_CHANGED",
       title: `${changeOrder.job.customer.name} approved a change order`,
       body: `${changeOrder.description} - ${Number(changeOrder.amountDelta) >= 0 ? "+" : ""}$${Number(changeOrder.amountDelta).toLocaleString()}`,
-      linkUrl: `/jobs/${changeOrder.jobId}`
+      linkUrl: `/jobs/${changeOrder.job.jobNumber}`
     });
 
     try {

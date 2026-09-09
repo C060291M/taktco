@@ -23,7 +23,7 @@ const PHOTO_GROUPS = [
   { type: "MISC", label: "Misc" }
 ];
 
-export default async function JobDetailPage({ params }: { params: { id: string } }) {
+export default async function JobDetailPage({ params }: { params: { number: string } }) {
   const ctx = await requireSession();
   if (!ctx) redirect("/login");
 
@@ -31,11 +31,11 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
   const [job, teamMembers, dailyLogs] = await Promise.all([
     db.job.findFirst({
-      where: { id: params.id, companyId: ctx.company.id, deletedAt: null },
+      where: { OR: [{ jobNumber: params.number }, { id: params.number }], companyId: ctx.company.id, deletedAt: null },
       include: { customer: true, photos: true, invoices: true, estimate: true, changeOrders: true, punchListItems: true }
     }),
     db.user.findMany({ where: { companyId: ctx.company.id }, select: { id: true, name: true } }),
-    db.dailyLog.findMany({ where: { companyId: ctx.company.id, jobId: params.id }, include: { author: true }, orderBy: { date: "desc" } })
+    db.dailyLog.findMany({ where: { companyId: ctx.company.id, job: { OR: [{ jobNumber: params.number }, { id: params.number }] } }, include: { author: true }, orderBy: { date: "desc" } })
   ]);
   if (!job) notFound();
   if (isFieldTech && !job.assignedUserIds.includes(ctx.user.id)) notFound();

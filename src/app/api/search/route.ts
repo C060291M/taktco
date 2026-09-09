@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     },
     {
       label: "Invoices",
-      items: invoices.map((i) => ({ id: i.id, title: `Invoice for ${i.customer.name}`, subtitle: i.invoiceNumber || "", url: `/invoices/${i.id}` }))
+      items: invoices.map((i) => ({ id: i.id, title: `Invoice for ${i.customer.name}`, subtitle: i.invoiceNumber || "", url: `/invoices/${i.invoiceNumber}` }))
     },
     {
       label: "Contracts",
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     },
     {
       label: "Projects",
-      items: jobs.map((j) => ({ id: j.id, title: `Project for ${j.customer.name}`, subtitle: j.status.replace(/_/g, " "), url: `/jobs/${j.id}` }))
+      items: jobs.map((j) => ({ id: j.id, title: `Project for ${j.customer.name}`, subtitle: j.status.replace(/_/g, " "), url: `/jobs/${j.jobNumber}` }))
     }
   ].filter((g) => g.items.length > 0);
 

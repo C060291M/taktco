@@ -29,7 +29,7 @@ export async function promoteFinalBalanceIfDepositPaid(invoiceId: string) {
     category: "SYSTEM_ANNOUNCEMENT",
     title: `Deposit paid by ${invoice.customer.name} - remaining balance ready to send`,
     body: `The $${Number(paired.amount).toLocaleString()} remaining balance invoice is ready. Send it whenever you're ready to collect the rest.`,
-    linkUrl: `/invoices/${paired.id}`
+    linkUrl: `/invoices/${paired.invoiceNumber}`
   });
 
   return updated;

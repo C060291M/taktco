@@ -31,7 +31,7 @@ export default async function SchedulePage() {
       status: j.status,
       startDate: j.startDate!.toISOString(),
       endDate: j.endDate ? j.endDate.toISOString() : j.startDate!.toISOString(),
-      href: "/jobs/" + j.id,
+      href: "/jobs/" + j.jobNumber,
       detail: j.projectAddress
     };
   });

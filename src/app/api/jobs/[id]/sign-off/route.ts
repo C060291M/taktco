@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { notify } from "@/lib/notify";
@@ -24,7 +24,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     category: "PROJECT_STATUS_CHANGED",
     title: ctx.user.name + " signed off on " + job.customer.name + "'s project",
     body: "Review the work and move status to Complete when ready.",
-    linkUrl: "/jobs/" + job.id
+    linkUrl: "/jobs/" + job.jobNumber
   });
 
   return NextResponse.json(updated);

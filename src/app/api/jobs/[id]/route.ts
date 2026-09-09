@@ -81,7 +81,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       companyId: ctx.company.id,
       category: "PROJECT_STATUS_CHANGED",
       title: `${job.customer.name}'s project is now ${parsed.data.status.replace(/_/g, " ").toLowerCase()}`,
-      linkUrl: `/jobs/${job.id}`
+      linkUrl: `/jobs/${job.jobNumber}`
     });
     if (parsed.data.status === "IN_PROGRESS" && job.status !== "IN_PROGRESS") {
       await runTrigger(ctx.company.id, "PROJECT_STARTED", { companyId: ctx.company.id, customerId: job.customerId, jobId: job.id, trigger: "PROJECT_STARTED" });
