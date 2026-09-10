@@ -67,6 +67,14 @@ function buildFlyerShell(params: {
   const inkStrong = isDark ? "#ffffff" : "#0d1117";
   const inkMuted = isDark ? "#a9b6c3" : "#4a5560";
   const accentInk = luminanceOf(params.accent) > 0.55 ? "#101820" : "#ffffff";
+  // A panel is a subtly raised surface on the canvas - slightly lighter on a
+  // dark canvas, slightly darker on a light one - with text computed for it.
+  const panel = isDark ? "#18222c" : "#f4f6f8";
+  const panelInk = isDark ? "#e8edf2" : "#1a1f26";
+  // A deliberate dark block, available on either canvas, for footer bands,
+  // photo captions, or a high-contrast section.
+  const dark = "#0d141b";
+  const darkInk = "#f2f5f8";
   const footerBg = isDark ? "#0a1016" : "#f2f4f6";
   const footerBorder = isDark ? "#1f2c38" : "#dfe4e9";
 
@@ -90,43 +98,47 @@ function buildFlyerShell(params: {
       --ink-muted:${inkMuted};
       --accent:${params.accent};
       --accent-ink:${accentInk};
+      --panel:${panel};
+      --panel-ink:${panelInk};
+      --dark:${dark};
+      --dark-ink:${darkInk};
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{width:850px;height:1100px;background:var(--canvas);color:var(--ink);
          font-family:Helvetica,Arial,sans-serif;overflow:hidden;
          display:flex;flex-direction:column}
     #flyer-body{flex:1;min-height:0;overflow:hidden}
-    /* Text color is enforced, not suggested. Given the CSS variables as
-       guidance the model still wrote its own pale greys and creams, producing
-       body copy and labels that were invisible against the canvas. These
-       !important rules override whatever color it sets, so the AI keeps full
-       control of layout, type, and composition but cannot make text
-       unreadable. Elements sitting on an accent fill opt out by carrying the
-       .on-accent class. */
-    #flyer-body, #flyer-body *{color:var(--ink) !important}
-    #flyer-body h1,#flyer-body h2,#flyer-body h3,#flyer-body h4,
-    #flyer-body strong,#flyer-body b{color:var(--ink-strong) !important}
-    /* .on-accent sets the accent BACKGROUND as well as the text color, in the
-       same rule. Previously it only set the color, which meant that whenever
-       the AI applied the class to an element that was not actually filled with
-       the accent - a header row, a summary wrapper, a feature panel - that
-       element got accent-ink on the plain canvas. On a light canvas accent-ink
-       is white, so the text disappeared. Tying the two together makes that
-       impossible: an element either gets both, and is readable, or neither. */
-    #flyer-body .on-accent{background:var(--accent) !important}
-    #flyer-body .on-accent,#flyer-body .on-accent *{color:var(--accent-ink) !important}
-    /* NOTE: there used to be an automatic rule here matching any element whose
-       inline style mentioned --accent. It was far too broad - it also matched
-       elements merely using the accent for a border or a tint, and on a light
-       canvas --accent-ink resolves to white, so those elements rendered white
-       text on a white page. Only the explicit .on-accent class opts out now. */
-    /* Text kept rendering washed out on light canvases even after the color
-       rules above were enforced with !important. Color overrides cannot
-       counter a faded ancestor, so the likely remaining cause is the AI
-       wrapping sections in reduced opacity or setting a translucent text
-       color. Both are neutralised here: full opacity everywhere, and any
-       rgba/hsla text color the AI writes loses to the enforced ink color
-       above. Images and the intentional accent fills are unaffected. */
+    /* SURFACE PAIRS.
+       Earlier versions enforced a single text color across the whole flyer,
+       which only works while everything sits on the page background. As soon
+       as the AI put a panel, card, or band on top, the shell had no idea what
+       color that surface was and forced the canvas's text color onto it -
+       invisible whenever the two differed. On a dark canvas the mismatch
+       happened to be harmless; on a light one it wiped out headlines and body
+       copy repeatedly.
+       Each class below sets a background AND its correct text color together,
+       computed server-side. The AI chooses which surface to use where, but
+       cannot separate a background from the text color that belongs with it,
+       so unreadable combinations are not expressible. */
+    #flyer-body{color:var(--ink)}
+    #flyer-body h1,#flyer-body h2,#flyer-body h3,#flyer-body h4{color:inherit}
+
+    #flyer-body .surface-canvas{background:var(--canvas) !important;color:var(--ink) !important}
+    #flyer-body .surface-canvas *{color:inherit !important}
+
+    #flyer-body .surface-panel{background:var(--panel) !important;color:var(--panel-ink) !important}
+    #flyer-body .surface-panel *{color:inherit !important}
+
+    #flyer-body .surface-accent{background:var(--accent) !important;color:var(--accent-ink) !important}
+    #flyer-body .surface-accent *{color:inherit !important}
+
+    #flyer-body .surface-dark{background:var(--dark) !important;color:var(--dark-ink) !important}
+    #flyer-body .surface-dark *{color:inherit !important}
+
+    /* Anything the AI leaves unclassified inherits the canvas pair rather than
+       whatever color it may have written itself. */
+    #flyer-body :not(.surface-panel):not(.surface-accent):not(.surface-dark):not(.surface-panel *):not(.surface-accent *):not(.surface-dark *){color:var(--ink) !important}
+
     #flyer-body,#flyer-body *{opacity:1 !important}
     #flyer-body svg{color:inherit}
     img{display:block;max-width:100%}
@@ -194,9 +206,20 @@ OUTPUT FORMAT:
 - Web-safe fonts only: Arial, Helvetica, Georgia, Times New Roman, Verdana, Trebuchet MS.
 - The page is 850px wide by 1100px tall. A contact footer is appended automatically below your div - budget roughly 70px for it, and do not write your own.
 
-COLOR - handled for you, do not fight it:
-- To fill an element with the brand color, give it class="on-accent" - that applies both the accent background and readable text on it. Do not also set a background yourself. Only use this class on elements you genuinely want filled with the accent color.
-- Do not set text colors at all. They are enforced for readability and any color you write will be overridden.
+COLOR - use surface classes, never write colors yourself:
+
+Every element that has a background must carry exactly one of these classes. Each one applies a background AND the text color that belongs with it, already computed to be readable:
+
+  class="surface-canvas"  the page background - the default, for open areas
+  class="surface-panel"   a subtly raised panel - for feature cards, summary blocks, grouped content
+  class="surface-accent"  filled with the company's brand color - for CTA bands, badges, labels
+  class="surface-dark"    a deliberate dark block - for high-contrast bands or photo captions
+
+Rules:
+  - NEVER set color or background-color yourself. Not on a div, not on a heading, not on a span. Use the classes.
+  - An element with no surface class inherits the canvas background and its text color, which is correct for most content.
+  - Borders, shadows, spacing, radii, gradients on photos, sizing and layout are all yours - only background and text color are managed.
+  - var(--accent) is available if you need the brand color for a border or a rule, but never for a background or text color; use surface-accent for that.
 
 ${hasBeforeAfter ? 'This project has before and after photos - a transformation comparison should be the centerpiece.' : 'This project has one photograph - make it a large hero image.'}
 
