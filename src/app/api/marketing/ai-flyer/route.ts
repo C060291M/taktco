@@ -120,8 +120,7 @@ function buildFlyerShell(params: {
        computed server-side. The AI chooses which surface to use where, but
        cannot separate a background from the text color that belongs with it,
        so unreadable combinations are not expressible. */
-    #flyer-body{color:var(--ink)}
-    #flyer-body h1,#flyer-body h2,#flyer-body h3,#flyer-body h4{color:inherit}
+    #flyer-body,#flyer-body *{color:var(--ink) !important}
 
     #flyer-body .surface-canvas{background:var(--canvas) !important;color:var(--ink) !important}
     #flyer-body .surface-canvas *{color:inherit !important}
@@ -135,9 +134,14 @@ function buildFlyerShell(params: {
     #flyer-body .surface-dark{background:var(--dark) !important;color:var(--dark-ink) !important}
     #flyer-body .surface-dark *{color:inherit !important}
 
-    /* Anything the AI leaves unclassified inherits the canvas pair rather than
-       whatever color it may have written itself. */
-    #flyer-body :not(.surface-panel):not(.surface-accent):not(.surface-dark):not(.surface-panel *):not(.surface-accent *):not(.surface-dark *){color:var(--ink) !important}
+    /* Default text color for everything, applied FIRST and with !important so
+       it beats any color the AI writes inline. The surface classes below it in
+       the cascade are equally !important but more specific, so a classified
+       surface still wins for its own subtree. The previous version of this
+       tried to exclude surfaces with a chain of :not() selectors containing
+       descendant combinators, which browsers do not reliably support - the
+       whole rule failed to parse and was dropped, leaving unclassified
+       headlines and body copy with whatever pale color the model chose. */
 
     #flyer-body,#flyer-body *{opacity:1 !important}
     #flyer-body svg{color:inherit}
