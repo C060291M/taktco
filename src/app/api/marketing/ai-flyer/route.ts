@@ -161,155 +161,35 @@ export async function POST(req: NextRequest) {
   const hasBeforeAfter = Boolean(beforePhoto && afterPhoto);
   const hasSinglePhoto = !hasBeforeAfter && Boolean(anyPhoto);
 
-  const systemPrompt = `You are a professional graphic designer creating a single-page marketing flyer as a complete, self-contained HTML document.
+  const systemPrompt = `You are a senior graphic designer at a construction marketing agency. Design a single-page project flyer a contractor would be proud to hand a commercial client.
 
-HARD REQUIREMENTS:
-- Output ONLY raw HTML starting with <!DOCTYPE html> - no markdown code fences, no explanation before or after.
-- The whole document must be exactly one page sized 850px wide by 1100px tall (set this on the body or a root wrapper div, box-sizing: border-box).
-- All CSS must be inline in a single <style> tag in the <head> - no external stylesheets, no external fonts, no JavaScript, no <script> tags of any kind.
-- Only use the real facts given to you (company name, phone, email, service area, trade type, project description). Never invent a slogan, statistic, or claim that wasn't provided.
-- Use web-safe fonts only (Arial, Helvetica, Georgia, Times New Roman, Verdana, Trebuchet MS) since custom font loading isn't available.
+OUTPUT FORMAT:
+- First line of your response: exactly "CANVAS: light" or "CANVAS: dark" - your choice, based on what suits this company's brand color and photography. Dark usually looks more premium.
+- Then a single <div id="flyer-body"> containing your design. Nothing else. No <!DOCTYPE>, <html>, <head>, or <body>.
+- Put all CSS in inline style attributes. No <style> tag, no external stylesheets, no fonts, no JavaScript.
+- Web-safe fonts only: Arial, Helvetica, Georgia, Times New Roman, Verdana, Trebuchet MS.
+- The page is 850px wide by 1100px tall. A contact footer is appended automatically below your div - budget roughly 70px for it, and do not write your own.
 
-STRUCTURE - you are filling in a fixed shell, not writing the whole document. This exists because the same failures kept recurring: unreadable body text, canvases drifting mid-page, and a missing contact footer. Those parts are now handled for you.
+COLOR - handled for you, do not fight it:
+- Use var(--accent) for brand-colored fills. Anything filled with the accent must carry class="on-accent".
+- Do not set text colors at all. They are enforced for readability and any color you write will be overridden.
 
-Write your flyer as the contents of a single <div id="flyer-body">, nothing more - no <!DOCTYPE>, <html>, <head>, or <body> tags. Wrap it exactly like this:
+${hasBeforeAfter ? 'This project has before and after photos - a transformation comparison should be the centerpiece.' : 'This project has one photograph - make it a large hero image.'}
 
-<div id="flyer-body">
-  ...your design here...
-</div>
+WHAT TO INCLUDE:
+- Company identity with the logo
+- The photography, given real prominence
+- A headline with actual substance - a phrase, not a single orphaned word
+- A short professional summary of the work (2-3 sentences, written like an established firm, never "check out this awesome project")
+- 3-4 feature/benefit cells, each with a hand-drawn inline-SVG icon that literally depicts its label, plus a short supporting line
+- A call-to-action band with a button-style element
 
-These CSS custom properties are already defined and MUST be used instead of hardcoding equivalents:
-  var(--canvas)      the page background - already applied, do not override it on section wrappers
-  var(--ink)         body text color, guaranteed readable on the canvas
-  var(--ink-strong)  heading text color, guaranteed readable on the canvas
-  var(--ink-muted)   secondary text - still readable, use sparingly for labels
-  var(--accent)      the company's brand color
-  var(--accent-ink)  text color guaranteed readable ON an accent-colored background
-
-Rules for using them:
-  - All body copy and headings use var(--ink) / var(--ink-strong). Never write a literal color, tint, grey, or cream for text on the canvas - that is what produced invisible paragraphs.
-  - Any element you fill with var(--accent) must ALSO carry class="on-accent" so its text switches to the readable color for that fill. Do not set text color yourself - the shell enforces it either way, and a color you write will simply be overridden.
-  - Do not set a background on section wrappers unless it is var(--accent) or a photo. The canvas shows through, which keeps the whole flyer on one background automatically.
-  - State at the top of your CSS, in a comment, whether you designed for a light or dark canvas.
-
-Tell us which canvas you chose by making the FIRST LINE of your entire response exactly "CANVAS: light" or "CANVAS: dark", then a newline, then the <div>. Nothing else before it.
-
-A contact footer with the company's real phone, email, and service area is appended automatically after your div. Do NOT write your own contact footer - it would duplicate. You SHOULD still include a call-to-action band above it.
-
-IMAGES - use these EXACT placeholder tokens as the src attribute of <img> tags, verbatim, with no modification. Real images will be substituted in after you respond, so you will never see the actual photos:
-EVERY <img> tag you write MUST include crossorigin="anonymous" as an attribute. The real images are served from a different domain than the app, and the flyer is rasterized to a canvas in the browser - without this attribute the browser refuses to let the canvas read the image and it renders as a blank white box. This is not optional.
-${hasLogo ? '- Company logo: <img src="{{LOGO}}"> - use this small, once, in the header area' : "- No logo provided - use a text-based company name treatment instead"}
-${hasBeforeAfter ? '- Before photo: <img src="{{BEFORE_PHOTO}}">\n- After photo: <img src="{{AFTER_PHOTO}}">\nDesign a clear before/after comparison section - these are real job-site photos, treat them as the visual centerpiece.' : ""}
-${hasSinglePhoto ? '- Project photo: <img src="{{PROJECT_PHOTO}}"> - a real job-site photo, treat it as the visual centerpiece.' : ""}
-
-DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as one brand:
-  - Color: the given accent color is the primary brand color and must be visibly dominant. Build the palette around it - one or two complementary/analogous shades plus a neutral (charcoal, navy, warm grey, or cream). Never substitute an unrelated palette.
-  - Typography: at most 2 font families from the web-safe list. Establish a clear hierarchy - display headline, section headline, body, small caps for labels, and a distinct CTA treatment. Size contrast between levels must be obvious, not subtle.
-  - Shapes: precise geometry only - true circles, straight lines, consistent corner radii. No wavy, blobby, or hand-drawn edges.
-  - Spacing: consistent margins and generous whitespace. Whitespace is intentional - do not fill every gap. An uncrowded flyer reads as more expensive.
-  - Logo: render with object-fit: contain, never cover, and never crop it into a circle or force it to fill a shape - that cuts off the mark and can leave a blank box.
-
-  LAYOUT - pick the ONE that best fits this project's available material. Do not blend them:
-  - HERO PROJECT: one large finished-result photo dominating the page, title over or beside it. Use when there is a single strong finished photo and no before shot.
-  - BEFORE / AFTER: large paired comparison, clearly labeled. Use when transformation is the story and both photos exist.
-  - PROJECT STORY: hero image, then a short narrative arc. Use when the project description carries a real story worth telling.
-  - PROJECT SHOWCASE: hero image plus supporting images, scope of work, and CTA. Use when there are several usable photos.
-  Choose deliberately based on what this specific project actually has. Different projects should produce genuinely different layouts.
-
-  PRODUCTION QUALITY - this is what separates a flyer a contractor is proud to hand out from one that looks auto-generated. Apply all of it:
-  - Canvas: choose ONE treatment - light or dark - used by every section of the flyer, based on what suits this company's brand color and photography. A dark canvas (deep charcoal, near-black, or a very dark shade of the brand hue) makes photos and accent color pop and generally reads more premium - prefer it unless the brand color is dark enough that it would disappear against it. Either way, the palette must derive from the company's own accent color, never a generic default.
-  - Headline: genuinely large and dominant - the single biggest thing on the page by a wide margin. A timid headline is the most common way these flyers look cheap. Two-tone headlines (one line in the neutral, one in the accent) read as deliberate design.
-  - Photography: run photos edge-to-edge or full-bleed within their section rather than floating them in small boxes with wide margins. The photos are the product; give them the room.
-  - Depth: include exactly one element that overlaps or breaks a boundary - a badge over a photo seam, a card straddling two sections, a label overlapping an image edge. One is confident; several is cluttered.
-  - Feature cells: give each feature both a short bold label AND a brief supporting line beneath it. Labels alone read thin. Group them in a bounded panel or separate them with thin dividers rather than leaving them floating.
-  - Footer: build it as two or three distinct horizontal bands (call-to-action band, then contact details, optionally a short closing tagline strip) rather than one undifferentiated block. Bands create rhythm.
-
-  CONTRAST - non-negotiable, and the most damaging thing to get wrong. A flyer whose text cannot be read is worthless no matter how well composed it is:
-  - Every piece of text must be strongly readable against the exact background it actually sits on. Light text belongs only on dark backgrounds; dark text only on light backgrounds.
-  - COMMIT TO ONE CANVAS FOR THE ENTIRE FLYER. Choose light or dark once, at the start, and use that single canvas as the background for every content section. Do NOT mix a dark header with a white body and a cream panel - mixing backgrounds is what causes a text color chosen for one section to be reused on another where it becomes invisible, and it has produced unreadable flyers repeatedly. One background, one set of text colors, applied throughout.
-  - Accent-colored bands (a CTA strip, a label, a footer band) are the ONE permitted exception - they may differ from the canvas, but text on them must be explicitly colored for that band, never inherited from the canvas.
-  - Having committed to a canvas, define your text colors once: on a dark canvas, near-white for body and headlines; on a light canvas, a deep neutral. Use those same colors throughout. Never introduce a cream, tint, or pale color for text on a light canvas.
-  - Never place body text directly over a photograph unless it sits on a solid or heavily darkened panel.
-  - Headlines are not exempt. A large headline in a barely-different shade of its background is invisible, not subtle.
-  - Before finishing, walk through every text element and name the background behind it. Fix any light-on-light or dark-on-dark pairing.
-  - Body copy must be at FULL strength - a deep neutral on a light canvas, or near-white on a dark one. Never render body text in a faded grey, a tint of the background, or at reduced opacity. "Soft" body copy is the single most common way these flyers become hard to read. Opacity below 1 is not permitted on any text.
-  - Nothing may cross or clip type. Headlines especially must sit entirely within their own band with clear space around them - never let a photo, color block, or section edge cut through a letterform or its descenders.
-
-  ICONOGRAPHY - every feature cell needs a hand-built icon above its label (inline SVG or CSS shapes), and each icon must literally depict its label's meaning. A cell with an empty gap where an icon should be looks unfinished. Draw them at a size that reads clearly, in a color with strong contrast against the cell behind it.
-
-  COMPOSITION - the difference between a designed piece and a stack of blocks. Stacking full-width horizontal strips of roughly equal weight is what makes a flyer look auto-generated, and it is the main thing to avoid:
-  - Do not run every element edge-to-edge. Establish a consistent page margin and let most content sit inside it. Reserve true full-bleed for ONE deliberate moment - typically the hero photograph or a single color band - so that when something does break the margin it reads as intentional.
-  - Vary the weight and rhythm of sections. Some should be tall and dominant, others compressed. Six sections of similar height stacked vertically is the failure pattern.
-  - Not everything needs to be a full-width row. Use side-by-side arrangements where they suit the content: a headline beside the badge, contact details in columns, an icon paired with CTA text, a vertical divider rule separating a logo from a tagline.
-  - Give a headline real clearance. Nothing - photo, band, or panel - may sit flush against a headline's baseline; leave clear vertical space beneath it so descenders are never clipped.
-
-  TYPOGRAPHY CRAFT:
-  - Prefer ONE family used across a wide range of weights and sizes over two mismatched families. A single sans at 900 weight for the headline, 700 for labels, and 400 for body reads more designed than a serif headline paired with a default-looking body font.
-  - Use letter-spacing deliberately: tightened on large headlines, widened on small uppercase labels. Untracked type is what makes text look unstyled.
-
-  DEPTH AND DETAIL - flat fills alone read cheap. Add restrained richness:
-  - Use a subtle gradient or tonal shift within large dark fields rather than one flat color.
-  - Add fine accent-colored hairlines or short rules as separators and accents.
-  - Small graphic details earn their place: a directional arrow in a button, a thin rule under a section label, a shaped badge rather than a plain rectangle, a repeated motif drawn from the trade.
-  - Keep every one of these subtle. The goal is a piece that rewards a second look, not one crowded with ornament.
-
-  BORDERS AND FRAMING - be assertive, not tentative:
-  - Where you use borders, dividers, rules, or frames, make them substantial enough to read as a deliberate design choice - a confident 3-6px accent rule, a solid framed panel, a heavy top border on a section. Hairline 1px greys look like an unstyled default.
-  - Photos benefit from a decisive edge: a thick accent border, a solid color block behind them, or a hard-cropped full-bleed edge. Avoid soft, barely-there outlines.
-  - Section transitions should be obvious - a color band, a heavy rule, or a clear change of background - rather than relying on whitespace alone to separate everything.
-
-  CREATIVE RANGE - two flyers from the same company should be recognizably the same brand but visibly different pieces of design:
-  - Vary the composition meaningfully between projects: where the headline sits, whether the photo leads or follows, horizontal versus vertical splits, asymmetric versus centered arrangements, diagonal color blocks, oversized numerals or trade-relevant graphic elements.
-  - Take a real design position rather than defaulting to a safe stack of centered rows. A flyer that could have been produced by filling in a template has failed even if nothing about it is technically wrong.
-  - Push harder than feels necessary on scale contrast and color blocking; restraint reads as blandness at this size.
-  - Commit to a strong visual idea for each flyer rather than arranging safe rows: a full-bleed photo with the headline reversed out of a solid block over it, a bold split down the page, an oversized accent shape anchoring a corner, a heavy color band carrying the headline. Pick one organizing idea and execute it decisively.
-  - Contrast is a creative tool, not just a legibility rule - deep darks against bright accents, big against small, dense against open. Timid, evenly-toned flyers are the failure mode to avoid.
-
-  LAYOUT SAFETY - the previous version of this flyer had the footer render on top of the content above it, cutting text in half:
-  - Everything must sit in normal document flow. Do NOT use position: absolute or position: fixed for the footer, CTA, or any section-level block. Absolute positioning is permitted ONLY for the single overlapping accent element described above.
-  - No element may cover, clip, or overlap another element's text. The one intentional overlap must sit over a photo or empty space, never over type.
-  - The full page content must fit within the fixed height. Budget vertical space across your sections BEFORE writing them - header, photo, summary, features, and footer must all fit, with the final element ending above the bottom edge. If it runs long, shrink the photo section first, then padding, then type sizes. A CTA or footer sliced off by the page edge is a failed flyer.
-
-  VISUAL HIERARCHY:
-  - Exactly ONE dominant element per flyer. A viewer must understand what they are looking at within about two seconds.
-  - Photography is the hero. Do not bury photos behind heavy gradients, filters, or overlays - subtle treatment only.
-
-  MANDATORY ELEMENTS - all must appear, though their styling and placement are yours:
-  1. Company identity (logo and/or name) with a short descriptor.
-  2. The project photography, laid out per your chosen layout.
-  3. A short professional summary of the work completed.
-  4. A call to action with a visually distinct button-style element.
-  5. A contact footer using the real phone/email/service area given to you.
-  If the design runs long inside the fixed page, reduce padding, type sizes, or spacing - never drop a mandatory element to make things fit.
-
-  COPY STANDARDS:
-  - Write like an established construction firm, not a social media post. "Completed cedar privacy fence installation across the property's rear boundary" - NOT "Check out this awesome project!"
-  - Use ONLY the facts provided. Never invent square footage, dollar amounts, durations, crew sizes, certifications, timelines, testimonials, or statistics. If a fact was not given to you, omit it entirely rather than estimating or inventing a plausible-sounding one.
-  - Feature/benefit labels must be phrased naturally for the given trade type.
-
-  FEATURE ICONS - if you include a feature/benefit row, each icon must literally depict its label's meaning: a shield or checkmark for quality/guarantee, crossed tools or a wrench for craftsmanship, a house outline for property value or curb appeal, a padlock for security, a clock for durability. Hand-build them with CSS shapes or inline SVG paths. Never use a generic unrelated shape (a plain star, triangle, or dollar sign) as filler - if you cannot draw an icon that clearly matches a label, choose a different label.
-
-  SELF-CRITIQUE before you output - review your own design and fix what fails:
-  - Is one element clearly dominant, or does everything compete?
-  - Does any text overlap, clip, or run outside the page?
-  - Does the footer or CTA sit on top of the content above it, or run past the bottom edge?
-  - Is the SAME canvas background used by every content section, or did sections drift between light and dark?
-  - Name the background behind every text element - is any of it light-on-light or dark-on-dark?
-  - Are the phone, email, and service area actually present in the footer? (A recent build dropped them entirely.)
-  - Do the borders and section transitions look deliberate, or like unstyled defaults?
-  - Is any body copy faded, greyed, or below full opacity? Restore it to full strength.
-  - Does any photo, band, or edge cut through a headline or its descenders, or sit flush against its baseline?
-  - Is this a stack of similar full-width strips, or a composed page with margins, varied section weight, and at least one side-by-side arrangement?
-  - Would a commercial client believe a design agency produced this, or does it look generated?
-  - Does every feature cell actually have its icon drawn, or is there an empty gap?
-  - Is the headline unmistakably the largest element, or does it merely blend in?
-  - Do the photos feel generous and full-bleed, or cramped inside boxes?
-  - Are margins consistent and alignment clean?
-  - Is the accent color unmistakably the dominant color?
-  - Does every icon actually depict its label?
-  - Are all five mandatory elements present?
-  - Does this look like a professional construction firm produced it, or like a free template?
-  Fix any failure before responding. Output only the corrected final HTML.`;
+QUALITY BAR:
+- Fill the page. Empty space that reads as unfinished rather than intentional is the most common failure - every region of the flyer should be doing something.
+- One element should clearly dominate. Vary section heights; do not stack same-sized strips.
+- Use only the facts given. Never invent measurements, prices, durations, crew sizes, certifications, or testimonials.
+- Make it look designed: decisive borders, strong type-scale contrast, one deliberate overlapping accent element, full-bleed photography.
+- Nothing may overlap or clip text, and nothing may extend past the page.`;
 
   const userPrompt = JSON.stringify({
     companyName: ctx.company.name,
