@@ -34,6 +34,76 @@ import { askClaude } from "@/lib/ai";
 // Already-inlined base64 URLs (uploads from before object storage existed)
 // are passed straight through. A fetch failure returns null so the caller can
 // fall back to the raw URL rather than dropping the image entirely.
+// Relative luminance, used to decide whether text on a given background
+// should be near-white or near-black. Standard sRGB coefficients.
+function luminanceOf(hex: string): number {
+  const clean = (hex || "").replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map(function (ch) { return ch + ch; }).join("") : clean;
+  if (full.length !== 6) return 0.5;
+  const r = parseInt(full.substring(0, 2), 16) / 255;
+  const g = parseInt(full.substring(2, 4), 16) / 255;
+  const b = parseInt(full.substring(4, 6), 16) / 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+// Builds the shell the AI's markup is dropped into. Canvas background and
+// every text color are decided HERE, not by the model - repeated attempts to
+// enforce contrast through prompt instructions alone produced invisible
+// paragraphs and pale-on-white headings. The model still owns layout,
+// typography, imagery, and composition; it just cannot choose a text color
+// that can't be read, drift the canvas mid-page, or omit the contact footer.
+function buildFlyerShell(params: {
+  inner: string;
+  canvas: "light" | "dark";
+  accent: string;
+  companyName: string;
+  phone: string | null;
+  email: string | null;
+  serviceArea: string | null;
+}) {
+  const isDark = params.canvas === "dark";
+  const canvasColor = isDark ? "#101820" : "#ffffff";
+  const ink = isDark ? "#e8edf2" : "#1a1f26";
+  const inkStrong = isDark ? "#ffffff" : "#0d1117";
+  const inkMuted = isDark ? "#a9b6c3" : "#4a5560";
+  const accentInk = luminanceOf(params.accent) > 0.55 ? "#101820" : "#ffffff";
+  const footerBg = isDark ? "#0a1016" : "#f2f4f6";
+  const footerBorder = isDark ? "#1f2c38" : "#dfe4e9";
+
+  const contactBits: string[] = [];
+  if (params.phone) contactBits.push(`<span style="color:${inkStrong};font-weight:700">${params.phone}</span>`);
+  if (params.email) contactBits.push(`<span style="color:${ink}">${params.email}</span>`);
+  if (params.serviceArea) contactBits.push(`<span style="color:${ink}">${params.serviceArea}</span>`);
+
+  const footer = contactBits.length
+    ? `<div style="background:${footerBg};border-top:3px solid ${params.accent};padding:20px 44px;display:flex;align-items:center;justify-content:space-between;gap:20px;font-family:Helvetica,Arial,sans-serif;font-size:13px;letter-spacing:0.3px">
+        <span style="color:${inkStrong};font-weight:700;letter-spacing:1px;text-transform:uppercase">${params.companyName}</span>
+        <span style="display:flex;gap:22px;align-items:center">${contactBits.join('<span style="color:' + inkMuted + '">|</span>')}</span>
+      </div>`
+    : "";
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    :root{
+      --canvas:${canvasColor};
+      --ink:${ink};
+      --ink-strong:${inkStrong};
+      --ink-muted:${inkMuted};
+      --accent:${params.accent};
+      --accent-ink:${accentInk};
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{width:850px;height:1100px;background:var(--canvas);color:var(--ink);
+         font-family:Helvetica,Arial,sans-serif;overflow:hidden;
+         display:flex;flex-direction:column}
+    #flyer-body{flex:1;min-height:0;overflow:hidden;color:var(--ink)}
+    #flyer-body h1,#flyer-body h2,#flyer-body h3{color:var(--ink-strong)}
+    img{display:block;max-width:100%}
+  </style></head><body>
+    ${params.inner}
+    ${footer}
+  </body></html>`;
+}
+
 async function toDataUri(url: string | null | undefined): Promise<string | null> {
   if (!url) return null;
   if (url.startsWith("data:")) return url;
@@ -85,6 +155,32 @@ HARD REQUIREMENTS:
 - All CSS must be inline in a single <style> tag in the <head> - no external stylesheets, no external fonts, no JavaScript, no <script> tags of any kind.
 - Only use the real facts given to you (company name, phone, email, service area, trade type, project description). Never invent a slogan, statistic, or claim that wasn't provided.
 - Use web-safe fonts only (Arial, Helvetica, Georgia, Times New Roman, Verdana, Trebuchet MS) since custom font loading isn't available.
+
+STRUCTURE - you are filling in a fixed shell, not writing the whole document. This exists because the same failures kept recurring: unreadable body text, canvases drifting mid-page, and a missing contact footer. Those parts are now handled for you.
+
+Write your flyer as the contents of a single <div id="flyer-body">, nothing more - no <!DOCTYPE>, <html>, <head>, or <body> tags. Wrap it exactly like this:
+
+<div id="flyer-body">
+  ...your design here...
+</div>
+
+These CSS custom properties are already defined and MUST be used instead of hardcoding equivalents:
+  var(--canvas)      the page background - already applied, do not override it on section wrappers
+  var(--ink)         body text color, guaranteed readable on the canvas
+  var(--ink-strong)  heading text color, guaranteed readable on the canvas
+  var(--ink-muted)   secondary text - still readable, use sparingly for labels
+  var(--accent)      the company's brand color
+  var(--accent-ink)  text color guaranteed readable ON an accent-colored background
+
+Rules for using them:
+  - All body copy and headings use var(--ink) / var(--ink-strong). Never write a literal color, tint, grey, or cream for text on the canvas - that is what produced invisible paragraphs.
+  - Any element you fill with var(--accent) must set its text to var(--accent-ink).
+  - Do not set a background on section wrappers unless it is var(--accent) or a photo. The canvas shows through, which keeps the whole flyer on one background automatically.
+  - State at the top of your CSS, in a comment, whether you designed for a light or dark canvas.
+
+Tell us which canvas you chose by making the FIRST LINE of your entire response exactly "CANVAS: light" or "CANVAS: dark", then a newline, then the <div>. Nothing else before it.
+
+A contact footer with the company's real phone, email, and service area is appended automatically after your div. Do NOT write your own contact footer - it would duplicate. You SHOULD still include a call-to-action band above it.
 
 IMAGES - use these EXACT placeholder tokens as the src attribute of <img> tags, verbatim, with no modification. Real images will be substituted in after you respond, so you will never see the actual photos:
 EVERY <img> tag you write MUST include crossorigin="anonymous" as an attribute. The real images are served from a different domain than the app, and the flyer is rasterized to a canvas in the browser - without this attribute the browser refuses to let the canvas read the image and it renders as a blank white box. This is not optional.
@@ -218,7 +314,31 @@ DESIGN SYSTEM - consistent on every flyer, so all of a company's flyers read as 
   });
 
   try {
-    let html = await askClaude(systemPrompt, userPrompt);
+    let raw = await askClaude(systemPrompt, userPrompt);
+
+    // The model declares its canvas choice on the first line, then returns the
+    // inner markup. Strip that line off and use it to build the shell.
+    let canvas: "light" | "dark" = "dark";
+    const canvasMatch = raw.match(/^\s*CANVAS:\s*(light|dark)\s*$/im);
+    if (canvasMatch) {
+      canvas = canvasMatch[1].toLowerCase() === "light" ? "light" : "dark";
+      raw = raw.replace(canvasMatch[0], "");
+    }
+
+    // Defensive: if the model ignored the contract and returned a full
+    // document anyway, salvage just the flyer div so the shell still applies.
+    const innerMatch = raw.match(/<div[^>]*id=["']flyer-body["'][\s\S]*<\/div>/i);
+    const inner = innerMatch ? innerMatch[0] : `<div id="flyer-body">${raw}</div>`;
+
+    let html = buildFlyerShell({
+      inner,
+      canvas,
+      accent: ctx.company.brandAccentColor,
+      companyName: ctx.company.name,
+      phone: ctx.company.businessPhone,
+      email: ctx.company.businessEmail,
+      serviceArea: ctx.company.serviceArea
+    });
     // Strip any script tags as a safety net, even though the prompt already forbids them.
     html = html.replace(/<script[\s\S]*?<\/script>/gi, "");
 
