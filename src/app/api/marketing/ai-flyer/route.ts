@@ -243,6 +243,14 @@ QUALITY BAR:
       // flyer that looks like a design problem.
       console.error("[ai-flyer] model did not return a #flyer-body div. First 500 chars:", raw.slice(0, 500));
     }
+    // Temporary diagnostic: text keeps rendering washed out on light canvases
+    // despite the shell's !important color rules, which should be impossible
+    // if the AI's markup is really inside #flyer-body. Log a sample of what it
+    // actually returned so this can be read from the deploy logs instead of
+    // inferred from the rendered PDF. Remove once the cause is confirmed.
+    console.log("[ai-flyer] canvas:", canvas, "| wrapper found:", Boolean(innerMatch));
+    console.log("[ai-flyer] sample:", raw.slice(0, 900));
+
     const inner = innerMatch
       ? innerMatch[0]
       : `<div id="flyer-body" style="display:flex;flex-direction:column;height:100%">${raw}</div>`;
