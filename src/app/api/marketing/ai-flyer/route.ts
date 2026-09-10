@@ -185,6 +185,12 @@ ${hasBeforeAfter ? 'This project has before and after photos - a transformation 
 WHAT TO INCLUDE:
 - Company identity with the logo
 - The photography, given real prominence
+
+IMAGES - you never see the actual photos. Reference them with these exact placeholder tokens as the src of an <img> tag, verbatim. Real image data is substituted in after you respond. Do NOT draw colored divs or gradient boxes as stand-ins for photos - use the tokens or there will be no photography on the flyer:
+${hasLogo ? '  <img src="{{LOGO}}"> - the company logo, small, in the header. Use object-fit: contain and never crop it into a shape.' : "  No logo available - use a text treatment of the company name instead."}
+${hasBeforeAfter ? '  <img src="{{BEFORE_PHOTO}}"> and <img src="{{AFTER_PHOTO}}"> - real job-site photos. Give them size; they are the centerpiece.' : ""}
+${hasSinglePhoto ? '  <img src="{{PROJECT_PHOTO}}"> - a real job-site photo. Make it a large hero image.' : ""}
+Every <img> must include crossorigin="anonymous". Give each one explicit width/height or object-fit styling so it fills its container properly.
 - A headline with actual substance - a phrase, not a single orphaned word
 - A short professional summary of the work (2-3 sentences, written like an established firm, never "check out this awesome project")
 - 3-4 feature/benefit cells, each with a hand-drawn inline-SVG icon that literally depicts its label, plus a short supporting line
