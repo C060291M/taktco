@@ -165,7 +165,13 @@ export async function POST(req: NextRequest) {
 
 OUTPUT FORMAT:
 - First line of your response: exactly "CANVAS: light" or "CANVAS: dark" - your choice, based on what suits this company's brand color and photography. Dark usually looks more premium.
-- Then a single <div id="flyer-body"> containing your design. Nothing else. No <!DOCTYPE>, <html>, <head>, or <body>.
+- Then your design, wrapped in a div with EXACTLY this opening tag - copy it character for character, the id is required and the whole flyer breaks without it:
+
+<div id="flyer-body" style="display:flex;flex-direction:column;height:100%">
+  ...your design...
+</div>
+
+  Nothing before or after that div. No <!DOCTYPE>, <html>, <head>, or <body>.
 - Put all CSS in inline style attributes. No <style> tag, no external stylesheets, no fonts, no JavaScript.
 - Web-safe fonts only: Arial, Helvetica, Georgia, Times New Roman, Verdana, Trebuchet MS.
 - The page is 850px wide by 1100px tall. A contact footer is appended automatically below your div - budget roughly 70px for it, and do not write your own.
@@ -222,7 +228,16 @@ QUALITY BAR:
     // Defensive: if the model ignored the contract and returned a full
     // document anyway, salvage just the flyer div so the shell still applies.
     const innerMatch = raw.match(/<div[^>]*id=["']flyer-body["'][\s\S]*<\/div>/i);
-    const inner = innerMatch ? innerMatch[0] : `<div id="flyer-body">${raw}</div>`;
+    if (!innerMatch) {
+      // Without the wrapper div none of the shell's contrast enforcement or
+      // flex layout applies, which renders as pale unreadable text and a
+      // footer floating mid-page. Log loudly rather than shipping a broken
+      // flyer that looks like a design problem.
+      console.error("[ai-flyer] model did not return a #flyer-body div. First 500 chars:", raw.slice(0, 500));
+    }
+    const inner = innerMatch
+      ? innerMatch[0]
+      : `<div id="flyer-body" style="display:flex;flex-direction:column;height:100%">${raw}</div>`;
 
     let html = buildFlyerShell({
       inner,
