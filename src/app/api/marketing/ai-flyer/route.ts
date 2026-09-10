@@ -106,6 +106,14 @@ function buildFlyerShell(params: {
     #flyer-body, #flyer-body *{color:var(--ink) !important}
     #flyer-body h1,#flyer-body h2,#flyer-body h3,#flyer-body h4,
     #flyer-body strong,#flyer-body b{color:var(--ink-strong) !important}
+    /* .on-accent sets the accent BACKGROUND as well as the text color, in the
+       same rule. Previously it only set the color, which meant that whenever
+       the AI applied the class to an element that was not actually filled with
+       the accent - a header row, a summary wrapper, a feature panel - that
+       element got accent-ink on the plain canvas. On a light canvas accent-ink
+       is white, so the text disappeared. Tying the two together makes that
+       impossible: an element either gets both, and is readable, or neither. */
+    #flyer-body .on-accent{background:var(--accent) !important}
     #flyer-body .on-accent,#flyer-body .on-accent *{color:var(--accent-ink) !important}
     /* NOTE: there used to be an automatic rule here matching any element whose
        inline style mentioned --accent. It was far too broad - it also matched
@@ -179,7 +187,7 @@ OUTPUT FORMAT:
 - The page is 850px wide by 1100px tall. A contact footer is appended automatically below your div - budget roughly 70px for it, and do not write your own.
 
 COLOR - handled for you, do not fight it:
-- Use var(--accent) for brand-colored fills. Anything filled with the accent must carry class="on-accent".
+- To fill an element with the brand color, give it class="on-accent" - that applies both the accent background and readable text on it. Do not also set a background yourself. Only use this class on elements you genuinely want filled with the accent color.
 - Do not set text colors at all. They are enforced for readability and any color you write will be overridden.
 
 ${hasBeforeAfter ? 'This project has before and after photos - a transformation comparison should be the centerpiece.' : 'This project has one photograph - make it a large hero image.'}
