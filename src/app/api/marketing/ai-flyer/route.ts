@@ -107,9 +107,11 @@ function buildFlyerShell(params: {
     #flyer-body h1,#flyer-body h2,#flyer-body h3,#flyer-body h4,
     #flyer-body strong,#flyer-body b{color:var(--ink-strong) !important}
     #flyer-body .on-accent,#flyer-body .on-accent *{color:var(--accent-ink) !important}
-    /* Any element the AI fills with the accent color gets readable text
-       automatically, without needing to remember the helper class. */
-    #flyer-body [style*="--accent"],#flyer-body [style*="--accent"] *{color:var(--accent-ink) !important}
+    /* NOTE: there used to be an automatic rule here matching any element whose
+       inline style mentioned --accent. It was far too broad - it also matched
+       elements merely using the accent for a border or a tint, and on a light
+       canvas --accent-ink resolves to white, so those elements rendered white
+       text on a white page. Only the explicit .on-accent class opts out now. */
     #flyer-body svg{color:inherit}
     img{display:block;max-width:100%}
   </style></head><body>
