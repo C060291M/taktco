@@ -95,8 +95,22 @@ function buildFlyerShell(params: {
     body{width:850px;height:1100px;background:var(--canvas);color:var(--ink);
          font-family:Helvetica,Arial,sans-serif;overflow:hidden;
          display:flex;flex-direction:column}
-    #flyer-body{flex:1;min-height:0;overflow:hidden;color:var(--ink)}
-    #flyer-body h1,#flyer-body h2,#flyer-body h3{color:var(--ink-strong)}
+    #flyer-body{flex:1;min-height:0;overflow:hidden}
+    /* Text color is enforced, not suggested. Given the CSS variables as
+       guidance the model still wrote its own pale greys and creams, producing
+       body copy and labels that were invisible against the canvas. These
+       !important rules override whatever color it sets, so the AI keeps full
+       control of layout, type, and composition but cannot make text
+       unreadable. Elements sitting on an accent fill opt out by carrying the
+       .on-accent class. */
+    #flyer-body, #flyer-body *{color:var(--ink) !important}
+    #flyer-body h1,#flyer-body h2,#flyer-body h3,#flyer-body h4,
+    #flyer-body strong,#flyer-body b{color:var(--ink-strong) !important}
+    #flyer-body .on-accent,#flyer-body .on-accent *{color:var(--accent-ink) !important}
+    /* Any element the AI fills with the accent color gets readable text
+       automatically, without needing to remember the helper class. */
+    #flyer-body [style*="--accent"],#flyer-body [style*="--accent"] *{color:var(--accent-ink) !important}
+    #flyer-body svg{color:inherit}
     img{display:block;max-width:100%}
   </style></head><body>
     ${params.inner}
@@ -174,7 +188,7 @@ These CSS custom properties are already defined and MUST be used instead of hard
 
 Rules for using them:
   - All body copy and headings use var(--ink) / var(--ink-strong). Never write a literal color, tint, grey, or cream for text on the canvas - that is what produced invisible paragraphs.
-  - Any element you fill with var(--accent) must set its text to var(--accent-ink).
+  - Any element you fill with var(--accent) must ALSO carry class="on-accent" so its text switches to the readable color for that fill. Do not set text color yourself - the shell enforces it either way, and a color you write will simply be overridden.
   - Do not set a background on section wrappers unless it is var(--accent) or a photo. The canvas shows through, which keeps the whole flyer on one background automatically.
   - State at the top of your CSS, in a comment, whether you designed for a light or dark canvas.
 
