@@ -120,6 +120,14 @@ function buildFlyerShell(params: {
        elements merely using the accent for a border or a tint, and on a light
        canvas --accent-ink resolves to white, so those elements rendered white
        text on a white page. Only the explicit .on-accent class opts out now. */
+    /* Text kept rendering washed out on light canvases even after the color
+       rules above were enforced with !important. Color overrides cannot
+       counter a faded ancestor, so the likely remaining cause is the AI
+       wrapping sections in reduced opacity or setting a translucent text
+       color. Both are neutralised here: full opacity everywhere, and any
+       rgba/hsla text color the AI writes loses to the enforced ink color
+       above. Images and the intentional accent fills are unaffected. */
+    #flyer-body,#flyer-body *{opacity:1 !important}
     #flyer-body svg{color:inherit}
     img{display:block;max-width:100%}
   </style></head><body>
