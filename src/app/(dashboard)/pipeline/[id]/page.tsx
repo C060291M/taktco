@@ -58,19 +58,7 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
           {lead.customer.phone || "No phone"} - {lead.customer.email || "No email"}
         </p>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card p-4">
-          <p className="text-xs text-graphite-400">Est. value</p>
-          <p className="text-white font-medium">{money(lead.estimatedValue)}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs text-graphite-400">Probability</p>
-          <p className="text-white font-medium">{lead.probability !== null ? lead.probability + "%" : "-"}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs text-graphite-400">Expected close</p>
-          <p className="text-white font-medium">{lead.expectedCloseDate ? new Date(lead.expectedCloseDate).toLocaleDateString() : "-"}</p>
-        </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="card p-4">
           <p className="text-xs text-graphite-400">Source</p>
           <p className="text-white font-medium">{lead.leadSource ? lead.leadSource.name : (lead.source || "-")}</p>
