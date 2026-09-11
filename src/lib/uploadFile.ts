@@ -1,4 +1,4 @@
-﻿// Client-side upload helper. Tries real object storage (presigned R2/S3 upload)
+// Client-side upload helper. Tries real object storage (presigned R2/S3 upload)
 // first; if storage isn't configured (501 from the presign endpoint) or the
 // request fails for any reason, falls back to the original base64-in-database
 // approach so every upload flow keeps working with zero configuration.
@@ -14,16 +14,25 @@
 // viewer handle it). Without this, sideways/upside-down photos from phones
 // render sideways everywhere downstream: the web app, PDFs, flyers. Pure
 // browser API, no new dependency, runs before the file ever leaves the device.
+// Longest edge a stored photo is allowed to have. Phone cameras produce
+// 3000-4000px images, but these are only ever shown a few hundred pixels wide
+// on screen, inside a flyer, or on a letter-size PDF - so the extra pixels buy
+// nothing and cost real time everywhere: upload, rotation round-trips, base64
+// encoding for flyers, and page loads. 1600px stays sharp for both screen and
+// print at these sizes.
+const MAX_EDGE = 1600;
+
 async function fixImageOrientation(file: File): Promise<File> {
   if (!file.type.startsWith("image/") || file.type === "image/svg+xml") return file;
   try {
     const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement("canvas");
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
     const ctx = canvas.getContext("2d");
     if (!ctx) return file;
-    ctx.drawImage(bitmap, 0, 0);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, file.type || "image/jpeg", 0.92));
     if (!blob) return file;
     return new File([blob], file.name, { type: file.type || "image/jpeg" });
