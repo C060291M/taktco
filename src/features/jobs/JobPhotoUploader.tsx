@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadFileSmart } from "@/lib/uploadFile";
@@ -12,7 +12,7 @@ const TYPES = [
   { value: "MISC", label: "Misc" }
 ];
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+
 
 export function JobPhotoUploader({ jobId }: { jobId: string }) {
   const router = useRouter();
@@ -29,10 +29,7 @@ export function JobPhotoUploader({ jobId }: { jobId: string }) {
       setError("Photos only - PNG, JPG, or WEBP.");
       return;
     }
-    if (file.size > MAX_BYTES) {
-      setError("Keep it under 5MB.");
-      return;
-    }
+    
     setUploading(true);
     try {
       const url = await uploadFileSmart(file, "job-photos");
@@ -102,7 +99,7 @@ export function JobPhotoUploader({ jobId }: { jobId: string }) {
         <p className="text-sm text-graphite-300">
           {uploading ? "Uploading..." : dragActive ? "Drop photo here" : "Drag a photo here, or click to browse"}
         </p>
-        <p className="text-[11px] text-graphite-500 mt-1">PNG, JPG, or WEBP - up to 5MB</p>
+        <p className="text-[11px] text-graphite-500 mt-1">PNG, JPG, or WEBP - photos straight off your phone are fine</p>
       </div>
 
       <input

@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 
 const ACCEPTED = ["image/png", "image/jpeg", "image/svg+xml", "image/webp", "application/pdf"];
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+
 
 export function LogoDropzone({ onChange }: { onChange: (dataUrl: string | null, fileName: string | null) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -16,10 +16,6 @@ export function LogoDropzone({ onChange }: { onChange: (dataUrl: string | null, 
     setError(null);
     if (!ACCEPTED.includes(file.type)) {
       setError("Use PNG, JPG, SVG, WEBP, or PDF.");
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      setError("Keep it under 5MB.");
       return;
     }
     const reader = new FileReader();

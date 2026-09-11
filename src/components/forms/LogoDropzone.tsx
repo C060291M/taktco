@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 import { useRef, useState } from "react";
 import { uploadFileSmart } from "@/lib/uploadFile";
 import { extractLogoColor } from "@/lib/extractLogoColor";
 
 const ACCEPTED = ["image/png", "image/jpeg", "image/svg+xml", "image/webp", "application/pdf"];
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+
 
 export function LogoDropzone({
   onChange,
@@ -25,10 +25,6 @@ export function LogoDropzone({
     setError(null);
     if (!ACCEPTED.includes(file.type)) {
       setError("Use PNG, JPG, SVG, WEBP, or PDF.");
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      setError("Keep it under 5MB.");
       return;
     }
     setFileName(file.name);
