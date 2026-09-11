@@ -310,7 +310,14 @@ QUALITY BAR:
     // Only color and background are stripped. Everything else the AI writes -
     // layout, spacing, sizing, borders, radii, shadows, gradients, flex rules -
     // is left untouched.
-    inner = inner.replace(/style\s*=\s*"([^"]*)"/gi, function (_match, styles) {
+    // Any <style> block the model emits sits inside #flyer-body and its rules
+    // can beat the shell's, so remove those wholesale before anything else.
+    inner = inner.replace(/<style[\s\S]*?<\/style>/gi, "");
+
+    // Handles both double- and single-quoted style attributes; an earlier
+    // version only matched double quotes, which let single-quoted colors
+    // through and kept producing washed-out text on light canvases.
+    inner = inner.replace(/style\s*=\s*(["'])([\s\S]*?)\1/gi, function (_match, quote, styles) {
       const cleaned = String(styles)
         .split(";")
         .filter(function (decl) {
@@ -318,7 +325,7 @@ QUALITY BAR:
           return prop !== "color" && prop !== "background-color" && prop !== "background";
         })
         .join(";");
-      return `style="${cleaned}"`;
+      return `style=${quote}${cleaned}${quote}`;
     });
 
     let html = buildFlyerShell({
