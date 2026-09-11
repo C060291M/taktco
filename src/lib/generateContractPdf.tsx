@@ -20,7 +20,7 @@ export async function generateContractPdf(params: {
   signedAt: Date | null;
   createdAt: Date;
 }) {
-  const styles = pdfStyles(params.accentColor || "#1EAEC4");
+  const styles = pdfStyles(params.accentColor || "#1EAEC4", true);
   const tz = params.timeZone || "America/Chicago";
 
   const contentLines = params.content ? params.content.split("\n") : [];
@@ -46,7 +46,7 @@ export async function generateContractPdf(params: {
           ...contentLines.map(function (line, i) {
             return React.createElement(
               Text,
-              { key: i, style: { fontSize: 9.5, color: "#333", lineHeight: 1.5, minHeight: line.trim() === "" ? 8 : undefined } },
+              { key: i, style: { fontSize: 10.5, fontFamily: "Times-Roman", color: "#222", lineHeight: 1.45, minHeight: line.trim() === "" ? 7 : undefined } },
               line.trim() === "" ? " " : line
             );
           })
@@ -62,10 +62,10 @@ export async function generateContractPdf(params: {
         React.createElement(
           View,
           { style: { flex: 1 } },
-          React.createElement(Text, { style: { fontSize: 8, color: params.accentColor, fontWeight: 700, marginBottom: 3 } }, "SIGNED BY COMPANY"),
+          React.createElement(Text, { style: { fontSize: 8, fontFamily: "Times-Bold", color: params.accentColor, fontWeight: 700, letterSpacing: 0.5, marginBottom: 3 } }, "SIGNED BY COMPANY"),
           React.createElement(
             Text,
-            { style: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" } },
+            { style: { fontSize: 11, fontFamily: "Times-Bold", fontWeight: 700, color: "#1a1a1a" } },
             params.companySignedByName
               ? `${params.companySignedByName}${params.companySignedAt ? ` - ${formatDateInTz(params.companySignedAt, tz)}` : ""}`
               : "Not signed"
@@ -74,10 +74,10 @@ export async function generateContractPdf(params: {
         React.createElement(
           View,
           { style: { flex: 1 } },
-          React.createElement(Text, { style: { fontSize: 8, color: params.accentColor, fontWeight: 700, marginBottom: 3 } }, "SIGNED BY CLIENT"),
+          React.createElement(Text, { style: { fontSize: 8, fontFamily: "Times-Bold", color: params.accentColor, fontWeight: 700, letterSpacing: 0.5, marginBottom: 3 } }, "SIGNED BY CLIENT"),
           React.createElement(
             Text,
-            { style: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" } },
+            { style: { fontSize: 11, fontFamily: "Times-Bold", fontWeight: 700, color: "#1a1a1a" } },
             params.signedByName
               ? `${params.signedByName}${params.signedAt ? ` - ${formatDateInTz(params.signedAt, tz)}` : ""}`
               : "Not signed"

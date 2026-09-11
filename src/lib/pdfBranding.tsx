@@ -1,4 +1,4 @@
-﻿// Shared branding building blocks for all three document PDFs
+// Shared branding building blocks for all three document PDFs
 // (generateContractPdf, generateEstimatePdf, generateInvoicePdf). Every
 // visual element here is driven by the company's own Company.logoUrl and
 // Company.brandAccentColor - nothing hardcoded.
@@ -20,33 +20,39 @@ function darken(hex: string, amount: number): string {
   return "#" + [r, g, b].map(function (v) { return v.toString(16).padStart(2, "0"); }).join("");
 }
 
-export function pdfStyles(accentColor: string) {
+// `serif` switches the document to Times throughout. Contracts use it: a legal
+// agreement set in a serif face reads as a formal instrument rather than a web
+// page. Estimates and invoices stay sans, where numeric columns and totals are
+// the point and sans digits are cleaner to scan.
+export function pdfStyles(accentColor: string, serif = false) {
+  const bodyFont = serif ? "Times-Roman" : "Helvetica";
+  const boldFont = serif ? "Times-Bold" : "Helvetica-Bold";
   const accent = accentColor || "#1EAEC4";
   const deep = darken(accent, 0.35);
 
   return StyleSheet.create({
-    page: { padding: 32, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a" },
+    page: { padding: 32, fontSize: serif ? 10.5 : 10, fontFamily: bodyFont, color: "#1a1a1a" },
     outerBorder: { position: "absolute", top: 20, left: 20, right: 20, bottom: 20, border: "1pt solid #ccc" },
     content: { padding: 20 },
     headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 },
     logo: { width: 62, height: 62, marginBottom: 8, objectFit: "contain" },
-    companyName: { fontSize: 15, fontWeight: 700, color: deep, marginBottom: 3 },
+    companyName: { fontSize: 15, fontWeight: 700, fontFamily: boldFont, color: deep, marginBottom: 3 },
     companyMeta: { fontSize: 8.5, color: "#555", marginBottom: 1 },
-    docTypeHeading: { fontSize: 28, fontWeight: 700, color: deep, textAlign: "right", letterSpacing: 1.5 },
+    docTypeHeading: { fontSize: 28, fontWeight: 700, fontFamily: boldFont, color: deep, textAlign: "right", letterSpacing: 1 },
     metaBlock: { marginTop: 10, alignItems: "flex-end" },
     metaRow: { flexDirection: "row", marginBottom: 2 },
     metaLabel: { fontSize: 8, color: "#888", width: 70, textAlign: "right", marginRight: 6 },
-    metaValue: { fontSize: 9, fontWeight: 700, color: "#1a1a1a" },
+    metaValue: { fontSize: 9, fontWeight: 700, fontFamily: boldFont, color: "#1a1a1a" },
     divider: { borderBottom: "1pt solid #ddd", marginBottom: 16 },
     preparedForRow: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
     preparedForIconBox: { width: 16, height: 16, borderRadius: 8, backgroundColor: accent + "18", alignItems: "center", justifyContent: "center", marginRight: 6 },
     preparedForBox: { marginBottom: 16, paddingBottom: 10, borderBottom: "1pt solid #ddd" },
     preparedForLabel: { fontSize: 8, color: accent, fontWeight: 700, letterSpacing: 0.5 },
-    clientName: { fontSize: 12, fontWeight: 700, marginBottom: 2 },
+    clientName: { fontSize: 12, fontWeight: 700, fontFamily: boldFont, marginBottom: 2 },
     clientLine: { fontSize: 9, color: "#555" },
     table: { border: "1pt solid #ddd", borderRadius: 2 },
     tableHeaderRow: { flexDirection: "row", backgroundColor: deep, paddingVertical: 7, paddingHorizontal: 10 },
-    tableHeaderCell: { fontSize: 9, fontWeight: 700, color: "#fff" },
+    tableHeaderCell: { fontSize: 9, fontWeight: 700, fontFamily: boldFont, color: "#fff" },
     tableRow: { flexDirection: "row", paddingVertical: 7, paddingHorizontal: 10, borderTop: "0.5pt solid #eee" },
     tableRowAlt: { flexDirection: "row", paddingVertical: 7, paddingHorizontal: 10, borderTop: "0.5pt solid #eee", backgroundColor: "#fafafa" },
     tableCell: { fontSize: 9.5, color: "#333" },
@@ -68,8 +74,8 @@ export function pdfStyles(accentColor: string) {
       justifyContent: "space-between",
       alignItems: "center"
     },
-    grandTotalLabel: { fontSize: 11, fontWeight: 700, color: "#1a1a1a" },
-    grandTotalValue: { fontSize: 15, fontWeight: 700, color: deep },
+    grandTotalLabel: { fontSize: 11, fontWeight: 700, fontFamily: boldFont, color: "#1a1a1a" },
+    grandTotalValue: { fontSize: 15, fontWeight: 700, fontFamily: boldFont, color: deep },
     statusBanner: { marginTop: 22, padding: 12, borderRadius: 4, alignItems: "center", border: "1pt solid #c8e6c9" },
     statusBannerText: { fontSize: 11, fontWeight: 700 },
     footer: { marginTop: 30, paddingTop: 12, borderTop: "1pt solid #eee", textAlign: "center" },
