@@ -10,6 +10,7 @@ import { PunchListPanel } from "@/features/jobs/PunchListPanel";
 import { CrewAndStatus } from "@/features/jobs/CrewAndStatus";
 import { DeleteJobButton } from "@/features/jobs/DeleteJobButton";
 import { TechSignOff } from "@/features/jobs/TechSignOff";
+import { JobPhotoActions } from "@/features/jobs/JobPhotoActions";
 
 function money(n: number | { toString(): string }) {
   return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -113,7 +114,10 @@ export default async function JobDetailPage({ params }: { params: { number: stri
                     {groupPhotos.map(function (p) {
                       return (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img key={p.id} src={p.url} alt={p.caption || group.label} title={p.caption || undefined} className="rounded-lg aspect-square object-cover" />
+                        <div key={p.id}>
+                          <img src={p.url} alt={p.caption || group.label} title={p.caption || undefined} className="rounded-lg aspect-square object-cover w-full" />
+                          {!isFieldTech && <JobPhotoActions jobId={job.id} photoId={p.id} url={p.url} />}
+                        </div>
                       );
                     })}
                   </div>
