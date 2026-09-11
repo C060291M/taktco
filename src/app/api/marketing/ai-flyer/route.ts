@@ -294,9 +294,32 @@ QUALITY BAR:
     console.log("[ai-flyer] canvas:", canvas, "| wrapper found:", Boolean(innerMatch));
     console.log("[ai-flyer] sample:", raw.slice(0, 900));
 
-    const inner = innerMatch
+    let inner = innerMatch
       ? innerMatch[0]
       : `<div id="flyer-body" style="display:flex;flex-direction:column;height:100%">${raw}</div>`;
+
+    // Strip color and background declarations out of the AI's inline styles.
+    //
+    // Repeated rounds of CSS enforcement failed to keep text readable because
+    // an inline style outranks any stylesheet rule - no selector is specific
+    // enough to beat it. Rather than keep fighting the cascade, the competing
+    // declarations are removed outright: with no inline color present, the
+    // shell's surface classes are the only thing setting text color, which is
+    // what they were designed to be.
+    //
+    // Only color and background are stripped. Everything else the AI writes -
+    // layout, spacing, sizing, borders, radii, shadows, gradients, flex rules -
+    // is left untouched.
+    inner = inner.replace(/style\s*=\s*"([^"]*)"/gi, function (_match, styles) {
+      const cleaned = String(styles)
+        .split(";")
+        .filter(function (decl) {
+          const prop = decl.split(":")[0].trim().toLowerCase();
+          return prop !== "color" && prop !== "background-color" && prop !== "background";
+        })
+        .join(";");
+      return `style="${cleaned}"`;
+    });
 
     let html = buildFlyerShell({
       inner,
@@ -317,6 +340,7 @@ QUALITY BAR:
     // AI to include it, but a silently blank flyer is too bad a failure to
     // leave to chance - force it on any <img> that's missing it.
     html = html.replace(/<img(?![^>]*\bcrossorigin=)/gi, '<img crossorigin="anonymous"');
+
 
     // Swap the AI's placeholder tokens for the real (possibly very large
     // base64) image URLs - done here, never sent to the AI itself.
