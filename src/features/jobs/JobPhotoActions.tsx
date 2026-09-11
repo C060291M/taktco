@@ -10,7 +10,16 @@ import { uploadFileSmart } from "@/lib/uploadFile";
 // rotation flag instead would require every consumer to honor it - job page,
 // portfolio, both flyer generators, every PDF - and missing one would put a
 // sideways photo somewhere nobody checks. Rewriting fixes it everywhere.
-export function JobPhotoActions({ jobId, photoId, url }: { jobId: string; photoId: string; url: string }) {
+const PHOTO_TYPES = [
+  { value: "BEFORE", label: "Before" },
+  { value: "PROGRESS", label: "Progress" },
+  { value: "AFTER", label: "After" },
+  { value: "INSPECTION", label: "Inspection" },
+  { value: "WARRANTY", label: "Warranty" },
+  { value: "MISC", label: "Misc" }
+];
+
+export function JobPhotoActions({ jobId, photoId, url, type }: { jobId: string; photoId: string; url: string; type: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +72,23 @@ export function JobPhotoActions({ jobId, photoId, url }: { jobId: string; photoI
     setBusy(null);
   }
 
+// The flyer's before/after comparison only appears when the project has one
+  // photo tagged BEFORE and one tagged AFTER. Until now a mis-tagged photo
+  // could only be fixed by deleting and re-uploading it, which is why projects
+  // with plenty of photos kept producing single-photo flyers.
+  async function changeType(next: string) {
+    setBusy("type");
+    setError(null);
+    const res = await fetch(`/api/jobs/${jobId}/photos/${photoId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, type: next })
+    });
+    setBusy(null);
+    if (res.ok) router.refresh();
+    else setError("Couldn't change the photo type.");
+  }
+
   async function remove() {
     if (!confirm("Delete this photo? This can't be undone.")) return;
     setBusy("delete");
@@ -75,6 +101,16 @@ export function JobPhotoActions({ jobId, photoId, url }: { jobId: string; photoI
 
   return (
     <div>
+<select
+        className="input text-[11px] py-1 w-full mt-1"
+        value={type}
+        disabled={!!busy}
+        onChange={(e) => changeType(e.target.value)}
+      >
+        {PHOTO_TYPES.map(function (t) {
+          return <option key={t.value} value={t.value}>{t.label}</option>;
+        })}
+      </select>
       <div className="flex gap-1 mt-1">
         <button
           className="text-[11px] px-2 py-1 rounded border border-graphite-600 text-graphite-300 hover:text-white hover:border-graphite-400 disabled:opacity-50"

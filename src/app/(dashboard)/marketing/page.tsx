@@ -71,6 +71,19 @@ export default async function MarketingPage({ searchParams }: { searchParams: { 
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={anyPhoto.url} alt="Project" className="w-full aspect-video object-cover rounded-lg mb-4" />
           ) : null}
+          {!(beforePhoto && afterPhoto) && (
+            <div className="mb-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/5">
+              <p className="text-xs text-amber-300">
+                This project has photos, but none are tagged both Before and After.
+              </p>
+              <p className="text-[11px] text-graphite-400 mt-1">
+                Flyers show a side-by-side transformation when one photo is tagged Before and another After - tag them on the project page to unlock it.
+              </p>
+              <a href={`/jobs/${job.jobNumber}`} className="text-[11px] text-accent hover:underline mt-1 inline-block">
+                Open this project
+              </a>
+            </div>
+          )}
           <a href={flyerUrl} className="btn-primary inline-block text-sm">
             Download Flyer (PDF)
           </a>

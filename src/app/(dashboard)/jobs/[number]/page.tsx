@@ -116,7 +116,7 @@ export default async function JobDetailPage({ params }: { params: { number: stri
                         // eslint-disable-next-line @next/next/no-img-element
                         <div key={p.id}>
                           <img src={p.url} alt={p.caption || group.label} title={p.caption || undefined} className="rounded-lg aspect-square object-cover w-full" />
-                          {!isFieldTech && <JobPhotoActions jobId={job.id} photoId={p.id} url={p.url} />}
+                          {!isFieldTech && <JobPhotoActions jobId={job.id} photoId={p.id} url={p.url} type={p.type} />}
                         </div>
                       );
                     })}
