@@ -21,13 +21,15 @@ export function JobPhotoActions({ jobId, photoId, url }: { jobId: string; photoI
     try {
       // crossOrigin matters here: photos are served from the CDN, and a canvas
       // cannot read pixels from a cross-origin image loaded without it.
+      // Loaded through our own origin rather than straight from the CDN -
+      // a canvas cannot read cross-origin pixels without CORS cooperation the
+      // CDN does not provide, which made rotation fail outright.
       const img = new Image();
-      img.crossOrigin = "anonymous";
       const loaded = new Promise<void>(function (resolve, reject) {
         img.onload = function () { resolve(); };
         img.onerror = function () { reject(new Error("Could not load the photo.")); };
       });
-      img.src = url;
+      img.src = url.startsWith("data:") ? url : `/api/image-proxy?url=${encodeURIComponent(url)}`;
       await loaded;
 
       // Swap width and height - a 90 degree turn transposes the dimensions.
