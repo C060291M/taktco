@@ -269,10 +269,17 @@ QUALITY BAR:
 
     // The model declares its canvas choice on the first line, then returns the
     // inner markup. Strip that line off and use it to build the shell.
-    let canvas: "light" | "dark" = "dark";
+    // Locked to dark. Light canvases repeatedly rendered unreadable text on
+    // elements without a surface class - the company name, headline, and
+    // summary - and eight attempts at enforcing color via CSS, specificity,
+    // opacity, and stripping inline styles never reliably fixed it. Dark has
+    // been consistently correct throughout, so the choice is removed rather
+    // than shipping a generator that produces an unusable flyer some of the
+    // time. The CANVAS line is still parsed and discarded so the prompt
+    // contract stays intact; revisit light once the root cause is known.
+    const canvas: "light" | "dark" = "dark";
     const canvasMatch = raw.match(/^\s*CANVAS:\s*(light|dark)\s*$/im);
     if (canvasMatch) {
-      canvas = canvasMatch[1].toLowerCase() === "light" ? "light" : "dark";
       raw = raw.replace(canvasMatch[0], "");
     }
 
@@ -291,8 +298,7 @@ QUALITY BAR:
     // if the AI's markup is really inside #flyer-body. Log a sample of what it
     // actually returned so this can be read from the deploy logs instead of
     // inferred from the rendered PDF. Remove once the cause is confirmed.
-    console.log("[ai-flyer] canvas:", canvas, "| wrapper found:", Boolean(innerMatch));
-    console.log("[ai-flyer] sample:", raw.slice(0, 900));
+    
 
     let inner = innerMatch
       ? innerMatch[0]
