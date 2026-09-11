@@ -195,6 +195,18 @@ export async function POST(req: NextRequest) {
   const hasBeforeAfter = Boolean(beforePhoto && afterPhoto);
   const hasSinglePhoto = !hasBeforeAfter && Boolean(anyPhoto);
 
+  // Supporting shots: everything not already used as the before/after pair or
+  // the single hero. Projects often have several usable photos, and until now
+  // the flyer only ever used one or two of them - the rest were uploaded and
+  // then ignored. Capped at three so the prompt stays small and the page does
+  // not turn into a contact sheet.
+  const usedIds = new Set(
+    [hasBeforeAfter ? beforePhoto?.id : null, hasBeforeAfter ? afterPhoto?.id : null, hasSinglePhoto ? anyPhoto?.id : null].filter(Boolean)
+  );
+  const supportingPhotos = job.photos
+    .filter(function (p) { return !usedIds.has(p.id); })
+    .slice(0, 3);
+
   const systemPrompt = `You are a senior graphic designer at a construction marketing agency. Design a single-page project flyer a contractor would be proud to hand a commercial client.
 
 OUTPUT FORMAT:
@@ -235,6 +247,7 @@ IMAGES - you never see the actual photos. Reference them with these exact placeh
 ${hasLogo ? '  <img src="{{LOGO}}"> - the company logo, small, in the header. Use object-fit: contain and never crop it into a shape.' : "  No logo available - use a text treatment of the company name instead."}
 ${hasBeforeAfter ? '  <img src="{{BEFORE_PHOTO}}"> and <img src="{{AFTER_PHOTO}}"> - real job-site photos. Give them size; they are the centerpiece.' : ""}
 ${hasSinglePhoto ? '  <img src="{{PROJECT_PHOTO}}"> - a real job-site photo. Make it a large hero image.' : ""}
+${supportingPhotos.length > 0 ? `  Supporting shots you may also use: ${supportingPhotos.map(function (_p, i) { return "{{PHOTO_" + (i + 1) + "}}"; }).join(", ")} - additional real job-site photos. Use them as smaller secondary images (a strip, a grid, or a detail shot) to fill the page, NOT at the same size as the main imagery. Skip any you don't have room for.` : ""}
 Every <img> must include crossorigin="anonymous". Give each one explicit width/height or object-fit styling so it fills its container properly.
 - A headline with actual substance - a phrase, not a single orphaned word
 - A short professional summary of the work (2-3 sentences, written like an established firm, never "check out this awesome project")
@@ -371,6 +384,22 @@ QUALITY BAR:
       const photoData = await toDataUri(anyPhoto.url);
       html = html.split("{{PROJECT_PHOTO}}").join(photoData || anyPhoto.url);
     }
+
+    // Supporting shots. Any token the AI chose not to use is stripped along
+    // with its surrounding <img> tag, so an unused placeholder never renders
+    // as a broken image.
+    for (let i = 0; i < supportingPhotos.length; i++) {
+      const token = `{{PHOTO_${i + 1}}}`;
+      const photo = supportingPhotos[i];
+      const data = await toDataUri(photo.url);
+      html = html.split(token).join(data || photo.url);
+    }
+
+    // The AI is told it may skip supporting shots it has no room for, so any
+    // token left unreplaced would otherwise render as literal text. Remove the
+    // whole <img> tag rather than just the token, which would leave a broken
+    // image icon behind.
+    html = html.replace(/<img[^>]*\{\{PHOTO_\d+\}\}[^>]*>/gi, "");
 
     return NextResponse.json({ html });
   } catch (err) {
