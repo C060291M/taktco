@@ -56,6 +56,23 @@ export async function deductCredits(companyId: string, feature: string) {
 // instead of talking to a provider directly. Handles routing between TAKTCO AI
 // (our own Anthropic key, credit-metered) and BYOAI (the company's own key,
 // no credit cost to them), and logs every call to AiUsageLog either way.
+// Returns credits to a wallet after a failed call. Puts them back the way they
+// were taken: cycle usage first, then the purchased balance.
+export async function refundCredits(companyId: string, cost: number) {
+  if (cost <= 0) return;
+  const wallet = await db.aiCreditWallet.findUnique({ where: { companyId } });
+  if (!wallet) return;
+  const backToCycle = Math.min(cost, wallet.usedThisCycle);
+  const backToPurchased = cost - backToCycle;
+  await db.aiCreditWallet.update({
+    where: { companyId },
+    data: {
+      usedThisCycle: wallet.usedThisCycle - backToCycle,
+      purchasedCredits: wallet.purchasedCredits + backToPurchased
+    }
+  });
+}
+
 export async function generateWithGateway(params: {
   companyId: string;
   feature: string;
@@ -101,6 +118,12 @@ export async function generateWithGateway(params: {
   }
 
   // TAKTCO AI mode (default): credit-metered, uses our own Anthropic key.
+  //
+  // Credits are checked and deducted BEFORE the call so a company that is out
+  // cannot trigger an expensive request - but if the call then fails, they are
+  // refunded. Charging for a request that produced nothing is charging for AI
+  // that was never used, and the usage log already recorded creditsUsed: 0 for
+  // failures, so the wallet and the log disagreed.
   const cost = await deductCredits(params.companyId, params.feature);
 
   try {
@@ -113,6 +136,7 @@ export async function generateWithGateway(params: {
     });
     return result;
   } catch (err) {
+    await refundCredits(params.companyId, cost);
     await db.aiUsageLog.create({
       data: {
         companyId: params.companyId, mode: "NOVA_AI", provider: "ANTHROPIC", model: "claude-sonnet-5",

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/database/client";
 import { askClaudeForJSON } from "@/lib/ai";
-import { InsufficientCreditsError, deductCredits } from "@/lib/aiGateway";
+import { InsufficientCreditsError, deductCredits, refundCredits } from "@/lib/aiGateway";
 
 function canManage(role: string) {
   return role === "OWNER" || role === "ADMIN";
@@ -34,11 +34,15 @@ export async function POST(req: NextRequest) {
 THEIR EXISTING PRICING MATRIX:
 ${existingSummary || "(empty)"}`;
 
+  // Declared outside the try so the catch can refund it - a deduction that
+  // happened but whose AI call then failed has to be given back.
+  let creditCost = 0;
   try {
-    await deductCredits(ctx.company.id, "estimate_builder");
+    creditCost = await deductCredits(ctx.company.id, "estimate_builder");
     const result = await askClaudeForJSON<{ suggestions: Suggestion[] }>(systemPrompt, parsed.data.context || "Suggest items for my business.");
     return NextResponse.json(result);
   } catch (err) {
+    if (!(err instanceof InsufficientCreditsError)) await refundCredits(ctx.company.id, creditCost);
     if (err instanceof InsufficientCreditsError) return NextResponse.json({ error: "INSUFFICIENT_CREDITS" }, { status: 402 });
     return NextResponse.json({ error: err instanceof Error ? err.message : "AI suggestion failed." }, { status: 502 });
   }

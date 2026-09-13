@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
 import { askClaudeForJSON } from "@/lib/ai";
-import { InsufficientCreditsError, deductCredits } from "@/lib/aiGateway";
+import { InsufficientCreditsError, deductCredits, refundCredits } from "@/lib/aiGateway";
 import { getPricingMatrixForAI } from "@/lib/pricingMatrix";
 
 const schema = z.object({
@@ -73,11 +73,21 @@ Given a plain-language job description, produce a realistic, itemized estimate d
 }
 Every unitPrice in lineItems must come directly from the Pricing Matrix above - copy the price exactly, only the quantity varies based on the job description. Use the exact item names and units from the matrix where they match. Return 3-8 line items.`;
 
+  // Declared outside the try so the catch can refund it - a deduction that
+  // happened but whose AI call then failed has to be given back.
+  let creditCost = 0;
   try {
-    await deductCredits(ctx.company.id, "estimate_builder");
+    creditCost = await deductCredits(ctx.company.id, "estimate_builder");
     const draft = await askClaudeForJSON<AiEstimateDraft>(systemPrompt, parsed.data.description);
     return NextResponse.json(draft);
   } catch (err) {
+    // Deduction happens before the AI call so an out-of-credit company cannot
+    // trigger an expensive request. If the call itself then failed, no AI was
+    // actually used, so the credits go back. InsufficientCreditsError means
+    // nothing was ever deducted, so there is nothing to refund.
+    if (!(err instanceof InsufficientCreditsError)) {
+      await refundCredits(ctx.company.id, creditCost);
+    }
     if (err instanceof InsufficientCreditsError) {
       return NextResponse.json({ error: "INSUFFICIENT_CREDITS" }, { status: 402 });
     }
