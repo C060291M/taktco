@@ -15,7 +15,8 @@ const DEFAULT_FEATURE_COSTS: Record<string, number> = {
   estimate_builder: 5,
   contract_builder: 5,
   marketing_post: 3,
-  business_analysis: 5
+business_analysis: 5,
+  ai_flyer: 5
 };
 
 export async function getOrCreateWallet(companyId: string) {

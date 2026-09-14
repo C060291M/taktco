@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { askClaude } from "@/lib/ai";
+import { deductCredits, refundCredits, InsufficientCreditsError } from "@/lib/aiGateway";
 
 // True AI-designed flyer - unlike the fixed-template generateFlyerPdf,
 // this hands the AI a complete creative brief (trade type, contact info,
@@ -277,7 +278,13 @@ QUALITY BAR:
     hasSinglePhoto
   });
 
+let creditCost = 0;
   try {
+// Metered like every other AI feature. This generates a full HTML document
+    // and is among the most expensive calls in the app, so it should not be the
+    // one thing that is free. Deducted before the call so an out-of-credit
+    // company cannot trigger it, refunded below if the call fails.
+    creditCost = await deductCredits(ctx.company.id, "ai_flyer");
     let raw = await askClaude(systemPrompt, userPrompt);
 
     // The model declares its canvas choice on the first line, then returns the
@@ -402,7 +409,13 @@ QUALITY BAR:
     html = html.replace(/<img[^>]*\{\{PHOTO_\d+\}\}[^>]*>/gi, "");
 
     return NextResponse.json({ html });
-  } catch (err) {
+} catch (err) {
+    if (!(err instanceof InsufficientCreditsError)) {
+      await refundCredits(ctx.company.id, creditCost);
+    }
+    if (err instanceof InsufficientCreditsError) {
+      return NextResponse.json({ error: "INSUFFICIENT_CREDITS" }, { status: 402 });
+    }
     return NextResponse.json({ error: err instanceof Error ? err.message : "AI flyer generation failed." }, { status: 500 });
   }
 }
