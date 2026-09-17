@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const sendingCampaigns = await db.campaign.findMany({ where: { status: "SENDING" } });
+  const sendingCampaigns = await db.campaign.findMany({ where: { status: "SENDING", deletedAt: null } });
 
   let campaignsProcessed = 0;
   let totalSent = 0;

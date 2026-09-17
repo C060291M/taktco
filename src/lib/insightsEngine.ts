@@ -17,7 +17,8 @@ export async function generateInsightsForCompany(companyId: string) {
     where: {
       companyId,
       status: { in: ["UNPAID", "SENT", "VIEWED", "PARTIALLY_PAID"] },
-      dueDate: { gte: now, lte: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) }
+      dueDate: { gte: now, lte: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) },
+      deletedAt: null
     },
     include: { customer: true }
   });
@@ -42,7 +43,7 @@ export async function generateInsightsForCompany(companyId: string) {
 
   // Rule: estimate sent/viewed 5+ days ago with no response - stalled.
   const stalledEstimates = await db.estimate.findMany({
-    where: { companyId, status: { in: ["SENT", "VIEWED"] }, createdAt: { lte: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) } },
+    where: { companyId, status: { in: ["SENT", "VIEWED"] }, createdAt: { lte: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) }, deletedAt: null },
     include: { customer: true }
   });
   for (const est of stalledEstimates) {
@@ -66,7 +67,7 @@ export async function generateInsightsForCompany(companyId: string) {
 
   // Rule: job past its target completion date and not yet complete.
   const delayedJobs = await db.job.findMany({
-    where: { companyId, targetCompletionDate: { lt: now }, status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] } },
+    where: { companyId, targetCompletionDate: { lt: now }, status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] }, deletedAt: null },
     include: { customer: true }
   });
   for (const job of delayedJobs) {

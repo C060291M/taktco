@@ -29,16 +29,19 @@ export async function computeBusinessHealth(companyId: string) {
   ] = await Promise.all([
     db.payment.aggregate({ where: { companyId, paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
     db.payment.aggregate({ where: { companyId, paidAt: { gte: lastMonthStart, lt: startOfMonth } }, _sum: { amount: true } }),
-    db.invoice.findMany({ where: { companyId, status: { in: ["UNPAID", "SENT", "VIEWED", "OVERDUE", "PARTIALLY_PAID"] } }, select: { amount: true, status: true } }),
-    db.invoice.count({ where: { companyId, status: "OVERDUE" } }),
+    db.invoice.findMany({ where: { companyId, status: { in: ["UNPAID", "SENT", "VIEWED", "OVERDUE", "PARTIALLY_PAID"] }, deletedAt: null }, select: { amount: true, status: true } }),
+    db.invoice.count({ where: { companyId, status: "OVERDUE", deletedAt: null } }),
+    // PAID/issueDate query intentionally excludes the deletedAt filter - a soft-deleted
+    // invoice with real payments recorded against it still counts as revenue actually
+    // collected, same reasoning as periodReport.ts and the tax summary report.
     db.invoice.findMany({ where: { companyId, status: "PAID", issueDate: { gte: ninetyDaysAgo } }, include: { payments: { orderBy: { paidAt: "asc" }, take: 1 } } }),
-    db.estimate.findMany({ where: { companyId, status: "APPROVED", createdAt: { gte: ninetyDaysAgo } }, select: { lineItems: true, totalAmount: true } }),
-    db.estimate.groupBy({ by: ["status"], where: { companyId, createdAt: { gte: ninetyDaysAgo }, status: { in: ["APPROVED", "DECLINED"] } }, _count: true }),
+    db.estimate.findMany({ where: { companyId, status: "APPROVED", createdAt: { gte: ninetyDaysAgo }, deletedAt: null }, select: { lineItems: true, totalAmount: true } }),
+    db.estimate.groupBy({ by: ["status"], where: { companyId, createdAt: { gte: ninetyDaysAgo }, status: { in: ["APPROVED", "DECLINED"] }, deletedAt: null }, _count: true }),
     db.lead.groupBy({ by: ["pipelineStage"], where: { companyId, createdAt: { gte: ninetyDaysAgo } }, _count: true }),
-    db.job.findMany({ where: { companyId, targetCompletionDate: { not: null, gte: ninetyDaysAgo } }, select: { targetCompletionDate: true, actualCompletionDate: true, status: true } }),
+    db.job.findMany({ where: { companyId, targetCompletionDate: { not: null, gte: ninetyDaysAgo }, deletedAt: null }, select: { targetCompletionDate: true, actualCompletionDate: true, status: true } }),
     db.review.aggregate({ where: { companyId }, _avg: { rating: true }, _count: true }),
     db.task.count({ where: { companyId, completed: false, dueDate: { lt: now } } }),
-    db.estimate.aggregate({ where: { companyId, status: { in: ["SENT", "VIEWED"] } }, _sum: { totalAmount: true }, _count: true })
+    db.estimate.aggregate({ where: { companyId, status: { in: ["SENT", "VIEWED"] }, deletedAt: null }, _sum: { totalAmount: true }, _count: true })
   ]);
 
   const findings: { label: string; score: number; max: number; detail: string }[] = [];

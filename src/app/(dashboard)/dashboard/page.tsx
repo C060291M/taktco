@@ -1,4 +1,4 @@
-﻿import { db } from "@/database/client";
+import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { StatCard } from "@/components/ui/StatCard";
@@ -31,8 +31,8 @@ export default async function DashboardPage() {
     db.payment.aggregate({ where: { companyId, paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
     db.payment.aggregate({ where: { companyId, paidAt: { gte: startOfYear } }, _sum: { amount: true } }),
     db.lead.count({ where: { companyId, pipelineStage: { in: ["NEW_LEAD", "CONTACTED", "ESTIMATE_SENT"] } } }),
-    db.job.count({ where: { companyId, status: { in: ["SCHEDULED", "IN_PROGRESS"] } } }),
-    db.invoice.findMany({ where: { companyId, status: { in: ["UNPAID", "OVERDUE"] } } }),
+    db.job.count({ where: { companyId, status: { in: ["SCHEDULED", "IN_PROGRESS"] }, deletedAt: null } }),
+    db.invoice.findMany({ where: { companyId, status: { in: ["UNPAID", "OVERDUE"] }, deletedAt: null } }),
     db.lead.findMany({
       where: { companyId },
       include: { customer: true },
@@ -50,9 +50,9 @@ export default async function DashboardPage() {
   const outstandingTotal = unpaidInvoices.reduce(function (sum, inv) { return sum + Number(inv.amount); }, 0);
 
   const [draftEstimates, pendingEstimates, approvedThisMonth, contractsAwaitingSignature] = await Promise.all([
-    db.estimate.count({ where: { companyId, status: "DRAFT" } }),
-    db.estimate.count({ where: { companyId, status: { in: ["SENT", "VIEWED"] } } }),
-    db.estimate.count({ where: { companyId, status: "APPROVED", approvedAt: { gte: startOfMonth } } }),
+    db.estimate.count({ where: { companyId, status: "DRAFT", deletedAt: null } }),
+    db.estimate.count({ where: { companyId, status: { in: ["SENT", "VIEWED"] }, deletedAt: null } }),
+    db.estimate.count({ where: { companyId, status: "APPROVED", approvedAt: { gte: startOfMonth }, deletedAt: null } }),
     db.contract.count({ where: { companyId, status: "SENT" } })
   ]);
 

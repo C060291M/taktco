@@ -23,12 +23,12 @@ export async function GET(req: NextRequest) {
       select: { id: true, name: true, email: true }
     }),
     db.estimate.findMany({
-      where: { companyId, customer: { name: contains } },
+      where: { companyId, customer: { name: contains }, deletedAt: null },
       take: 5,
       include: { customer: true }
     }),
     db.invoice.findMany({
-      where: { companyId, OR: [{ invoiceNumber: contains }, { customer: { name: contains } }] },
+      where: { companyId, OR: [{ invoiceNumber: contains }, { customer: { name: contains } }], deletedAt: null },
       take: 5,
       include: { customer: true }
     }),
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       include: { customer: true }
     }),
     db.job.findMany({
-      where: { companyId, customer: { name: contains } },
+      where: { companyId, customer: { name: contains }, deletedAt: null },
       take: 5,
       include: { customer: true }
     })

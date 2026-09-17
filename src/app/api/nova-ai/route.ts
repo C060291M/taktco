@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
   const [monthRevenue, openLeads, activeJobs, unpaidInvoices, followUpsDue, pendingEstimates, unsignedContracts, pendingReviewRequests, pendingReferrals] = await Promise.all([
     db.payment.aggregate({ where: { companyId, paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
     db.lead.count({ where: { companyId, pipelineStage: { in: ["NEW_LEAD", "CONTACTED", "ESTIMATE_SENT"] } } }),
-    db.job.count({ where: { companyId, status: { in: ["SCHEDULED", "IN_PROGRESS"] } } }),
-    db.invoice.findMany({ where: { companyId, status: { in: ["UNPAID", "OVERDUE"] } }, include: { customer: true } }),
+    db.job.count({ where: { companyId, status: { in: ["SCHEDULED", "IN_PROGRESS"] }, deletedAt: null } }),
+    db.invoice.findMany({ where: { companyId, status: { in: ["UNPAID", "OVERDUE"] }, deletedAt: null }, include: { customer: true } }),
     db.lead.findMany({ where: { companyId, nextFollowupAt: { lte: new Date() } }, include: { customer: true } }),
-    db.estimate.findMany({ where: { companyId, status: { in: ["SENT", "VIEWED"] } }, include: { customer: true } }),
+    db.estimate.findMany({ where: { companyId, status: { in: ["SENT", "VIEWED"] }, deletedAt: null }, include: { customer: true } }),
     db.contract.findMany({ where: { companyId, status: "SENT" }, include: { customer: true } }),
     db.reviewRequest.count({ where: { companyId, status: { in: ["SENT", "OPENED"] } } }),
     db.referral.count({ where: { companyId, status: "PENDING" } })

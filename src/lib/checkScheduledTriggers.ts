@@ -80,7 +80,8 @@ export async function checkScheduledTriggers() {
   const delayedJobs = await db.job.findMany({
     where: {
       targetCompletionDate: { gte: windowStart, lt: now },
-      status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] }
+      status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] },
+      deletedAt: null
     },
     include: { customer: true }
   });
@@ -106,7 +107,7 @@ export async function checkScheduledTriggers() {
   // query on subsequent runs - but the notification check still guards
   // against a duplicate if that update ever fails partway.
   const overdueInvoices = await db.invoice.findMany({
-    where: { dueDate: { gte: windowStart, lt: now }, status: { in: ["UNPAID", "SENT", "VIEWED", "PARTIALLY_PAID"] } },
+    where: { dueDate: { gte: windowStart, lt: now }, status: { in: ["UNPAID", "SENT", "VIEWED", "PARTIALLY_PAID"] }, deletedAt: null },
     include: { customer: true }
   });
   fired += await inBatches(overdueInvoices, async function (invoice) {

@@ -13,9 +13,9 @@ export async function GET() {
   const [userCount, customerCount, estimateCount, jobCount, sentInvoiceCount, aiSettings, commsSettings] = await Promise.all([
     db.user.count({ where: { companyId } }),
     db.customer.count({ where: { companyId, deletedAt: null } }),
-    db.estimate.count({ where: { companyId } }),
-    db.job.count({ where: { companyId } }),
-    db.invoice.count({ where: { companyId, status: { not: "DRAFT" } } }),
+    db.estimate.count({ where: { companyId, deletedAt: null } }),
+    db.job.count({ where: { companyId, deletedAt: null } }),
+    db.invoice.count({ where: { companyId, status: { not: "DRAFT" }, deletedAt: null } }),
     db.companyAiSettings.findUnique({ where: { companyId } }),
     db.companyCommsSettings.findUnique({ where: { companyId } })
   ]);

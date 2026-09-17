@@ -34,12 +34,12 @@ export async function GET() {
     reviewReadyCustomers
   ] = await Promise.all([
     db.followUp.count({ where: { companyId, status: "PENDING", dueDate: { lte: endOfDay } } }),
-    db.invoice.count({ where: { companyId, status: { in: ["UNPAID", "SENT", "VIEWED", "PARTIALLY_PAID"] }, dueDate: { gte: startOfDay, lt: endOfDay } } }),
-    db.job.count({ where: { companyId, startDate: { gte: startOfDay, lt: endOfDay } } }),
-    db.invoice.count({ where: { companyId, status: "OVERDUE" } }),
-    db.job.count({ where: { companyId, targetCompletionDate: { lt: now }, status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] } } }),
+    db.invoice.count({ where: { companyId, status: { in: ["UNPAID", "SENT", "VIEWED", "PARTIALLY_PAID"] }, dueDate: { gte: startOfDay, lt: endOfDay }, deletedAt: null } }),
+    db.job.count({ where: { companyId, startDate: { gte: startOfDay, lt: endOfDay }, deletedAt: null } }),
+    db.invoice.count({ where: { companyId, status: "OVERDUE", deletedAt: null } }),
+    db.job.count({ where: { companyId, targetCompletionDate: { lt: now }, status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] }, deletedAt: null } }),
     db.lead.count({ where: { companyId, pipelineStage: "NEW_LEAD" } }),
-    db.estimate.count({ where: { companyId, status: { in: ["SENT", "VIEWED"] }, createdAt: { lte: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) } } }),
+    db.estimate.count({ where: { companyId, status: { in: ["SENT", "VIEWED"] }, createdAt: { lte: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) }, deletedAt: null } }),
     db.job.count({
       where: {
         companyId,

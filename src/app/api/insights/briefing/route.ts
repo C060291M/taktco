@@ -25,8 +25,8 @@ export async function GET() {
   const [thisMonthRevenue, lastMonthRevenue, projectsBehind, invoicesNeedingAttention, followUpsDue, openLeads] = await Promise.all([
     db.payment.aggregate({ where: { companyId, paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
     db.payment.aggregate({ where: { companyId, paidAt: { gte: lastMonthStart, lt: startOfMonth } }, _sum: { amount: true } }),
-    db.job.count({ where: { companyId, targetCompletionDate: { lt: now }, status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] } } }),
-    db.invoice.count({ where: { companyId, status: { in: ["OVERDUE", "UNPAID", "SENT", "VIEWED"] } } }),
+    db.job.count({ where: { companyId, targetCompletionDate: { lt: now }, status: { notIn: ["COMPLETE", "CLOSED", "ARCHIVED"] }, deletedAt: null } }),
+    db.invoice.count({ where: { companyId, status: { in: ["OVERDUE", "UNPAID", "SENT", "VIEWED"] }, deletedAt: null } }),
     db.followUp.count({ where: { companyId, status: "PENDING", dueDate: { lte: now } } }),
     db.lead.count({ where: { companyId, pipelineStage: { notIn: ["WON", "LOST"] } } })
   ]);
