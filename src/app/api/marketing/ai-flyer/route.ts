@@ -259,7 +259,8 @@ QUALITY BAR:
 - One element should clearly dominate. Vary section heights; do not stack same-sized strips.
 - Use only the facts given. Never invent measurements, prices, durations, crew sizes, certifications, or testimonials.
 - Make it look designed: decisive borders, strong type-scale contrast, one deliberate overlapping accent element, full-bleed photography.
-- Nothing may overlap or clip text, and nothing may extend past the page.`;
+- Nothing may overlap or clip text, and nothing may extend past the page.
+- Headlines and any other text that might run long can wrap to two lines - never give a text container a fixed pixel height sized for one line, since a wrap will then be sliced off by whatever sits below it. Let text containers size to their content (no explicit height on them), and leave a real margin-bottom below a headline before the next section starts, not just line-height alone.`;
 
   const userPrompt = JSON.stringify({
     companyName: ctx.company.name,
