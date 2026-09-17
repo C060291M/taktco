@@ -119,6 +119,18 @@ export default async function SettingsPage() {
         </div>
       )}
 
+      {ctx.user.role === "OWNER" && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-medium text-white">Deleted items</h2>
+              <p className="text-xs text-graphite-400 mt-1">Restore a deleted customer, estimate, project, invoice, or campaign.</p>
+            </div>
+            <a href="/settings/deleted" className="btn-secondary">Manage</a>
+          </div>
+        </div>
+      )}
+
       <div className="card p-5">
         <h2 className="text-sm font-medium text-white mb-1">Your profile</h2>
         <p className="text-xs text-graphite-400 mb-4">{ctx.user.email} · {ctx.user.role.replace("_", " ")}</p>
