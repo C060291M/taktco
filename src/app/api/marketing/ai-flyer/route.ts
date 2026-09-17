@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
-import { askClaude } from "@/lib/ai";
-import { deductCredits, refundCredits, InsufficientCreditsError } from "@/lib/aiGateway";
+import { generateWithGateway, InsufficientCreditsError } from "@/lib/aiGateway";
 
 // True AI-designed flyer - unlike the fixed-template generateFlyerPdf,
 // this hands the AI a complete creative brief (trade type, contact info,
@@ -278,14 +277,17 @@ QUALITY BAR:
     hasSinglePhoto
   });
 
-let creditCost = 0;
   try {
-// Metered like every other AI feature. This generates a full HTML document
-    // and is among the most expensive calls in the app, so it should not be the
-    // one thing that is free. Deducted before the call so an out-of-credit
-    // company cannot trigger it, refunded below if the call fails.
-    creditCost = await deductCredits(ctx.company.id, "ai_flyer");
-    let raw = await askClaude(systemPrompt, userPrompt);
+    // Routed through the shared gateway like every other AI feature: it
+    // deducts/refunds credits internally, respects BYOAI if the company has
+    // connected their own key, and logs every call to AiUsageLog under the
+    // "ai_flyer" feature label.
+    let raw = await generateWithGateway({
+      companyId: ctx.company.id,
+      feature: "ai_flyer",
+      systemPrompt,
+      userPrompt
+    });
 
     // The model declares its canvas choice on the first line, then returns the
     // inner markup. Strip that line off and use it to build the shell.
@@ -410,9 +412,8 @@ let creditCost = 0;
 
     return NextResponse.json({ html });
 } catch (err) {
-    if (!(err instanceof InsufficientCreditsError)) {
-      await refundCredits(ctx.company.id, creditCost);
-    }
+    // No manual refund here - generateWithGateway already refunds
+    // internally on failure, same as every other AI feature.
     if (err instanceof InsufficientCreditsError) {
       return NextResponse.json({ error: "INSUFFICIENT_CREDITS" }, { status: 402 });
     }
