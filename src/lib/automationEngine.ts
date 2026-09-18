@@ -10,6 +10,7 @@ type TriggerContext = {
   jobId?: string;
   invoiceId?: string;
   leadId?: string;
+  estimateId?: string;
   // Flat, simple fields conditions can check against (e.g. "rating", "amount") -
   // deliberately not deeply nested, so both the condition evaluator and a future
   // visual builder stay simple.
@@ -82,7 +83,24 @@ export async function executeActions(
     }
 
     try {
-      await runSingleAction(companyId, action.type, config, context);
+      // false means "stop the chain here" - a live re-check (e.g. the
+      // customer already decided on their estimate) found this workflow no
+      // longer applies, not that anything actually failed. Distinguished
+      // from a thrown error, which is a real failure.
+      const shouldContinue = await runSingleAction(companyId, action.type, config, context);
+      if (!shouldContinue) {
+        await db.automationRunLog.create({
+          data: {
+            companyId,
+            workflowId,
+            trigger: (context.trigger as never) || "LEAD_CREATED",
+            status: "SKIPPED",
+            summary: `Stopped at ${action.type} - no longer applies`,
+            context: context as never
+          }
+        });
+        return;
+      }
     } catch (err) {
       await db.automationRunLog.create({
         data: {
@@ -103,14 +121,18 @@ export async function executeActions(
   });
 }
 
-async function runSingleAction(companyId: string, type: string, config: Record<string, unknown>, context: TriggerContext) {
+// Returns false to stop the rest of the action chain without it being a
+// failure (see the SKIPPED handling in executeActions above); true otherwise,
+// including when an individual action has nothing to do (e.g. no email on
+// file) - that has always just skipped that one action, not the whole chain.
+async function runSingleAction(companyId: string, type: string, config: Record<string, unknown>, context: TriggerContext): Promise<boolean> {
   const customer = context.customerId ? await db.customer.findUnique({ where: { id: context.customerId } }) : null;
   const company = await db.company.findUnique({ where: { id: companyId } });
-  if (!company) return;
+  if (!company) return true;
 
   switch (type) {
     case "SEND_EMAIL": {
-      if (!customer?.email) return;
+      if (!customer?.email) return true;
       const html = brandedEmail({
         companyName: company.name,
         logoUrl: company.logoUrl,
@@ -126,10 +148,10 @@ async function runSingleAction(companyId: string, type: string, config: Record<s
         html,
         kind: "automation"
       });
-      return;
+      return true;
     }
     case "SEND_SMS": {
-      if (!customer?.phone) return;
+      if (!customer?.phone) return true;
       await sendTrackedSms({
         companyId,
         customerId: customer.id,
@@ -137,10 +159,10 @@ async function runSingleAction(companyId: string, type: string, config: Record<s
         body: (config.message as string) || `Message from ${company.name}`,
         kind: "automation"
       });
-      return;
+      return true;
     }
     case "CREATE_TASK": {
-      if (!customer) return;
+      if (!customer) return true;
       await db.task.create({
         data: {
           companyId,
@@ -149,10 +171,10 @@ async function runSingleAction(companyId: string, type: string, config: Record<s
           priority: "MEDIUM"
         }
       });
-      return;
+      return true;
     }
     case "CREATE_FOLLOWUP": {
-      if (!customer) return;
+      if (!customer) return true;
       const days = typeof config.days === "number" ? config.days : 3;
       await db.followUp.create({
         data: {
@@ -163,7 +185,7 @@ async function runSingleAction(companyId: string, type: string, config: Record<s
           notes: (config.notes as string) || "Automated follow-up"
         }
       });
-      return;
+      return true;
     }
     case "NOTIFY_USER": {
       // No push/email notification channel exists yet for internal staff -
@@ -171,10 +193,10 @@ async function runSingleAction(companyId: string, type: string, config: Record<s
       await db.auditLog.create({
         data: { companyId, action: "automation_notify", entityType: "automation", entityId: "n/a" }
       });
-      return;
+      return true;
     }
     case "GENERATE_AI_CONTENT": {
-      if (!company) return;
+      if (!company) return true;
       try {
         const content = await generateWithGateway({
           companyId,
@@ -190,30 +212,42 @@ async function runSingleAction(companyId: string, type: string, config: Record<s
         // the workflow chain (already completed by this point) isn't reported
         // as a failure. Real visibility into this lives in AiUsageLog either way.
       }
-      return;
+      return true;
     }
     case "ASSIGN_EMPLOYEE": {
-      if (!customer || !config.userId) return;
+      if (!customer || !config.userId) return true;
       await db.customer.update({ where: { id: customer.id }, data: { assignedUserId: config.userId as string } });
-      return;
+      return true;
     }
     case "MOVE_PIPELINE_STAGE": {
-      if (!customer || !config.stage) return;
+      if (!customer || !config.stage) return true;
       await db.lead.updateMany({
         where: { companyId, customerId: customer.id },
         data: { pipelineStage: config.stage as never }
       });
-      return;
+      return true;
     }
     case "UPDATE_PROJECT": {
-      if (!context.jobId || !config.status) return;
+      if (!context.jobId || !config.status) return true;
       await db.job.update({
         where: { id: context.jobId as string },
         data: { status: config.status as never }
       });
-      return;
+      return true;
+    }
+    case "REQUIRE_ESTIMATE_PENDING": {
+      // Re-checks the estimate live (not the stale trigger-time context),
+      // since this typically runs after a multi-day DELAY. If the customer
+      // already approved or declined - or the estimate was deleted - in the
+      // meantime, stop here so nothing downstream (a follow-up email, say)
+      // fires for a decision that's already been made.
+      if (!context.estimateId) return true;
+      const estimate = await db.estimate.findUnique({ where: { id: context.estimateId as string } });
+      if (!estimate || estimate.deletedAt) return false;
+      if (estimate.status !== "SENT" && estimate.status !== "VIEWED") return false;
+      return true;
     }
     default:
-      return;
+      return true;
   }
 }

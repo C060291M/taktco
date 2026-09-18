@@ -1029,6 +1029,11 @@ enum AutomationActionType {
   MOVE_PIPELINE_STAGE
   UPDATE_PROJECT
   DELAY
+  // Re-checks the live estimate status after a DELAY resumes - stops the
+  // rest of the action chain if the customer already approved or declined
+  // in the meantime, so a post-delay follow-up email never fires for an
+  // estimate that has already been decided.
+  REQUIRE_ESTIMATE_PENDING
 }
 
 enum AutomationRunStatus {

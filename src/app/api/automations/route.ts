@@ -4,7 +4,7 @@ import { db } from "@/database/client";
 import { requireSession } from "@/lib/auth";
 
 const actionSchema = z.object({
-  type: z.enum(["SEND_EMAIL", "SEND_SMS", "CREATE_TASK", "CREATE_FOLLOWUP", "ASSIGN_EMPLOYEE", "GENERATE_AI_CONTENT", "NOTIFY_USER", "MOVE_PIPELINE_STAGE", "UPDATE_PROJECT", "DELAY"]),
+  type: z.enum(["SEND_EMAIL", "SEND_SMS", "CREATE_TASK", "CREATE_FOLLOWUP", "ASSIGN_EMPLOYEE", "GENERATE_AI_CONTENT", "NOTIFY_USER", "MOVE_PIPELINE_STAGE", "UPDATE_PROJECT", "DELAY", "REQUIRE_ESTIMATE_PENDING"]),
   config: z.record(z.unknown()).default({})
 });
 

@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/auth";
 import { sendTrackedEmail } from "@/services/resend";
 import { brandedEmail } from "@/emails/brandedEmail";
 import { bumpLeadStageForCustomer } from "@/lib/leadStageAutomation";
+import { runTrigger } from "@/lib/automationEngine";
 
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
   const ctx = await requireSession();
@@ -37,6 +38,16 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   if (result.sent && estimate.status === "DRAFT") {
     await db.estimate.update({ where: { id: estimate.id }, data: { status: "SENT" } });
     await bumpLeadStageForCustomer(ctx.company.id, estimate.customerId, "ESTIMATE_SENT");
+    // Fires the ESTIMATE_SENT automation trigger - only on this first real
+    // send (the DRAFT-to-SENT transition), not on a later resend, so a
+    // follow-up-style workflow does not restart its delay timer every time
+    // staff clicks send again.
+    await runTrigger(ctx.company.id, "ESTIMATE_SENT", {
+      companyId: ctx.company.id,
+      customerId: estimate.customerId,
+      estimateId: estimate.id,
+      trigger: "ESTIMATE_SENT"
+    });
   }
 
   return NextResponse.json(result, { status: result.sent ? 200 : 400 });

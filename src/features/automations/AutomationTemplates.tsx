@@ -99,6 +99,29 @@ const TEMPLATES: Template[] = [
         }
       }
     ]
+  },
+  {
+    key: "estimate-followup-14day",
+    name: "14-Day Estimate Follow-Up",
+    description: "If an estimate sits unanswered for two weeks, send a gentle nudge instead of letting it go cold.",
+    trigger: "ESTIMATE_SENT",
+    triggerLabel: "When an estimate is sent",
+    steps: [
+      "Wait 14 days",
+      "If it has not been approved or declined yet, send a follow-up email"
+    ],
+    actions: [
+      { type: "DELAY", config: { days: 14 } },
+      { type: "REQUIRE_ESTIMATE_PENDING", config: {} },
+      {
+        type: "SEND_EMAIL",
+        config: {
+          subject: "Just checking in on your estimate",
+          heading: "Still thinking it over?",
+          message: "We wanted to check in on the estimate we sent over a couple weeks ago. If you have any questions or would like to move forward, just reply to this email - we are happy to help."
+        }
+      }
+    ]
   }
 ];
 
