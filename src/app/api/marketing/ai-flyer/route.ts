@@ -260,7 +260,8 @@ QUALITY BAR:
 - Use only the facts given. Never invent measurements, prices, durations, crew sizes, certifications, or testimonials.
 - Make it look designed: decisive borders, strong type-scale contrast, one deliberate overlapping accent element, full-bleed photography.
 - Nothing may overlap or clip text, and nothing may extend past the page.
-- Headlines and any other text that might run long can wrap to two lines - never give a text container a fixed pixel height sized for one line, since a wrap will then be sliced off by whatever sits below it. Let text containers size to their content (no explicit height on them), and leave a real margin-bottom below a headline before the next section starts, not just line-height alone.`;
+- Headlines and any other text that might run long can wrap to two lines - never give a text container a fixed pixel height sized for one line, since a wrap will then be sliced off by whatever sits below it. Let text containers size to their content (no explicit height on them), and leave a real margin-bottom below a headline before the next section starts, not just line-height alone.
+- This applies just as much to a CTA band as a headline: when text sits next to a button in a row (a flex row, say), do not center-align that row's items - top-align them instead, and let the row grow to fit however tall the text becomes. If a fixed-height row is used, wrapped CTA text will run under the button rather than push it down, clipping against the flyer's edge.`;
 
   const userPrompt = JSON.stringify({
     companyName: ctx.company.name,
