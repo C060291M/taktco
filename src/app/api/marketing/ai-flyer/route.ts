@@ -292,16 +292,18 @@ QUALITY BAR:
 
     // The model declares its canvas choice on the first line, then returns the
     // inner markup. Strip that line off and use it to build the shell.
-    // Locked to dark. Light canvases repeatedly rendered unreadable text on
-    // elements without a surface class - the company name, headline, and
-    // summary - and eight attempts at enforcing color via CSS, specificity,
-    // opacity, and stripping inline styles never reliably fixed it. Dark has
-    // been consistently correct throughout, so the choice is removed rather
-    // than shipping a generator that produces an unusable flyer some of the
-    // time. The CANVAS line is still parsed and discarded so the prompt
-    // contract stays intact; revisit light once the root cause is known.
-    const canvas: "light" | "dark" = "dark";
+    // Re-enabled (was locked to dark). Light canvases previously rendered
+    // unreadable washed-out text; the real cause turned out to be unrelated
+    // to color logic at all - the client injected the shell's full HTML
+    // document into a plain div, which silently drops <html>/<head>/<body>,
+    // so the shell's own body{} sizing/background CSS never applied to the
+    // actual rendered container on EITHER canvas. That's fixed now (the
+    // client renders into an iframe instead), so the AI's own canvas choice
+    // is trusted again rather than overridden. If light canvas still proves
+    // unreliable after this, the next real debugging step is capturing the
+    // raw markup from an actual light-canvas generation, not another guess.
     const canvasMatch = raw.match(/^\s*CANVAS:\s*(light|dark)\s*$/im);
+    const canvas: "light" | "dark" = canvasMatch ? (canvasMatch[1].toLowerCase() as "light" | "dark") : "dark";
     if (canvasMatch) {
       raw = raw.replace(canvasMatch[0], "");
     }
