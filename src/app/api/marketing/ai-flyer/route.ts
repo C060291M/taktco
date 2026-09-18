@@ -304,7 +304,7 @@ QUALITY BAR:
     // unreliable after this, the next real debugging step is capturing the
     // raw markup from an actual light-canvas generation, not another guess.
     const canvasMatch = raw.match(/^\s*CANVAS:\s*(light|dark)\s*$/im);
-    const canvas: "light" | "dark" = canvasMatch ? (canvasMatch[1].toLowerCase() as "light" | "dark") : "dark";
+    const canvas: "light" | "dark" = "light"; // TEMP TEST OVERRIDE - forces light canvas for direct testing, ignoring the models own choice. MUST BE REVERTED after testing.
     if (canvasMatch) {
       raw = raw.replace(canvasMatch[0], "");
     }
