@@ -41,7 +41,7 @@ const FAQS = [
   { q: "What happens if I run out of AI credits?", a: "Nothing breaks. You can buy more credits, connect your own OpenAI/Anthropic/Gemini key and skip TAKTCO Credits entirely, or just wait for your monthly reset." },
   { q: "Can I use my own branding?", a: "Yes — upload your logo and pick your colors during setup. Your quotes, invoices, and dashboard all carry your brand, not TAKTCO's." },
   { q: "Do I need to already use QuickBooks or another tool?", a: "No. TAKTCO is a standalone system — it doesn't require or sync with outside software to work." },
-  { q: "What trades is this built for?", a: "Fencing, roofing, HVAC, electrical, plumbing, painting, landscaping, home security, gutters, solar screens, siding, windows, doors, handyman services, cleaning, and general contracting — each with its own starter Pricing Matrix template. Any other trade works too; you just build your own pricing from scratch." }
+  { q: "What trades is this built for?", a: "Fencing, roofing, HVAC, electrical, plumbing, painting, landscaping, home security, cleaning services, general contracting, and more - each with its own starter Pricing Matrix template. Any other trade works too; you just build your own pricing from scratch." }
 ];
 
 export default async function Home() {
