@@ -1,3 +1,5 @@
+import { PRIVACY_VERSION } from "@/lib/legalVersions";
+
 export const metadata = { title: "Privacy Policy | TAKTCO" };
 
 export default function PrivacyPolicyPage() {
@@ -5,7 +7,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-graphite-950 py-16 px-6">
       <div className="max-w-2xl mx-auto prose prose-invert">
         <h1 className="text-2xl font-semibold text-white mb-2">Privacy Policy</h1>
-        <p className="text-sm text-graphite-500 mb-8">Last updated: August 2026</p>
+        <p className="text-sm text-graphite-500 mb-8">Last updated: {PRIVACY_VERSION}</p>
 
         <p className="text-graphite-300">
           TAKTCO ("we," "our," or "the platform") provides business management software for construction and
@@ -30,11 +32,11 @@ export default function PrivacyPolicyPage() {
 
         <h2 className="text-white text-lg mt-8 mb-2">Third parties we share data with</h2>
         <ul className="text-graphite-300">
-          <li><strong>Stripe</strong> — payment processing and subscription billing. We do not store full card numbers.</li>
-          <li><strong>Your own email and SMS provider</strong> — businesses using TAKTCO connect their own Gmail, Outlook, Resend, or Twilio account to send estimates, invoices, and other communications to their own customers. We do not use a shared account on a business's behalf; each business's sends go through infrastructure they control and are billed for separately.</li>
-          <li><strong>Resend (platform use only)</strong> — TAKTCO itself uses Resend for a small number of our own system emails (such as a welcome email when an account is created), separate from any business's customer communications.</li>
-          <li><strong>AI providers</strong> (Anthropic, OpenAI, or another provider a business connects their own key to) — job and business descriptions are sent to generate AI-drafted content (estimates, marketing copy). Customer contact information is not included in these requests.</li>
-          <li><strong>Cloud storage providers</strong> (Cloudflare R2 or AWS S3, where configured) — storing uploaded photos and documents.</li>
+          <li><strong>Stripe</strong> â€” payment processing and subscription billing. We do not store full card numbers.</li>
+          <li><strong>Your own email and SMS provider</strong> â€” businesses using TAKTCO connect their own Gmail, Outlook, Resend, or Twilio account to send estimates, invoices, and other communications to their own customers. We do not use a shared account on a business's behalf; each business's sends go through infrastructure they control and are billed for separately.</li>
+          <li><strong>Resend (platform use only)</strong> â€” TAKTCO itself uses Resend for a small number of our own system emails (such as a welcome email when an account is created), separate from any business's customer communications.</li>
+          <li><strong>AI providers</strong> (Anthropic, OpenAI, or another provider a business connects their own key to) â€” job and business descriptions are sent to generate AI-drafted content (estimates, marketing copy). Customer contact information is not included in these requests.</li>
+          <li><strong>Cloud storage providers</strong> (Cloudflare R2 or AWS S3, where configured) â€” storing uploaded photos and documents.</li>
         </ul>
         <p className="text-graphite-300">We do not sell personal information, and we do not use customer contact information for our own marketing purposes.</p>
 
@@ -48,8 +50,16 @@ export default function PrivacyPolicyPage() {
 
         <h2 className="text-white text-lg mt-8 mb-2">Data retention and deletion</h2>
         <p className="text-graphite-300">
-          Data is retained for as long as an account is active. A business can request deletion of their account
-          and associated data by contacting us.
+          Data is retained for as long as an account is active. Deleting a customer, estimate, project, or invoice
+          from within TAKTCO does not immediately destroy it - it is removed from active view and stays recoverable
+          (an account owner can restore it from Settings), which prevents accidental data loss from a mistaken click.
+        </p>
+        <p className="text-graphite-300">
+          A business can request permanent deletion of their entire account and all associated data by contacting
+          us. Once confirmed, this is a real, irreversible deletion of the company record and everything tied to
+          it - every customer, estimate, contract, job, invoice, payment record, and photo. We keep a minimal log
+          of the fact that a deletion occurred (the company name, when, and who requested it) for our own records
+          after everything else has been destroyed.
         </p>
 
         <h2 className="text-white text-lg mt-8 mb-2">Contact</h2>

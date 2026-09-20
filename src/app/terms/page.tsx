@@ -1,3 +1,5 @@
+import { TERMS_VERSION } from "@/lib/legalVersions";
+
 export const metadata = { title: "Terms of Service | TAKTCO" };
 
 export default function TermsPage() {
@@ -5,7 +7,7 @@ export default function TermsPage() {
     <div className="min-h-screen bg-graphite-950 py-16 px-6">
       <div className="max-w-2xl mx-auto prose prose-invert">
         <h1 className="text-2xl font-semibold text-white mb-2">Terms of Service</h1>
-        <p className="text-sm text-graphite-500 mb-8">Last updated: August 2026</p>
+        <p className="text-sm text-graphite-500 mb-8">Last updated: {TERMS_VERSION}</p>
 
         <p className="text-graphite-300">
           TAKTCO is a subscription software platform for construction and service businesses. By creating an
@@ -37,9 +39,10 @@ export default function TermsPage() {
 
         <h2 className="text-white text-lg mt-8 mb-2">AI features</h2>
         <p className="text-graphite-300">
-          TAKTCO includes AI-assisted features (estimate drafting, marketing content generation, business
-          insights). AI output should be reviewed before being sent to your customers or relied upon for business
-          decisions — AI can make mistakes, and you remain responsible for what you ultimately send or act on.
+          TAKTCO includes AI-assisted features (estimate drafting, an AI-designed marketing flyer generator, other
+          marketing content generation, and business insights). AI output should be reviewed before being sent to
+          your customers or relied upon for business decisions - AI can make mistakes, and you remain responsible
+          for what you ultimately send or act on.
         </p>
 
         <h2 className="text-white text-lg mt-8 mb-2">Limitation of liability</h2>
@@ -53,6 +56,28 @@ export default function TermsPage() {
         <p className="text-graphite-300">
           You may cancel your account at any time. Data associated with a cancelled account may be retained for a
           reasonable period before deletion, in accordance with our Privacy Policy.
+        </p>
+
+        <h2 className="text-white text-lg mt-8 mb-2">Changes to these Terms</h2>
+        <p className="text-graphite-300">
+          We may update these Terms from time to time. If we make a material change, we will notify account owners
+          (for example, by email or an in-app notice) before it takes effect. Continuing to use TAKTCO after a change
+          takes effect means you accept the updated Terms. Each account keeps a record of the version of these Terms
+          it most recently accepted.
+        </p>
+
+        <h2 className="text-white text-lg mt-8 mb-2">Account suspension and termination</h2>
+        <p className="text-graphite-300">
+          We may suspend or terminate an account that violates these Terms, misuses the platform, or presents a
+          security risk to other users. Where practical, we will provide notice and an opportunity to resolve the
+          issue first. You remain responsible for any amounts owed for the billing period in which suspension or
+          termination occurs.
+        </p>
+
+        <h2 className="text-white text-lg mt-8 mb-2">Governing law</h2>
+        <p className="text-graphite-300">
+          TAKTCO is operated from Texas. These Terms are governed by the laws of the State of Texas, without regard
+          to its conflict-of-laws principles, even if you or your customers are located outside of Texas.
         </p>
 
         <h2 className="text-white text-lg mt-8 mb-2">SMS Messaging Program</h2>

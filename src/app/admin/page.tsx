@@ -127,7 +127,7 @@ export default async function AdminDashboardPage() {
             )}
             {companies.map((c) => (
               <tr key={c.id} className="border-b border-graphite-700 last:border-0">
-                <td className="px-4 py-3 text-graphite-100">{c.name}</td>
+                <td className="px-4 py-3 text-graphite-100"><a href={`/admin/companies/${c.id}`} className="hover:text-accent hover:underline">{c.name}</a></td>
                 <td className="px-4 py-3 text-graphite-300">{c.tradeType || "—"}</td>
                 <td className="px-4 py-3 text-graphite-300 capitalize">{c.subscriptionTier}</td>
                 <td className="px-4 py-3 text-graphite-300">{c.subscriptionStatus || "—"}</td>

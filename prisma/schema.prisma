@@ -226,6 +226,14 @@ model Company {
 
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+  // Clickwrap acceptance of the Terms of Service, recorded at signup. All
+  // four null until accepted; termsAcceptedVersion is the Terms page's
+  // "Last updated" date at the moment of acceptance, so it stays clear which
+  // version a given company agreed to even after the Terms text changes later.
+  termsAcceptedAt        DateTime?
+  termsAcceptedVersion   String?
+  termsAcceptedByUserId  String?
+  termsAcceptedIp        String?
 
   users         User[]
   customers     Customer[]
@@ -271,6 +279,23 @@ model Company {
   pricingItems      PricingItem[]
   estimatingQuestions EstimatingQuestion[]
   commsSettings  CompanyCommsSettings?
+}
+
+// Survives a hard-deleted company on purpose - a plain companyId/ownerEmail
+// string, never a real @relation to Company, so this row is NOT destroyed by
+// the cascade when that company is permanently deleted. This is the only
+// record that a given company ever existed and was deleted, once everything
+// else about it is gone.
+model AccountDeletionLog {
+  id                 String   @id @default(cuid())
+  deletedCompanyId   String
+  companyName        String
+  companySubdomain   String
+  ownerEmail         String?
+  deletedByUserId    String
+  deletedByName      String
+  reason             String?
+  createdAt          DateTime @default(now())
 }
 
 model User {

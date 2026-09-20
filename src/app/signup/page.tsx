@@ -27,7 +27,8 @@ const schema = z.object({
   timeZone: z.string().optional(),
   name: z.string().min(2, "Enter your name"),
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(8, "At least 8 characters")
+  password: z.string().min(8, "At least 8 characters"),
+  termsAccepted: z.boolean().refine((v) => v === true, "You must accept the Terms of Service and Privacy Policy")
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -182,6 +183,16 @@ export default function SignupPage() {
                 <div>
                   <input className="input" placeholder="Password" type="password" {...register("password")} />
                   {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password.message}</p>}
+                </div>
+                <div>
+                  <label className="flex items-start gap-2 text-xs text-graphite-300">
+                    <input type="checkbox" className="mt-0.5" {...register("termsAccepted")} />
+                    <span>
+                      I agree to the <a href="/terms" target="_blank" className="text-accent hover:underline">Terms of Service</a> and{" "}
+                      <a href="/privacy" target="_blank" className="text-accent hover:underline">Privacy Policy</a>.
+                    </span>
+                  </label>
+                  {errors.termsAccepted && <p className="text-xs text-red-400 mt-1">{errors.termsAccepted.message}</p>}
                 </div>
                 <p className="text-[11px] text-graphite-500">
                   Payment setup happens later, in Settings - no bank or tax info needed to get started.

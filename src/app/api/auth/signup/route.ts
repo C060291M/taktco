@@ -5,6 +5,7 @@ import { hashPassword, createSession } from "@/lib/auth";
 import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 import { sendPlatformSystemEmail } from "@/lib/platformEmail";
 import { welcomeEmail } from "@/emails/welcome-email";
+import { TERMS_VERSION } from "@/lib/legalVersions";
 
 const schema = z.object({
   companyName: z.string().min(2),
@@ -21,7 +22,8 @@ const schema = z.object({
   // Fine for local/dev - production should upload this to S3/R2 and store a real
   // URL here instead, per the blueprint's file-upload TODO.
   logoUrl: z.string().optional(),
-  brandAccentColor: z.string().optional()
+  brandAccentColor: z.string().optional(),
+  termsAccepted: z.literal(true, { errorMap: () => ({ message: "You must accept the Terms of Service and Privacy Policy." }) })
 });
 
 function slugify(input: string) {
@@ -96,6 +98,20 @@ export async function POST(req: NextRequest) {
   });
 
   const owner = company.users[0];
+
+  // Clickwrap acceptance record - required by the schema above (termsAccepted
+  // must literally be true, or signup fails validation before reaching this
+  // point), captured right after the owner user exists so termsAcceptedByUserId
+  // has a real id to point at.
+  await db.company.update({
+    where: { id: company.id },
+    data: {
+      termsAcceptedAt: new Date(),
+      termsAcceptedVersion: TERMS_VERSION,
+      termsAcceptedByUserId: owner.id,
+      termsAcceptedIp: clientIp(req)
+    }
+  });
   await createSession({ userId: owner.id, companyId: company.id, role: owner.role });
 
   // Best-effort, never blocks signup - a missing welcome email should
