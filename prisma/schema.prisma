@@ -293,6 +293,13 @@ model User {
   color        String?  // for crew/calendar visual distinction
   createdAt    DateTime  @default(now())
   lastLoginAt  DateTime?
+  // Password reset - both null in the normal case. Set together when a
+  // reset is requested (token unique, expiry short), cleared together once
+  // used or when a new reset request replaces them. Never guessable: a
+  // fresh crypto.randomBytes token, not the cuid pattern used for lower-stakes
+  // tokens like Estimate.approvalToken elsewhere in this schema.
+  resetToken           String?   @unique
+  resetTokenExpiresAt  DateTime?
 
   assignedLeads Lead[]        @relation("AssignedUser")
   assignedCustomers Customer[] @relation("AssignedCustomer")

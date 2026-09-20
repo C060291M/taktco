@@ -48,6 +48,7 @@ export default function LoginPage() {
               <label className="block text-xs text-graphite-300 mb-1">Password</label>
               <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
+            <p className="text-xs text-right"><a href="/forgot-password" className="text-accent hover:underline">Forgot password?</a></p>
             {error && <p className="text-sm text-red-400">{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? "Signing in..." : "Sign in"}
