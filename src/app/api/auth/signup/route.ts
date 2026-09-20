@@ -6,6 +6,12 @@ import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 import { sendPlatformSystemEmail } from "@/lib/platformEmail";
 import { welcomeEmail } from "@/emails/welcome-email";
 import { TERMS_VERSION } from "@/lib/legalVersions";
+import { ADMIN_INTERNAL_SUBDOMAIN } from "@/lib/admin";
+
+// Closed beta: at most 4 real company signups, for the 30 days starting
+// today. See the usage below in POST for the actual enforcement.
+const BETA_SIGNUP_CAP = 4;
+const BETA_SIGNUP_ENDS_AT = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
 const schema = z.object({
   companyName: z.string().min(2),
@@ -41,6 +47,22 @@ export async function POST(req: NextRequest) {
       { error: "Too many signup attempts. Try again later." },
       { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
     );
+  }
+
+
+  // Closed beta cap - self-expiring, no manual toggle to forget. If the
+  // signup link leaks beyond the intended trades, this is the backstop:
+  // once BETA_SIGNUP_CAP real companies have signed up, further signups
+  // are rejected until BETA_SIGNUP_ENDS_AT passes. Bump the cap or the date
+  // (or delete this block) when ready to open up.
+  if (new Date() < BETA_SIGNUP_ENDS_AT) {
+    const signupCount = await db.company.count({ where: { subdomain: { not: ADMIN_INTERNAL_SUBDOMAIN } } });
+    if (signupCount >= BETA_SIGNUP_CAP) {
+      return NextResponse.json(
+        { error: "We are not accepting new signups right now - this is a closed beta. Reach out directly if you were invited." },
+        { status: 403 }
+      );
+    }
   }
 
   const body = await req.json();
