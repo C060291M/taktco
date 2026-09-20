@@ -18,6 +18,7 @@ const AI_FEATURES = [
   { title: "AI Contract Builder", desc: "Describe the job, get a complete draft contract — scope, payment terms, timeline, your standard warranty — ready to review and send." },
   { title: "Automation Engine", desc: "Build rules with no code: \"Invoice paid → wait 7 days → ask for a review.\" Your business keeps working while you're on a job site." },
   { title: "Marketing AI", desc: "Turn a finished job into a Facebook post, Google Business update, or email — in your brand voice, in one click from your portfolio." },
+  { title: "AI-Designed Flyer", desc: "Turn a finished job into a full photo flyer in one click - real before/after shots, feature highlights, and a call to action, laid out and branded automatically. No design software, no fighting a template." },
   { title: "Daily insights, not a black box", desc: "Every alert TAKTCO surfaces — a stalled estimate, an invoice at risk — comes with the exact rule behind it. No mystery scores." }
 ];
 
@@ -30,7 +31,8 @@ const FEATURES = [
   { title: "Deposits made simple", desc: "Split any approved estimate into a deposit and final balance with one click — two real, linked invoices, same payment flow." },
   { title: "Native payments", desc: "Collect customer payments directly through your own branded invoice pages." },
   { title: "Email and SMS from your own account", desc: "Connect your own Gmail, Outlook, or Twilio — your messages, your sending reputation, never shared with anyone else on the platform." },
-  { title: "Your brand, not ours", desc: "Upload your logo, pick your colors, and TAKTCO looks like your software — not a rented tool." }
+  { title: "Your brand, not ours", desc: "Upload your logo, pick your colors, and TAKTCO looks like your software — not a rented tool." },
+  { title: "Nothing is ever really gone", desc: "Delete a customer, estimate, project, or invoice by mistake and restore it in one click from Settings. Every soft-deleted record stays fully recoverable, and only account owners can permanently manage it." },
 ];
 
 const FAQS = [
