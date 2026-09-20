@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { hashPassword } from "@/lib/auth";
@@ -22,7 +23,11 @@ export async function POST(req: NextRequest) {
   }
   const { token, password } = parsed.data;
 
-  const user = await db.user.findUnique({ where: { resetToken: token } });
+  // The token in the request is the raw value from the email link; the
+  // stored value is its SHA-256 hash (see forgot-password/route.ts), so
+  // hash the incoming one the same way before comparing.
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await db.user.findUnique({ where: { resetToken: hashedToken } });
   if (!user || !user.resetTokenExpiresAt || user.resetTokenExpiresAt < new Date()) {
     return NextResponse.json({ error: "This reset link is invalid or has expired. Request a new one." }, { status: 400 });
   }

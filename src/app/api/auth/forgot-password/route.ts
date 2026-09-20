@@ -29,9 +29,16 @@ export async function POST(req: NextRequest) {
   // happens inside this if-block, but the caller can't tell either way.
   const user = await db.user.findUnique({ where: { email } });
   if (user) {
+    // The raw token goes in the email link (the user needs it to prove
+    // possession); only its SHA-256 hash is stored, same reasoning as
+    // passwordHash - a database compromise alone should never hand over a
+    // usable credential, and a random 32-byte token has no meaningful
+    // structure worth protecting against precomputation, so a fast hash
+    // (not bcrypt) is fine here.
     const token = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-    await db.user.update({ where: { id: user.id }, data: { resetToken: token, resetTokenExpiresAt } });
+    await db.user.update({ where: { id: user.id }, data: { resetToken: hashedToken, resetTokenExpiresAt } });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
