@@ -298,6 +298,22 @@ model AccountDeletionLog {
   createdAt          DateTime @default(now())
 }
 
+// Platform-level landing page analytics. Deliberately no @relation to
+// Company (visitors are anonymous) and no raw IP stored: visitorHash is a
+// daily-rotating SHA-256 of ip + user agent, enough to count unique
+// visitors per day without keeping an identifier that follows a person.
+model PageView {
+  id          String   @id @default(cuid())
+  path        String
+  referrer    String?
+  utmSource   String?
+  visitorHash String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+}
+
 model User {
   id           String    @id @default(cuid())
   companyId    String

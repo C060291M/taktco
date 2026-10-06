@@ -3,6 +3,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Building2, Users, UserPlus, DollarSign, TrendingUp } from "lucide-react";
 import { ADMIN_INTERNAL_SUBDOMAIN, TIER_PRICES } from "@/lib/admin";
 import { ExpensesEditor } from "@/features/admin/ExpensesEditor";
+import { LandingTraffic } from "@/features/admin/LandingTraffic";
 
 export default async function AdminDashboardPage() {
   const startOfMonth = new Date();
@@ -104,6 +105,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
+      <LandingTraffic />
       <div className="card overflow-hidden">
         <div className="px-5 py-3 border-b border-graphite-700">
           <h2 className="text-sm font-medium text-white">Recent companies</h2>

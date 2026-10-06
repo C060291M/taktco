@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { NovaBanner } from "@/components/marketing/NovaBanner";
+import { PageViewTracker } from "@/components/marketing/PageViewTracker";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -61,6 +62,7 @@ export default async function Home() {
 
       <div className="relative z-10">
         <NovaBanner />
+        <PageViewTracker path="/" />
 
         {/* Hero */}
         <section className="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">

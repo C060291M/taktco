@@ -23,6 +23,13 @@ export default function PrivacyPolicyPage() {
           stores job photos, contracts, and other documents the business uploads.
         </p>
 
+        <p className="text-graphite-300">
+          Our public landing page also records basic, anonymous page-view analytics: which page was
+          visited, which website referred the visitor, and a daily-rotating one-way hash used only to count
+          unique visitors. We do not save IP addresses to our database for this, and the data is not linked
+          to any account or used for advertising.
+        </p>
+
         <h2 className="text-white text-lg mt-8 mb-2">How we use information</h2>
         <p className="text-graphite-300">
           Information is used to operate the platform: displaying a business's own data back to them, sending

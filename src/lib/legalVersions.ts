@@ -4,4 +4,4 @@
 // Bump TERMS_VERSION whenever the Terms page changes in any way a user
 // would need to re-agree to (see the "Changes to these Terms" clause).
 export const TERMS_VERSION = "September 19, 2026";
-export const PRIVACY_VERSION = "September 19, 2026";
+export const PRIVACY_VERSION = "October 5, 2026";
