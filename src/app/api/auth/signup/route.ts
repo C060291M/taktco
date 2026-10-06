@@ -142,7 +142,8 @@ export async function POST(req: NextRequest) {
   const welcomeEmailContent = welcomeEmail({
     companyName: company.name,
     ownerName: owner.name,
-    appUrl: process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin,
+    betaEndsAt
   });
   sendPlatformSystemEmail({ toEmail: owner.email, subject: welcomeEmailContent.subject, html: welcomeEmailContent.html, companyId: company.id }).catch(() => {});
 

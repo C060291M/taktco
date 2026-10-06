@@ -5,7 +5,11 @@
 // live via Resend - the section-by-section reference below it was added
 // later and mirrors the real sidebar in src/components/layout/Sidebar.tsx,
 // so it needs updating if that nav ever changes.
-export function welcomeEmail({ companyName, ownerName, appUrl }: { companyName: string; ownerName: string; appUrl: string }) {
+export function welcomeEmail({ companyName, ownerName, appUrl, betaEndsAt }: { companyName: string; ownerName: string; appUrl: string; betaEndsAt?: Date | null }) {
+  // Closed-beta accounts see their real access end date; any other signup keeps the standard trial wording.
+  const accessLine = betaEndsAt
+    ? `You are part of the TAKTCO closed beta - your access runs through ${betaEndsAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Chicago" })}. No card needed.`
+    : "Your trial runs 7 days, no card needed.";
   return {
     subject: `Welcome to TAKTCO, ${ownerName}`,
     html: `
@@ -50,7 +54,7 @@ export function welcomeEmail({ companyName, ownerName, appUrl }: { companyName: 
           </table>
         </div>
 
-        <p style="color:#8A8F98; font-size:12px; margin-top:32px;">Your trial runs 7 days, no card needed. Questions? Just reply to this email.</p>
+        <p style="color:#8A8F98; font-size:12px; margin-top:32px;">${accessLine} Questions? Just reply to this email.</p>
       </div>
     `
   };

@@ -77,7 +77,7 @@ export default async function Home() {
             <Link href="/signup" className="btn-primary px-6 py-3 text-base">Start free trial</Link>
             <Link href="/login" className="btn-secondary px-6 py-3 text-base">Log in</Link>
           </div>
-          <p className="text-xs text-graphite-500 mt-3">7-day free trial · no credit card required</p>
+          <p className="text-xs text-graphite-500 mt-3">Closed beta &middot; free for 30 days &middot; limited spots &middot; no credit card required</p>
           <p className="text-xs text-graphite-500 mt-4 uppercase tracking-[0.3em]">Beyond The Tape</p>
         </section>
 
