@@ -234,6 +234,10 @@ model Company {
   termsAcceptedVersion   String?
   termsAcceptedByUserId  String?
   termsAcceptedIp        String?
+  // Closed-beta enrollment, set at signup. Both stay null for any company that
+  // did not enroll through the beta cap (older accounts, demo accounts, HQ).
+  betaEnrolledAt         DateTime?
+  betaEndsAt             DateTime?
 
   users         User[]
   customers     Customer[]

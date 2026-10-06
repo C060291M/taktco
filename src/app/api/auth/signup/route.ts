@@ -6,12 +6,11 @@ import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 import { sendPlatformSystemEmail } from "@/lib/platformEmail";
 import { welcomeEmail } from "@/emails/welcome-email";
 import { TERMS_VERSION } from "@/lib/legalVersions";
-import { ADMIN_INTERNAL_SUBDOMAIN } from "@/lib/admin";
 
-// Closed beta: at most 4 real company signups, for the 30 days starting
-// today. See the usage below in POST for the actual enforcement.
+// Closed beta: only the first BETA_SIGNUP_CAP companies to sign up are accepted,
+// and each is enrolled for BETA_DURATION_DAYS starting on its own signup date.
 const BETA_SIGNUP_CAP = 4;
-const BETA_SIGNUP_ENDS_AT = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+const BETA_DURATION_DAYS = 30;
 
 const schema = z.object({
   companyName: z.string().min(2),
@@ -50,19 +49,17 @@ export async function POST(req: NextRequest) {
   }
 
 
-  // Closed beta cap - self-expiring, no manual toggle to forget. If the
-  // signup link leaks beyond the intended trades, this is the backstop:
-  // once BETA_SIGNUP_CAP real companies have signed up, further signups
-  // are rejected until BETA_SIGNUP_ENDS_AT passes. Bump the cap or the date
-  // (or delete this block) when ready to open up.
-  if (new Date() < BETA_SIGNUP_ENDS_AT) {
-    const signupCount = await db.company.count({ where: { subdomain: { not: ADMIN_INTERNAL_SUBDOMAIN } } });
-    if (signupCount >= BETA_SIGNUP_CAP) {
-      return NextResponse.json(
-        { error: "We are not accepting new signups right now - this is a closed beta. Reach out directly if you were invited." },
-        { status: 403 }
-      );
-    }
+  // Closed beta cap: the first BETA_SIGNUP_CAP companies to sign up are accepted.
+  // Each is stamped with betaEnrolledAt/betaEndsAt when created (below), so its
+  // BETA_DURATION_DAYS start on its own signup date. Accounts that predate the
+  // beta have betaEnrolledAt null and do not use a slot. Raise BETA_SIGNUP_CAP,
+  // or delete this block, to open signups up.
+  const enrolledCount = await db.company.count({ where: { betaEnrolledAt: { not: null } } });
+  if (enrolledCount >= BETA_SIGNUP_CAP) {
+    return NextResponse.json(
+      { error: "We are not accepting new signups right now - this is a closed beta. Reach out directly if you were invited." },
+      { status: 403 }
+    );
   }
 
   const body = await req.json();
@@ -99,6 +96,8 @@ export async function POST(req: NextRequest) {
   }
 
   const passwordHash = await hashPassword(password);
+  const betaEnrolledAt = new Date();
+  const betaEndsAt = new Date(betaEnrolledAt.getTime() + BETA_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
   const company = await db.company.create({
     data: {
@@ -112,6 +111,8 @@ export async function POST(req: NextRequest) {
       taxRate: taxRate ? Number(taxRate) : undefined,
       logoUrl,
       brandAccentColor: brandAccentColor || undefined,
+      betaEnrolledAt,
+      betaEndsAt,
       users: {
         create: { email, passwordHash, name, role: "OWNER" }
       }
