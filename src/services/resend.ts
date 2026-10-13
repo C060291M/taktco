@@ -17,6 +17,7 @@ import nodemailer from "nodemailer";
 import { db } from "@/database/client";
 import { logError } from "@/lib/errorLog";
 import { decryptSecret } from "@/lib/crypto";
+import { emailBlockedByBeta, BETA_SEND_BLOCKED_REASON } from "@/lib/betaGate";
 
 const SMTP_PRESETS: Record<string, { host: string; port: number }> = {
   GMAIL: { host: "smtp.gmail.com", port: 587 },
@@ -76,6 +77,22 @@ export async function sendTrackedEmail(params: {
   kind: string;
   attachments?: { filename: string; content: Buffer }[];
 }) {
+  // Closed beta ended: the account is read-only, so most outgoing mail is blocked (see src/lib/betaGate.ts).
+  if (await emailBlockedByBeta(params.companyId, params.kind)) {
+    await db.emailLog.create({
+      data: {
+        companyId: params.companyId,
+        customerId: params.customerId,
+        toEmail: params.toEmail,
+        subject: params.subject,
+        kind: params.kind,
+        status: "FAILED",
+        errorMessage: BETA_SEND_BLOCKED_REASON
+      }
+    });
+    return { sent: false, reason: BETA_SEND_BLOCKED_REASON };
+  }
+
   const sender = await getSenderForCompany(params.companyId);
   if (!sender) {
     await db.emailLog.create({

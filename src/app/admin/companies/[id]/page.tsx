@@ -2,6 +2,7 @@ import { db } from "@/database/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { DeleteCompanyButton } from "@/features/admin/DeleteCompanyButton";
+import { BetaControls } from "@/features/admin/BetaControls";
 
 export default async function AdminCompanyDetailPage({ params }: { params: { id: string } }) {
   const company = await db.company.findUnique({
@@ -58,6 +59,11 @@ export default async function AdminCompanyDetailPage({ params }: { params: { id:
             <p className="text-sm text-graphite-400">No acceptance on record - this account predates the acceptance tracking feature.</p>
           )}
         </div>
+      </div>
+
+      <div className="card p-5">
+        <h2 className="text-sm font-medium text-white mb-3">Closed beta</h2>
+        <BetaControls companyId={company.id} betaEndsAt={company.betaEndsAt ? company.betaEndsAt.toISOString() : null} />
       </div>
 
       <div className="card p-5">

@@ -238,6 +238,8 @@ model Company {
   // did not enroll through the beta cap (older accounts, demo accounts, HQ).
   betaEnrolledAt         DateTime?
   betaEndsAt             DateTime?
+  // Set when the "your beta ends soon" email goes out so it is sent once; cleared on any extension.
+  betaWarningSentAt      DateTime?
 
   users         User[]
   customers     Customer[]

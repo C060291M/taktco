@@ -1,6 +1,7 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/database/client";
 import { requireSession, createSession, setAdminReturnMarker } from "@/lib/auth";
+import { betaClaim } from "@/lib/betaStatus";
 
 // Lets a platform admin jump into the seeded demo tenant account to test the
 // product as a customer would see it, without typing credentials. Gated on
@@ -27,7 +28,7 @@ export async function POST() {
   }
 
   const adminUserId = ctx.user.id;
-  await createSession({ userId: demoUser.id, companyId: demoUser.companyId, role: demoUser.role });
+  await createSession({ userId: demoUser.id, companyId: demoUser.companyId, role: demoUser.role, ...betaClaim(demoCompany.betaEndsAt) });
   await setAdminReturnMarker(adminUserId);
   return NextResponse.json({ ok: true });
 }

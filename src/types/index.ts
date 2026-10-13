@@ -6,6 +6,8 @@ export type SessionPayload = {
   userId: string;
   companyId: string;
   role: string;
+  // Closed-beta end time (epoch milliseconds); present only for enrolled companies. Read by src/middleware.ts.
+  betaEndsAt?: number;
 };
 
 export type ApiError = {

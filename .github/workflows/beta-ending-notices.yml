@@ -1,0 +1,16 @@
+name: Send closed-beta ending notices
+
+on:
+  schedule:
+    - cron: "15 12 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  send-notices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the beta ending-notices endpoint
+        run: |
+          curl -X POST https://taktco.org/api/beta/send-ending-notices \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -f

@@ -9,6 +9,7 @@ import twilio from "twilio";
 import { db } from "@/database/client";
 import { logError } from "@/lib/errorLog";
 import { decryptSecret } from "@/lib/crypto";
+import { smsBlockedByBeta, BETA_SEND_BLOCKED_REASON } from "@/lib/betaGate";
 
 async function getTwilioClientForCompany(companyId: string): Promise<{ client: ReturnType<typeof twilio>; fromNumber: string } | null> {
   const settings = await db.companyCommsSettings.findUnique({ where: { companyId } });
@@ -33,6 +34,22 @@ export async function sendTrackedSms(params: {
   body: string;
   kind: string;
 }) {
+  // Closed beta ended: the account is read-only, so most outgoing texts are blocked (see src/lib/betaGate.ts).
+  if (await smsBlockedByBeta(params.companyId, params.kind)) {
+    await db.smsLog.create({
+      data: {
+        companyId: params.companyId,
+        customerId: params.customerId,
+        toPhone: params.toPhone,
+        body: params.body,
+        kind: params.kind,
+        status: "FAILED",
+        errorMessage: BETA_SEND_BLOCKED_REASON
+      }
+    });
+    return { sent: false, reason: BETA_SEND_BLOCKED_REASON };
+  }
+
   const resolved = await getTwilioClientForCompany(params.companyId);
   if (!resolved) {
     await db.smsLog.create({
