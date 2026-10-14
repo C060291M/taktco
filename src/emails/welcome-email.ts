@@ -1,3 +1,5 @@
+import { CONTACT_EMAIL } from "@/lib/contact";
+
 // Sent once, at signup, via lib/platformEmail.ts (TAKTCO's own platform
 // email, not a tenant's connected account - see that file's header for why
 // this is a legitimate, separate case from the no-fallback rule for
@@ -54,7 +56,7 @@ export function welcomeEmail({ companyName, ownerName, appUrl, betaEndsAt }: { c
           </table>
         </div>
 
-        <p style="color:#8A8F98; font-size:12px; margin-top:32px;">${accessLine} Questions? Just reply to this email.</p>
+        <p style="color:#8A8F98; font-size:12px; margin-top:32px;">${accessLine} Questions or feedback? Reply to this email or write to <a href="mailto:${CONTACT_EMAIL}" style="color:#1EAEC4;">${CONTACT_EMAIL}</a>.</p>
       </div>
     `
   };

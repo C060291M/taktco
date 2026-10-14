@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
+import { CONTACT_EMAIL } from "@/lib/contact";
 
-const FALLBACK_MESSAGE = "Your closed beta has ended, so this account is read-only. Contact us to extend your beta.";
+const FALLBACK_MESSAGE = "Your closed beta has ended, so this account is read-only. To extend your beta, email " + CONTACT_EMAIL + ".";
 
 // Mounted by the dashboard layout for closed-beta accounts only. The server refuses writes
 // from an expired beta account with HTTP 403 and code BETA_READ_ONLY (see src/middleware.ts),

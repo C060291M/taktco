@@ -1,3 +1,5 @@
+import { CONTACT_EMAIL } from "@/lib/contact";
+
 // Closed-beta status helpers. Read-only enforcement works in layers:
 //  1. The signed session cookie carries a betaEndsAt claim (epoch milliseconds),
 //     so src/middleware.ts can block writes without a database lookup.
@@ -5,7 +7,7 @@
 //     cookie when they differ (for example after an admin extends a beta).
 //  3. Outbound email and SMS check the database directly.
 export const BETA_READ_ONLY_MESSAGE =
-  "Your closed beta period has ended, so this account is now read-only. You can still view everything. Contact us to extend your beta. If it was just extended, reload the page and try again.";
+  "Your closed beta period has ended, so this account is now read-only. You can still view everything. To extend your beta, email " + CONTACT_EMAIL + ". If it was just extended, reload the page and try again.";
 
 export function isBetaExpired(betaEndsAt: Date | null | undefined): boolean {
   return Boolean(betaEndsAt) && Date.now() >= (betaEndsAt as Date).getTime();
