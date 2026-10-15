@@ -1,12 +1,25 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function NewCustomerForm() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", source: "" });
+
+  // The floating + menu links here with ?new=1: open the form, then clear the flag so the menu can open it again.
+  useEffect(() => {
+    if (searchParams?.get("new") !== "1") return;
+    setOpen(true);
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.delete("new");
+    const qs = params.toString();
+    const base = pathname ?? "/customers";
+    router.replace(qs ? `${base}?${qs}` : base);
+  }, [searchParams, pathname, router]);
 
   function update(key: string, value: string) {
     setForm((f) => ({ ...f, [key]: value }));

@@ -5,8 +5,8 @@ import { Plus, X } from "lucide-react";
 import { useUIStore } from "@/store/uiStore";
 
 const ACTIONS = [
-  { label: "New Lead", url: "/pipeline" },
-  { label: "New Customer", url: "/customers" },
+  { label: "New Lead", url: "/customers?new=1" },
+  { label: "New Customer", url: "/customers?new=1" },
   { label: "New Estimate", url: "/estimates" },
   { label: "New Invoice", url: "/invoices" },
   { label: "New Project", url: "/jobs" },
