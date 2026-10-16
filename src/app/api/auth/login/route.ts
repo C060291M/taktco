@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/database/client";
 import { verifyPassword, createSession } from "@/lib/auth";
 import { checkRateLimit, clientIp } from "@/lib/rateLimit";
-import { betaClaim } from "@/lib/betaStatus";
+import { accessClaim } from "@/lib/accountAccess";
 
 const schema = z.object({ email: z.string().email(), password: z.string().min(1) });
 
@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
-  const company = await db.company.findUnique({ where: { id: user.companyId }, select: { betaEndsAt: true } });
-  await createSession({ userId: user.id, companyId: user.companyId, role: user.role, ...betaClaim(company?.betaEndsAt) });
+  const company = await db.company.findUnique({ where: { id: user.companyId }, select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true } });
+  await createSession({ userId: user.id, companyId: user.companyId, role: user.role, ...accessClaim(company) });
   await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
   return NextResponse.json({ ok: true, isPlatformAdmin: user.isPlatformAdmin });

@@ -169,6 +169,8 @@ export async function createSubscriptionCheckoutSession(params: {
   priceId: string;
   successUrl: string;
   cancelUrl: string;
+  trialEnd?: Date | null; // billing starts at this time (the end of a running beta/trial window)
+  trialDays?: number; // standard free days for a company with no beta/trial window
 }) {
   if (!stripe) throw new Error("Stripe is not configured.");
   return stripe.checkout.sessions.create({
@@ -176,7 +178,15 @@ export async function createSubscriptionCheckoutSession(params: {
     customer: params.existingCustomerId || undefined,
     customer_email: params.existingCustomerId ? undefined : params.email,
     line_items: [{ price: params.priceId, quantity: 1 }],
-    subscription_data: { trial_period_days: 7, metadata: { companyId: params.companyId } },
+    subscription_data: {
+      // Stripe allows only one of trial_end and trial_period_days (see src/lib/billingAccess.ts).
+      ...(params.trialEnd
+        ? { trial_end: Math.floor(params.trialEnd.getTime() / 1000) }
+        : params.trialDays
+          ? { trial_period_days: params.trialDays }
+          : {}),
+      metadata: { companyId: params.companyId }
+    },
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     metadata: { companyId: params.companyId }

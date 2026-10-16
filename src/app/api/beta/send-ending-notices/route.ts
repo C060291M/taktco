@@ -3,9 +3,12 @@ import crypto from "crypto";
 import { db } from "@/database/client";
 import { sendPlatformSystemEmail } from "@/lib/platformEmail";
 import { betaEndingEmail } from "@/emails/beta-ending-email";
+import { trialEndingEmail } from "@/emails/trial-ending-email";
+import { isPaidStatus } from "@/lib/accountAccess";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const NOTICE_WINDOW_DAYS = 3;
+const BETA_NOTICE_WINDOW_DAYS = 3;
+const TRIAL_NOTICE_WINDOW_DAYS = 2;
 
 function secretMatches(provided: string | null, expected: string): boolean {
   if (!provided) return false;
@@ -14,10 +17,15 @@ function secretMatches(provided: string | null, expected: string): boolean {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-// Called once a day by .github/workflows/beta-ending-notices.yml. Emails each owner
-// once when their beta ends within NOTICE_WINDOW_DAYS. A company is only marked as
-// notified after the email actually sends, so a failed send is retried tomorrow.
-// Unlike the campaign endpoint, this refuses to run at all if CRON_SECRET is not set.
+function dateLabel(d: Date) {
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Chicago" });
+}
+
+// Called once a day by .github/workflows/beta-ending-notices.yml. Emails each owner once when their
+// closed beta ends within BETA_NOTICE_WINDOW_DAYS, or their free trial within TRIAL_NOTICE_WINDOW_DAYS.
+// Companies with an active subscription are skipped. A company is only marked as notified after the
+// email actually sends, so a failed send is retried tomorrow. Unlike the campaign endpoint, this
+// refuses to run at all if CRON_SECRET is not set.
 export async function POST(req: NextRequest) {
   const expected = process.env.CRON_SECRET;
   if (!expected) return NextResponse.json({ error: "CRON_SECRET is not configured." }, { status: 503 });
@@ -26,29 +34,50 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date();
-  const windowEnd = new Date(now.getTime() + NOTICE_WINDOW_DAYS * DAY_MS);
-  const due = await db.company.findMany({
-    where: { betaEnrolledAt: { not: null }, betaWarningSentAt: null, betaEndsAt: { gt: now, lte: windowEnd } },
-    select: {
-      id: true,
-      name: true,
-      betaEndsAt: true,
-      users: { where: { role: "OWNER" }, orderBy: { createdAt: "asc" }, take: 1, select: { name: true, email: true } }
-    }
-  });
-
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
-  let sent = 0;
-  for (const company of due) {
+  const ownerSelect = { where: { role: "OWNER" }, orderBy: { createdAt: "asc" }, take: 1, select: { name: true, email: true } } as const;
+
+  // Closed beta
+  const betaDue = await db.company.findMany({
+    where: {
+      betaEnrolledAt: { not: null },
+      betaWarningSentAt: null,
+      betaEndsAt: { gt: now, lte: new Date(now.getTime() + BETA_NOTICE_WINDOW_DAYS * DAY_MS) }
+    },
+    select: { id: true, name: true, betaEndsAt: true, subscriptionStatus: true, users: ownerSelect }
+  });
+  let betaSent = 0;
+  for (const company of betaDue) {
     const owner = company.users[0];
-    if (!owner || !company.betaEndsAt) continue;
-    const endDate = company.betaEndsAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Chicago" });
-    const content = betaEndingEmail({ ownerName: owner.name, companyName: company.name, endDate, appUrl });
+    if (!owner || !company.betaEndsAt || isPaidStatus(company.subscriptionStatus)) continue;
+    const content = betaEndingEmail({ ownerName: owner.name, companyName: company.name, endDate: dateLabel(company.betaEndsAt), appUrl });
     const result = await sendPlatformSystemEmail({ toEmail: owner.email, subject: content.subject, html: content.html, companyId: company.id });
     if (result.sent) {
       await db.company.update({ where: { id: company.id }, data: { betaWarningSentAt: now } });
-      sent++;
+      betaSent++;
     }
   }
-  return NextResponse.json({ checked: due.length, sent });
+
+  // Free trial (a company in the closed beta is handled above, so it is excluded here)
+  const trialDue = await db.company.findMany({
+    where: {
+      betaEnrolledAt: null,
+      trialWarningSentAt: null,
+      trialEndsAt: { gt: now, lte: new Date(now.getTime() + TRIAL_NOTICE_WINDOW_DAYS * DAY_MS) }
+    },
+    select: { id: true, name: true, trialEndsAt: true, subscriptionStatus: true, users: ownerSelect }
+  });
+  let trialSent = 0;
+  for (const company of trialDue) {
+    const owner = company.users[0];
+    if (!owner || !company.trialEndsAt || isPaidStatus(company.subscriptionStatus)) continue;
+    const content = trialEndingEmail({ ownerName: owner.name, companyName: company.name, endDate: dateLabel(company.trialEndsAt), appUrl });
+    const result = await sendPlatformSystemEmail({ toEmail: owner.email, subject: content.subject, html: content.html, companyId: company.id });
+    if (result.sent) {
+      await db.company.update({ where: { id: company.id }, data: { trialWarningSentAt: now } });
+      trialSent++;
+    }
+  }
+
+  return NextResponse.json({ checked: betaDue.length, sent: betaSent, trialChecked: trialDue.length, trialSent });
 }

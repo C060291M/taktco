@@ -6,7 +6,7 @@ import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 import { sendPlatformSystemEmail } from "@/lib/platformEmail";
 import { welcomeEmail } from "@/emails/welcome-email";
 import { TERMS_VERSION } from "@/lib/legalVersions";
-import { betaClaim } from "@/lib/betaStatus";
+import { accessClaim } from "@/lib/accountAccess";
 
 // Closed beta: only the first BETA_SIGNUP_CAP companies to sign up are accepted,
 // and each is enrolled for BETA_DURATION_DAYS starting on its own signup date.
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       termsAcceptedIp: clientIp(req)
     }
   });
-  await createSession({ userId: owner.id, companyId: company.id, role: owner.role, ...betaClaim(betaEndsAt) });
+  await createSession({ userId: owner.id, companyId: company.id, role: owner.role, ...accessClaim(company) });
 
   // Best-effort, never blocks signup - a missing welcome email should
   // never be the reason someone can't create an account.

@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
       where: { ...customerCompanyFilter, subscriptionStatus: "active" },
       _count: true
     }),
-    db.company.count({ where: { ...customerCompanyFilter, subscriptionStatus: "trialing" } }),
+    db.company.count({ where: { ...customerCompanyFilter, betaEnrolledAt: null, trialEndsAt: { gt: new Date() }, OR: [{ subscriptionStatus: null }, { subscriptionStatus: { notIn: ["active", "trialing", "past_due"] } }] } }),
     db.platformFinance.findFirst()
   ]);
 
@@ -58,7 +58,7 @@ export default async function AdminDashboardPage() {
         <StatCard label="MRR" value={`$${mrr.toLocaleString()}`} icon={DollarSign} tone={mrr > 0 ? "positive" : "neutral"} />
         <StatCard label="ARR" value={`$${arr.toLocaleString()}`} icon={TrendingUp} tone={arr > 0 ? "positive" : "neutral"} />
         <StatCard label="Active subscriptions" value={String(activeSubscriptions)} icon={Building2} tone="accent" />
-        <StatCard label="Trial accounts" value={String(trialCount)} icon={UserPlus} tone={trialCount > 0 ? "accent" : "neutral"} />
+        <StatCard label="Free trials running" value={String(trialCount)} icon={UserPlus} tone={trialCount > 0 ? "accent" : "neutral"} />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

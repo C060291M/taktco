@@ -21,7 +21,7 @@ export function BetaReadOnlyNotice() {
       if (response.status === 403) {
         try {
           const body = await response.clone().json();
-          if (body && body.code === "BETA_READ_ONLY") {
+          if (body && (body.code === "BETA_READ_ONLY" || body.code === "TRIAL_READ_ONLY")) {
             setMessage(typeof body.error === "string" ? body.error : FALLBACK_MESSAGE);
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => setMessage(null), 12000);

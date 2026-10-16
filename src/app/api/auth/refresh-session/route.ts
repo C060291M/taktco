@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireSession, createSession } from "@/lib/auth";
-import { betaClaim } from "@/lib/betaStatus";
+import { accessClaim } from "@/lib/accountAccess";
 
-// Re-issues the session cookie so its closed-beta claim matches the database
-// (for example after an admin extends a beta). Identity comes from the existing
+// Re-issues the session cookie so its beta/trial claims match the database (for example after an
+// admin extends a window, or after the company subscribes). Identity comes from the existing
 // valid session; nothing in the request body is trusted.
 export async function POST() {
   const ctx = await requireSession();
@@ -12,7 +12,7 @@ export async function POST() {
     userId: ctx.user.id,
     companyId: ctx.user.companyId,
     role: ctx.user.role,
-    ...betaClaim(ctx.company.betaEndsAt)
+    ...accessClaim(ctx.company)
   });
   return NextResponse.json({ ok: true });
 }

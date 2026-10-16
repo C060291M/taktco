@@ -2,6 +2,8 @@ import { db } from "@/database/client";
 import { askClaude } from "@/lib/ai";
 import { decryptSecret } from "@/lib/crypto";
 import { callAnthropic, callOpenAi, callGoogleGemini, callXai, callAzureOpenAi } from "@/lib/aiProviders";
+import { accessInfo } from "@/lib/accountAccess";
+import { TRIAL_INCLUDED_CREDITS } from "@/lib/billingAccess";
 
 export class InsufficientCreditsError extends Error {
   constructor() {
@@ -22,8 +24,15 @@ business_analysis: 5,
 export async function getOrCreateWallet(companyId: string) {
   const existing = await db.aiCreditWallet.findUnique({ where: { companyId } });
   if (existing) return existing;
+  // A free-trial company starts with a small grant. The first active subscription replaces it
+  // with the plan's amount (Stripe webhook). Everyone else keeps the standard 500.
+  const company = await db.company.findUnique({
+    where: { id: companyId },
+    select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true }
+  });
+  const includedCredits = accessInfo(company).phase === "TRIAL" ? TRIAL_INCLUDED_CREDITS : 500;
   return db.aiCreditWallet.create({
-    data: { companyId, includedCredits: 500, cycleResetAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
+    data: { companyId, includedCredits, cycleResetAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
   });
 }
 

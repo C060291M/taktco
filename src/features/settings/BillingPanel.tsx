@@ -13,13 +13,16 @@ export function BillingPanel({
   status,
   currentPeriodEnd,
   hasStripeCustomer,
-  isOwner
+  isOwner,
+  freeNote
 }: {
   currentTier: string;
   status: string | null;
   currentPeriodEnd: string | null;
   hasStripeCustomer: boolean;
   isOwner: boolean;
+  // Set for closed-beta and free-trial accounts: says when billing would start (src/lib/billingAccess.ts).
+  freeNote: string | null;
 }) {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
@@ -85,7 +88,7 @@ export function BillingPanel({
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-graphite-500 mt-3">7-day free trial on any plan.</p>
+          <p className="text-[11px] text-graphite-500 mt-3">{freeNote ?? "7-day free trial on any plan."}</p>
         </div>
       )}
       {error && <p className="text-xs text-red-400">{error}</p>}

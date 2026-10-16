@@ -6,9 +6,10 @@ import { ToastContainer } from "@/components/ui/Toast";
 import { CommandPalette } from "@/features/search/CommandPalette";
 import { QuickActionButton } from "@/features/dashboard/QuickActionButton";
 import { ReturnToAdminBanner } from "@/features/admin/ReturnToAdminBanner";
-import { BetaBanner } from "@/features/dashboard/BetaBanner";
+import { AccessBanner } from "@/features/dashboard/AccessBanner";
 import { BetaSessionSync } from "@/features/dashboard/BetaSessionSync";
 import { BetaReadOnlyNotice } from "@/features/dashboard/BetaReadOnlyNotice";
+import { accessInfo } from "@/lib/accountAccess";
 import { dashboardBackgroundStyle } from "@/lib/dashboardTheme";
 import { getContrastingTextColor } from "@/lib/getContrastingTextColor";
 
@@ -16,9 +17,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const ctx = await requireSession();
   if (!ctx) redirect("/login");
   const isViewingAsDemo = Boolean(await getAdminReturnMarker());
-  // Keep the session cookie claim in step with the database (see src/lib/betaStatus.ts).
-  const betaClaimInCookie = ctx.session.betaEndsAt ?? null;
-  const betaClaimInDb = ctx.company.betaEndsAt ? ctx.company.betaEndsAt.getTime() : null;
+
+  // Keep the session cookie's access claims in step with the database (see src/lib/accountAccess.ts).
+  const access = accessInfo(ctx.company);
+  const cookieEndsAt = ctx.session.accessEndsAt ?? ctx.session.betaEndsAt ?? null;
+  const cookieKind = ctx.session.accessEndsAt != null ? (ctx.session.accessKind ?? null) : ctx.session.betaEndsAt != null ? "beta" : null;
+  const dbEndsAt = access.endsAt ? access.endsAt.getTime() : null;
+  const claimsDiffer = cookieEndsAt !== dbEndsAt || cookieKind !== access.kind;
 
   return (
     <div
@@ -28,8 +33,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Sidebar companyName={ctx.company.name} logoUrl={ctx.company.logoUrl} userRole={ctx.user.role} />
       <div className="flex-1 flex flex-col min-h-screen">
         {isViewingAsDemo && <ReturnToAdminBanner />}
-        <BetaBanner betaEndsAt={ctx.company.betaEndsAt} />
-        {betaClaimInCookie !== betaClaimInDb && <BetaSessionSync />}
+        <AccessBanner info={access} />
+        {claimsDiffer && <BetaSessionSync />}
         <TopNav userName={ctx.user.name} userRole={ctx.user.role} />
         <main
           className="flex-1 p-8 max-w-6xl"
@@ -39,11 +44,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </main>
       </div>
       <ToastContainer />
-      {ctx.company.betaEndsAt && <BetaReadOnlyNotice />}
+      {access.endsAt && <BetaReadOnlyNotice />}
       <CommandPalette />
       <QuickActionButton />
     </div>
   );
 }
-
-

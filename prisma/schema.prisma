@@ -240,6 +240,11 @@ model Company {
   betaEndsAt             DateTime?
   // Set when the "your beta ends soon" email goes out so it is sent once; cleared on any extension.
   betaWarningSentAt      DateTime?
+  // Free-trial window (7 days) for signups after the closed beta fills. Null for beta, paid and
+  // pre-existing accounts. Beta takes precedence if both are ever set; see src/lib/accountAccess.ts.
+  trialStartedAt         DateTime?
+  trialEndsAt            DateTime?
+  trialWarningSentAt     DateTime?
 
   users         User[]
   customers     Customer[]

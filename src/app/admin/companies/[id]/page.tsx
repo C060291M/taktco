@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { DeleteCompanyButton } from "@/features/admin/DeleteCompanyButton";
 import { BetaControls } from "@/features/admin/BetaControls";
+import { TrialControls } from "@/features/admin/TrialControls";
+import { accessInfo, isPaidStatus, PHASE_LABELS } from "@/lib/accountAccess";
 
 export default async function AdminCompanyDetailPage({ params }: { params: { id: string } }) {
   const company = await db.company.findUnique({
@@ -42,7 +44,9 @@ export default async function AdminCompanyDetailPage({ params }: { params: { id:
             <div className="flex justify-between"><dt className="text-graphite-400">Customers</dt><dd className="text-graphite-100">{company._count.customers}</dd></div>
             <div className="flex justify-between"><dt className="text-graphite-400">Jobs</dt><dd className="text-graphite-100">{company._count.jobs}</dd></div>
             <div className="flex justify-between"><dt className="text-graphite-400">Signed up</dt><dd className="text-graphite-100">{new Date(company.createdAt).toLocaleDateString()}</dd></div>
+            <div className="flex justify-between"><dt className="text-graphite-400">Account type</dt><dd className="text-graphite-100">{PHASE_LABELS[accessInfo(company).phase]}</dd></div>
             {company.betaEnrolledAt && company.betaEndsAt && (<div className="flex justify-between"><dt className="text-graphite-400">Beta period</dt><dd className="text-graphite-100">{new Date(company.betaEnrolledAt).toLocaleDateString()} &ndash; {new Date(company.betaEndsAt).toLocaleDateString()}</dd></div>)}
+            {company.trialStartedAt && company.trialEndsAt && (<div className="flex justify-between"><dt className="text-graphite-400">Trial period</dt><dd className="text-graphite-100">{new Date(company.trialStartedAt).toLocaleDateString()} &ndash; {new Date(company.trialEndsAt).toLocaleDateString()}</dd></div>)}
           </dl>
         </div>
 
@@ -64,6 +68,11 @@ export default async function AdminCompanyDetailPage({ params }: { params: { id:
       <div className="card p-5">
         <h2 className="text-sm font-medium text-white mb-3">Closed beta</h2>
         <BetaControls companyId={company.id} betaEndsAt={company.betaEndsAt ? company.betaEndsAt.toISOString() : null} />
+      </div>
+
+      <div className="card p-5">
+        <h2 className="text-sm font-medium text-white mb-3">Free trial</h2>
+        <TrialControls companyId={company.id} trialEndsAt={company.trialEndsAt ? company.trialEndsAt.toISOString() : null} inBeta={Boolean(company.betaEnrolledAt)} paid={isPaidStatus(company.subscriptionStatus)} />
       </div>
 
       <div className="card p-5">

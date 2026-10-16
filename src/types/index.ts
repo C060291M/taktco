@@ -8,6 +8,9 @@ export type SessionPayload = {
   role: string;
   // Closed-beta end time (epoch milliseconds); present only for enrolled companies. Read by src/middleware.ts.
   betaEndsAt?: number;
+  // Current access-window claims for beta and trial accounts (see src/lib/accountAccess.ts); betaEndsAt above is the legacy claim.
+  accessEndsAt?: number;
+  accessKind?: "beta" | "trial";
 };
 
 export type ApiError = {
