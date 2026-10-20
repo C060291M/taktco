@@ -4,6 +4,8 @@ import { db } from "@/database/client";
 import { sendPlatformSystemEmail } from "@/lib/platformEmail";
 import { betaEndingEmail } from "@/emails/beta-ending-email";
 import { trialEndingEmail } from "@/emails/trial-ending-email";
+import { betaDay3Email } from "@/emails/beta-day3-email";
+import { betaDay7Email } from "@/emails/beta-day7-email";
 import { isPaidStatus } from "@/lib/accountAccess";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -79,5 +81,48 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ checked: betaDue.length, sent: betaSent, trialChecked: trialDue.length, trialSent });
+  // Closed-beta follow-ups: day 3 "need help?" and day 7 "feedback". Each is sent once per company, only
+  // while the beta is still running, and only inside a bounded window so an older account never gets a late
+  // day-3 email and a day-7 email back to back.
+  const day3Due = await db.company.findMany({
+    where: {
+      betaDay3EmailSentAt: null,
+      betaEndsAt: { gt: now },
+      betaEnrolledAt: { not: null, lte: new Date(now.getTime() - 3 * DAY_MS), gt: new Date(now.getTime() - 6 * DAY_MS) }
+    },
+    select: { id: true, name: true, users: ownerSelect }
+  });
+  let day3Sent = 0;
+  for (const company of day3Due) {
+    const owner = company.users[0];
+    if (!owner) continue;
+    const content = betaDay3Email({ ownerName: owner.name, companyName: company.name, appUrl });
+    const result = await sendPlatformSystemEmail({ toEmail: owner.email, subject: content.subject, html: content.html, companyId: company.id });
+    if (result.sent) {
+      await db.company.update({ where: { id: company.id }, data: { betaDay3EmailSentAt: now } });
+      day3Sent++;
+    }
+  }
+
+  const day7Due = await db.company.findMany({
+    where: {
+      betaDay7EmailSentAt: null,
+      betaEndsAt: { gt: now },
+      betaEnrolledAt: { not: null, lte: new Date(now.getTime() - 7 * DAY_MS), gt: new Date(now.getTime() - 10 * DAY_MS) }
+    },
+    select: { id: true, name: true, betaEndsAt: true, users: ownerSelect }
+  });
+  let day7Sent = 0;
+  for (const company of day7Due) {
+    const owner = company.users[0];
+    if (!owner || !company.betaEndsAt) continue;
+    const content = betaDay7Email({ ownerName: owner.name, companyName: company.name, endDate: dateLabel(company.betaEndsAt), appUrl });
+    const result = await sendPlatformSystemEmail({ toEmail: owner.email, subject: content.subject, html: content.html, companyId: company.id });
+    if (result.sent) {
+      await db.company.update({ where: { id: company.id }, data: { betaDay7EmailSentAt: now } });
+      day7Sent++;
+    }
+  }
+
+  return NextResponse.json({ checked: betaDue.length, sent: betaSent, trialChecked: trialDue.length, trialSent, day3Sent, day7Sent });
 }

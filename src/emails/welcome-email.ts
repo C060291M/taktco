@@ -33,6 +33,11 @@ export function welcomeEmail({ companyName, ownerName, appUrl, betaEndsAt, trial
           <p style="margin:0; font-size:14px;">Try the AI Builder - describe the job in plain language and get a real, priced draft from your own Pricing Matrix.</p>
         </div>
 
+        <div style="border:1px solid #1EAEC4; border-radius:8px; padding:14px 16px; margin:0 0 20px; font-size:13px;">
+          <p style="margin:0 0 6px; color:#fff; font-weight:600;">One heads-up: card payments are in test mode</p>
+          <p style="margin:0; color:#B4B8C0;">You can connect Stripe and send invoices, but online card payments are not live yet, so no real money moves through TAKTCO. For now, collect payment the way you normally do (check, cash, Zelle) and use <strong>Mark as paid</strong> on the invoice. We will let you know as soon as live card payments are on.</p>
+        </div>
+
         <a href="${appUrl}/dashboard" style="display:inline-block; background:#1EAEC4; color:#0E0F11; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600;">Go to your dashboard</a>
 
         <div style="margin-top:32px; padding-top:24px; border-top:1px solid #2A2D33;">
@@ -46,7 +51,7 @@ export function welcomeEmail({ companyName, ownerName, appUrl, betaEndsAt, trial
             <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">Estimates</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">Build a quote (or let the AI Builder draft one from your Pricing Matrix) and send it - the customer approves online, no account needed on their end.</td></tr>
             <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">Contracts</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">Created automatically the moment an estimate is approved, or build one yourself - scope, payment terms, and e-signature.</td></tr>
             <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">Projects</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">Run the job itself - crew assignments, daily logs, before/after photos, and punch lists.</td></tr>
-            <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">Invoices</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">Pulls straight from the approved estimate. Split into a deposit and final balance with one click; customers pay online.</td></tr>
+            <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">Invoices</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">Pulls straight from the approved estimate. Split into a deposit and final balance with one click. Online card payments are still in test mode, so mark invoices paid by hand for now.</td></tr>
             <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">Schedule</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">A calendar view of every job and appointment across your team.</td></tr>
             <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">Analytics</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">Revenue trends, win rate, and your Business Health Score - one real number built from your actual data.</td></tr>
             <tr><td style="padding:8px 0; vertical-align:top; color:#fff; font-weight:600; white-space:nowrap; padding-right:14px;">TAKTCO AI</td><td style="padding:8px 0; vertical-align:top; color:#B4B8C0;">Ask about your revenue, overdue invoices, or pipeline and get answers pulled from your real numbers.</td></tr>
