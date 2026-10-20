@@ -136,7 +136,7 @@ export default async function AdminDashboardPage() {
                 <td className="px-4 py-3 text-graphite-300">{c._count.users}</td>
                 <td className="px-4 py-3 text-graphite-300">{c._count.customers}</td>
                 <td className="px-4 py-3 text-graphite-300">{c._count.jobs}</td>
-                <td className="px-4 py-3 text-graphite-300">{new Date(c.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-graphite-300">{new Date(c.createdAt).toLocaleDateString("en-US", { timeZone: "America/Chicago" })}</td>
               </tr>
             ))}
           </tbody>

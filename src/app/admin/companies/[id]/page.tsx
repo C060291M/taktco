@@ -43,10 +43,10 @@ export default async function AdminCompanyDetailPage({ params }: { params: { id:
             <div className="flex justify-between"><dt className="text-graphite-400">Users</dt><dd className="text-graphite-100">{company.users.length}</dd></div>
             <div className="flex justify-between"><dt className="text-graphite-400">Customers</dt><dd className="text-graphite-100">{company._count.customers}</dd></div>
             <div className="flex justify-between"><dt className="text-graphite-400">Jobs</dt><dd className="text-graphite-100">{company._count.jobs}</dd></div>
-            <div className="flex justify-between"><dt className="text-graphite-400">Signed up</dt><dd className="text-graphite-100">{new Date(company.createdAt).toLocaleDateString()}</dd></div>
+            <div className="flex justify-between"><dt className="text-graphite-400">Signed up</dt><dd className="text-graphite-100">{new Date(company.createdAt).toLocaleDateString("en-US", { timeZone: "America/Chicago" })}</dd></div>
             <div className="flex justify-between"><dt className="text-graphite-400">Account type</dt><dd className="text-graphite-100">{PHASE_LABELS[accessInfo(company).phase]}</dd></div>
-            {company.betaEnrolledAt && company.betaEndsAt && (<div className="flex justify-between"><dt className="text-graphite-400">Beta period</dt><dd className="text-graphite-100">{new Date(company.betaEnrolledAt).toLocaleDateString()} &ndash; {new Date(company.betaEndsAt).toLocaleDateString()}</dd></div>)}
-            {company.trialStartedAt && company.trialEndsAt && (<div className="flex justify-between"><dt className="text-graphite-400">Trial period</dt><dd className="text-graphite-100">{new Date(company.trialStartedAt).toLocaleDateString()} &ndash; {new Date(company.trialEndsAt).toLocaleDateString()}</dd></div>)}
+            {company.betaEnrolledAt && company.betaEndsAt && (<div className="flex justify-between"><dt className="text-graphite-400">Beta period</dt><dd className="text-graphite-100">{new Date(company.betaEnrolledAt).toLocaleDateString("en-US", { timeZone: "America/Chicago" })} &ndash; {new Date(company.betaEndsAt).toLocaleDateString("en-US", { timeZone: "America/Chicago" })}</dd></div>)}
+            {company.trialStartedAt && company.trialEndsAt && (<div className="flex justify-between"><dt className="text-graphite-400">Trial period</dt><dd className="text-graphite-100">{new Date(company.trialStartedAt).toLocaleDateString("en-US", { timeZone: "America/Chicago" })} &ndash; {new Date(company.trialEndsAt).toLocaleDateString("en-US", { timeZone: "America/Chicago" })}</dd></div>)}
           </dl>
         </div>
 
