@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
     // Daily-rotating, secret-salted hash: counts unique visitors per day
     // without storing the IP, and can't be matched across days or reversed
     // by hashing a list of known IPs (the salt never leaves the server).
-    const day = new Date().toISOString().slice(0, 10);
+    // The day rolls over at midnight Central so it matches the admin chart.
+    const day = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
     const salt = process.env.AUTH_SECRET || "dev-only-salt";
     const visitorHash = crypto.createHash("sha256").update(`${salt}|${day}|${ip}|${ua}`).digest("hex").slice(0, 32);
 

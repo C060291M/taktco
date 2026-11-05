@@ -5,15 +5,21 @@ import { ADMIN_INTERNAL_SUBDOMAIN } from "@/lib/admin";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CHART_HEIGHT_PX = 128;
+const TZ = "America/Chicago";
+
+// Calendar date (YYYY-MM-DD) of an instant, in Central time.
+const centralDay = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: TZ });
 
 export async function LandingTraffic() {
   const now = new Date();
-  const startOfUtcDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const todayKey = centralDay(now);
+  const [ty, tm, td] = todayKey.split("-").map(Number);
   const since24h = new Date(now.getTime() - DAY_MS);
   const since7d = new Date(now.getTime() - 7 * DAY_MS);
   const since30d = new Date(now.getTime() - 30 * DAY_MS);
-  // Aligned to the first chart bucket so the chart and source list agree.
-  const since14d = new Date(startOfUtcDay.getTime() - 13 * DAY_MS);
+  // Fetch a day more than the chart needs; anything outside the 14 Central-time buckets is ignored below,
+  // so the chart and the source list always agree.
+  const since14d = new Date(Date.UTC(ty, tm - 1, td - 14));
 
   const customerFilter = { subdomain: { not: ADMIN_INTERNAL_SUBDOMAIN } };
 
@@ -31,26 +37,25 @@ export async function LandingTraffic() {
     db.company.count({ where: { ...customerFilter, createdAt: { gte: since7d } } })
   ]);
 
-  // 14 daily buckets, by UTC day (the same boundary the visitor hash rotates on).
+  // 14 daily buckets by Central-time calendar day (the same boundary the visitor hash rotates on).
   const days: { key: string; label: string; views: number; visitors: Set<string> }[] = [];
   for (let i = 13; i >= 0; i--) {
-    const key = new Date(startOfUtcDay.getTime() - i * DAY_MS).toISOString().slice(0, 10);
+    const key = new Date(Date.UTC(ty, tm - 1, td - i)).toISOString().slice(0, 10);
     days.push({ key, label: key.slice(5), views: 0, visitors: new Set<string>() });
   }
   const byKey = new Map(days.map((d) => [d.key, d]));
   const sourceCounts = new Map<string, number>();
 
   for (const v of recent) {
-    const bucket = byKey.get(v.createdAt.toISOString().slice(0, 10));
-    if (bucket) {
-      bucket.views += 1;
-      bucket.visitors.add(v.visitorHash);
-    }
+    const bucket = byKey.get(centralDay(v.createdAt));
+    if (!bucket) continue;
+    bucket.views += 1;
+    bucket.visitors.add(v.visitorHash);
     const source = v.utmSource ? `utm: ${v.utmSource}` : v.referrer || "Direct / unknown";
     sourceCounts.set(source, (sourceCounts.get(source) || 0) + 1);
   }
 
-  const today = byKey.get(startOfUtcDay.toISOString().slice(0, 10));
+  const today = byKey.get(todayKey);
   const uniqueToday = today ? today.visitors.size : 0;
   const maxViews = Math.max(1, ...days.map((d) => d.views));
   const topSources = Array.from(sourceCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
@@ -69,12 +74,12 @@ export async function LandingTraffic() {
         <StatCard label="Views (24h)" value={String(views24h)} icon={Eye} tone="accent" />
         <StatCard label="Views (7d)" value={String(views7d)} icon={Eye} tone="neutral" />
         <StatCard label="Views (30d)" value={String(views30d)} icon={Eye} tone="neutral" />
-        <StatCard label="Unique visitors today (UTC)" value={String(uniqueToday)} icon={Users} tone="neutral" />
+        <StatCard label="Unique visitors today" value={String(uniqueToday)} icon={Users} tone="neutral" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="card p-5">
-          <h3 className="text-sm font-medium text-white mb-3">Views per day (last 14 days, UTC)</h3>
+          <h3 className="text-sm font-medium text-white mb-3">Views per day (last 14 days, Central time)</h3>
           <div className="flex items-end gap-1" style={{ height: CHART_HEIGHT_PX }}>
             {days.map((d) => (
               <div
