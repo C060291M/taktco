@@ -6,7 +6,7 @@ import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 
 // Only these paths are ever recorded - anything else is ignored, so this
 // endpoint can't be used to stuff arbitrary strings into the table.
-const TRACKED_PATHS = new Set(["/"]);
+const TRACKED_PATHS = new Set(["/", "/signup"]);
 
 // Crawlers, scanners, link-preview fetchers, and scripted clients. Real
 // browsers (including in-app browsers) don't match this.

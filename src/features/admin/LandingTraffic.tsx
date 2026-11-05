@@ -23,7 +23,7 @@ export async function LandingTraffic() {
 
   const customerFilter = { subdomain: { not: ADMIN_INTERNAL_SUBDOMAIN } };
 
-  const [views24h, views7d, views30d, recent, signups30d, signups7d] = await Promise.all([
+  const [views24h, views7d, views30d, recent, signups30d, signups7d, signupViews7d, signupViews30d] = await Promise.all([
     db.pageView.count({ where: { path: "/", createdAt: { gte: since24h } } }),
     db.pageView.count({ where: { path: "/", createdAt: { gte: since7d } } }),
     db.pageView.count({ where: { path: "/", createdAt: { gte: since30d } } }),
@@ -34,7 +34,9 @@ export async function LandingTraffic() {
       take: 50000
     }),
     db.company.count({ where: { ...customerFilter, createdAt: { gte: since30d } } }),
-    db.company.count({ where: { ...customerFilter, createdAt: { gte: since7d } } })
+    db.company.count({ where: { ...customerFilter, createdAt: { gte: since7d } } }),
+    db.pageView.count({ where: { path: "/signup", createdAt: { gte: since7d } } }),
+    db.pageView.count({ where: { path: "/signup", createdAt: { gte: since30d } } })
   ]);
 
   // 14 daily buckets by Central-time calendar day (the same boundary the visitor hash rotates on).
@@ -120,7 +122,10 @@ export async function LandingTraffic() {
             </div>
           )}
           <div className="mt-4 pt-3 border-t border-graphite-700 text-sm text-graphite-400">
-            New signups: <span className="text-white">{signups7d}</span> in the last 7 days &middot; <span className="text-white">{signups30d}</span> in the last 30 days
+            Signup page views: <span className="text-white">{signupViews7d}</span> in the last 7 days &middot; <span className="text-white">{signupViews30d}</span> in the last 30 days
+            <div className="mt-1">
+              New signups: <span className="text-white">{signups7d}</span> in the last 7 days &middot; <span className="text-white">{signups30d}</span> in the last 30 days
+            </div>
           </div>
         </div>
       </div>
