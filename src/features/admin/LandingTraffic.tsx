@@ -4,6 +4,7 @@ import { Eye, Users } from "lucide-react";
 import { ADMIN_INTERNAL_SUBDOMAIN } from "@/lib/admin";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const CHART_HEIGHT_PX = 128;
 
 export async function LandingTraffic() {
   const now = new Date();
@@ -74,12 +75,20 @@ export async function LandingTraffic() {
       <div className="grid md:grid-cols-2 gap-6">
         <div className="card p-5">
           <h3 className="text-sm font-medium text-white mb-3">Views per day (last 14 days, UTC)</h3>
-          <div className="flex items-end gap-1 h-32">
+          <div className="flex items-end gap-1" style={{ height: CHART_HEIGHT_PX }}>
             {days.map((d) => (
-              <div key={d.key} className="flex-1 h-full flex items-end" title={`${d.key}: ${d.views} views, ${d.visitors.size} unique`}>
+              <div
+                key={d.key}
+                className="flex-1 flex items-end"
+                style={{ height: CHART_HEIGHT_PX }}
+                title={`${d.key}: ${d.views} views, ${d.visitors.size} unique`}
+              >
                 <div
-                  className="w-full bg-accent/70 rounded-sm"
-                  style={{ height: `${Math.round((d.views / maxViews) * 100)}%`, minHeight: d.views > 0 ? "2px" : "0" }}
+                  className="w-full rounded-sm"
+                  style={{
+                    height: d.views > 0 ? Math.max(4, Math.round((d.views / maxViews) * CHART_HEIGHT_PX)) : 0,
+                    backgroundColor: "rgba(31, 198, 242, 0.8)"
+                  }}
                 />
               </div>
             ))}
