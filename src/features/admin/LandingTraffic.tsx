@@ -23,10 +23,11 @@ export async function LandingTraffic() {
 
   const customerFilter = { subdomain: { not: ADMIN_INTERNAL_SUBDOMAIN } };
 
-  const [views24h, views7d, views30d, recent, signups30d, signups7d, signupViews7d, signupViews30d] = await Promise.all([
+  const [views24h, views7d, views30d, viewsAllTime, recent, signups30d, signups7d, signupViews7d, signupViews30d] = await Promise.all([
     db.pageView.count({ where: { path: "/", createdAt: { gte: since24h } } }),
     db.pageView.count({ where: { path: "/", createdAt: { gte: since7d } } }),
     db.pageView.count({ where: { path: "/", createdAt: { gte: since30d } } }),
+    db.pageView.count({ where: { path: "/" } }),
     db.pageView.findMany({
       where: { path: "/", createdAt: { gte: since14d } },
       select: { createdAt: true, visitorHash: true, referrer: true, utmSource: true },
@@ -72,10 +73,11 @@ export async function LandingTraffic() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard label="Views (24h)" value={String(views24h)} icon={Eye} tone="accent" />
         <StatCard label="Views (7d)" value={String(views7d)} icon={Eye} tone="neutral" />
         <StatCard label="Views (30d)" value={String(views30d)} icon={Eye} tone="neutral" />
+        <StatCard label="Views (all time)" value={String(viewsAllTime)} icon={Eye} tone="neutral" />
         <StatCard label="Unique visitors today" value={String(uniqueToday)} icon={Users} tone="neutral" />
       </div>
 
