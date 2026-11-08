@@ -41,6 +41,8 @@ export async function LandingTraffic() {
   ]);
 
   // 14 daily buckets by Central-time calendar day (the same boundary the visitor hash rotates on).
+  const waitlistCount = await db.waitlistEntry.count().catch(() => 0);
+
   const days: { key: string; label: string; views: number; visitors: Set<string> }[] = [];
   for (let i = 13; i >= 0; i--) {
     const key = new Date(Date.UTC(ty, tm - 1, td - i)).toISOString().slice(0, 10);
@@ -126,7 +128,7 @@ export async function LandingTraffic() {
           <div className="mt-4 pt-3 border-t border-graphite-700 text-sm text-graphite-400">
             Signup page views: <span className="text-white">{signupViews7d}</span> in the last 7 days &middot; <span className="text-white">{signupViews30d}</span> in the last 30 days
             <div className="mt-1">
-              New signups: <span className="text-white">{signups7d}</span> in the last 7 days &middot; <span className="text-white">{signups30d}</span> in the last 30 days
+              New signups: <span className="text-white">{signups7d}</span> in the last 7 days &middot; <span className="text-white">{signups30d}</span> in the last 30 days</div><div className="mt-1">Waitlist: <a href="/admin/waitlist" className="text-white underline">{waitlistCount}</a> waiting
             </div>
           </div>
         </div>
