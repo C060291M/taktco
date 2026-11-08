@@ -1712,3 +1712,13 @@ model CampaignQueueItem {
 
 
 
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  company   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

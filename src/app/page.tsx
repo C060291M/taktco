@@ -4,6 +4,7 @@ import { NovaBanner } from "@/components/marketing/NovaBanner";
 import { PageViewTracker } from "@/components/marketing/PageViewTracker";
 import { BetaPromoBanner } from "@/components/marketing/BetaPromoBanner";
 import { getBetaSpotsLeft, BETA_SIGNUP_CAP } from "@/lib/betaSpots";
+import { WaitlistForm } from "@/components/marketing/WaitlistForm";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -79,12 +80,14 @@ export default async function Home() {
             contracts, projects, crews, invoices, payments, marketing, and business analytics. One system built for contractors.
           </p>
           <div className="flex items-center justify-center gap-3 mt-8">
-            <Link href="/signup" className="btn-primary px-6 py-3 text-base">Start free trial</Link>
+            {spotsLeft > 0 ? (<Link href="/signup" className="btn-primary px-6 py-3 text-base">Start free trial</Link>) : (<a href="#waitlist" className="btn-primary px-6 py-3 text-base">Join the waitlist</a>)}
             <Link href="/login" className="btn-secondary px-6 py-3 text-base">Log in</Link>
           </div>
-          <p className="text-xs text-graphite-500 mt-3">Closed beta &middot; free for 30 days &middot; limited spots &middot; no credit card required</p>
+          {spotsLeft > 0 ? (<p className="text-xs text-graphite-500 mt-3">Closed beta &middot; free for 30 days &middot; limited spots &middot; no credit card required</p>) : (<p className="text-xs text-graphite-500 mt-3">The closed beta is full &middot; join the waitlist and we will email you when a spot opens</p>)}
           <p className="text-xs text-graphite-500 mt-4 uppercase tracking-[0.3em]">Beyond The Tape</p>
         </section>
+
+      {spotsLeft <= 0 && <WaitlistForm />}
 
       {/* How it works */}
       <section className="max-w-5xl mx-auto px-6 py-12">
@@ -127,7 +130,7 @@ export default async function Home() {
           ))}
         </div>
         <div className="text-center mt-10">
-          <Link href="/signup" className="btn-primary px-6 py-3 text-base">Start free trial</Link>
+          {spotsLeft > 0 ? (<Link href="/signup" className="btn-primary px-6 py-3 text-base">Start free trial</Link>) : (<a href="#waitlist" className="btn-primary px-6 py-3 text-base">Join the waitlist</a>)}
         </div>
       </section>
 
