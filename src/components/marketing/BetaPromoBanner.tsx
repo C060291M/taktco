@@ -1,11 +1,7 @@
-﻿// Landing-page promo strip. Self-contained: uses only Tailwind arbitrary values,
-// so it looks the same no matter how the rest of the theme is configured.
-// Update SPOTS_LEFT as beta spots fill up (set it to 0 to hide the banner).
-const SPOTS_LEFT: number = 3;
-
-export function BetaPromoBanner() {
-  if (SPOTS_LEFT <= 0) return null;
-  const users = SPOTS_LEFT === 1 ? "USER" : "USERS";
+﻿// Landing-page promo strip. Self-contained: uses only Tailwind arbitrary values.
+// Shows how many closed-beta spots are left and removes itself when none remain.
+export function BetaPromoBanner({ spotsLeft, total }: { spotsLeft: number; total: number }) {
+  if (spotsLeft <= 0) return null;
   return (
     <section
       className="relative overflow-hidden border-y border-[#1FC6F2]/25 bg-[#060C13]"
@@ -20,8 +16,23 @@ export function BetaPromoBanner() {
             Free for 30 days
           </p>
           <p className="mt-2 text-lg font-extrabold uppercase italic text-[#F4F8FA] sm:text-2xl">
-            To the next {SPOTS_LEFT} {users}!
+            {spotsLeft === 1 ? "To the next user!" : `To the next ${spotsLeft} users!`}
           </p>
+          <div className="mt-3 flex items-center justify-center gap-2 md:justify-start">
+            {Array.from({ length: total }).map((_, i) => (
+              <span
+                key={i}
+                className={
+                  i < spotsLeft
+                    ? "h-3 w-3 rounded-full bg-[#1FC6F2] shadow-[0_0_10px_rgba(31,198,242,0.8)]"
+                    : "h-3 w-3 rounded-full bg-[#F4F8FA]/15"
+                }
+              />
+            ))}
+            <span className="ml-1 text-xs font-semibold uppercase tracking-widest text-[#F4F8FA]/70">
+              {spotsLeft} of {total} spots left
+            </span>
+          </div>
         </div>
         <a
           href="/signup"

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { BETA_SIGNUP_CAP } from "@/lib/betaSpots";
 import { z } from "zod";
 import { db } from "@/database/client";
 import { hashPassword, createSession } from "@/lib/auth";
@@ -10,7 +11,7 @@ import { accessClaim } from "@/lib/accountAccess";
 
 // Closed beta: only the first BETA_SIGNUP_CAP companies to sign up are accepted,
 // and each is enrolled for BETA_DURATION_DAYS starting on its own signup date.
-const BETA_SIGNUP_CAP = 4;
+// The beta size now lives in @/lib/betaSpots so the landing page can show it too.
 const BETA_DURATION_DAYS = 30;
 
 const schema = z.object({

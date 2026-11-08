@@ -3,6 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { NovaBanner } from "@/components/marketing/NovaBanner";
 import { PageViewTracker } from "@/components/marketing/PageViewTracker";
 import { BetaPromoBanner } from "@/components/marketing/BetaPromoBanner";
+import { getBetaSpotsLeft, BETA_SIGNUP_CAP } from "@/lib/betaSpots";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -49,6 +50,7 @@ const FAQS = [
 export default async function Home() {
   const ctx = await requireSession();
   if (ctx) redirect(ctx.user.isPlatformAdmin ? "/admin" : "/dashboard");
+  const spotsLeft = await getBetaSpotsLeft();
 
   return (
     <div className="min-h-screen bg-graphite-950 relative">
@@ -65,7 +67,7 @@ export default async function Home() {
         <NovaBanner />
         <PageViewTracker path="/" />
 
-        <BetaPromoBanner />
+        <BetaPromoBanner spotsLeft={spotsLeft} total={BETA_SIGNUP_CAP} />
 
         {/* Hero */}
         <section className="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
