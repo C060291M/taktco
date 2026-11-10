@@ -87,22 +87,27 @@ export async function LandingTraffic() {
         <div className="card p-5">
           <h3 className="text-sm font-medium text-white mb-3">Views per day (last 14 days, Central time)</h3>
           <div className="flex items-end gap-1" style={{ height: CHART_HEIGHT_PX }}>
-            {days.map((d) => (
-              <div
-                key={d.key}
-                className="flex-1 flex items-end"
-                style={{ height: CHART_HEIGHT_PX }}
-                title={`${d.key}: ${d.views} views, ${d.visitors.size} unique`}
-              >
+            {days.map((d) => {
+              const barH = d.views > 0 ? Math.max(4, Math.round((d.views / maxViews) * CHART_HEIGHT_PX)) : 0;
+              const inside = barH >= 20;
+              return (
                 <div
-                  className="w-full rounded-sm"
-                  style={{
-                    height: d.views > 0 ? Math.max(4, Math.round((d.views / maxViews) * CHART_HEIGHT_PX)) : 0,
-                    backgroundColor: "rgba(31, 198, 242, 0.8)"
-                  }}
-                />
-              </div>
-            ))}
+                  key={d.key}
+                  className="flex-1 flex flex-col items-center justify-end"
+                  style={{ height: CHART_HEIGHT_PX }}
+                  title={`${d.key}: ${d.views} views, ${d.visitors.size} unique`}
+                >
+                  {!inside && (
+                    <span className={d.views > 0 ? "mb-1 text-[11px] font-semibold leading-none text-white" : "mb-1 text-[11px] leading-none text-white/30"}>{d.views}</span>
+                  )}
+                  {d.views > 0 && (
+                    <div className="flex w-full items-start justify-center rounded-sm pt-1" style={{ height: barH, backgroundColor: "rgba(31, 198, 242, 0.8)" }}>
+                      {inside && <span className="text-[11px] font-bold leading-none text-[#060C13]">{d.views}</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className="flex gap-1 mt-1">
             {days.map((d, i) => (
