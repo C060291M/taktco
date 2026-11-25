@@ -80,6 +80,16 @@ export default async function SettingsPage() {
       <div className="card p-5">
         <div className="flex items-center justify-between">
           <div>
+            <h2 className="text-sm font-medium text-white">Pricing matrix</h2>
+            <p className="text-xs text-graphite-400 mt-1">Your prices by service, used to build estimates.</p>
+          </div>
+          <a href="/settings/pricing" className="btn-secondary">Manage</a>
+        </div>
+      </div>
+
+      <div className="card p-5">
+        <div className="flex items-center justify-between">
+          <div>
             <h2 className="text-sm font-medium text-white">Invoice defaults</h2>
             <p className="text-xs text-graphite-400 mt-1">Due days, late fee, deposit percentage, and footer text.</p>
           </div>
