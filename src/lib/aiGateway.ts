@@ -28,7 +28,7 @@ export async function getOrCreateWallet(companyId: string) {
   // with the plan's amount (Stripe webhook). Everyone else keeps the standard 500.
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true }
+    select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true, complimentary: true }
   });
   const includedCredits = accessInfo(company).phase === "TRIAL" ? TRIAL_INCLUDED_CREDITS : 500;
   return db.aiCreditWallet.create({
@@ -48,6 +48,8 @@ export async function getFeatureCost(feature: string): Promise<number> {
 // is out of credits and in BYOAI mode - callers should check settings.mode
 // themselves for BYOAI passthrough.
 export async function deductCredits(companyId: string, feature: string) {
+  const comp = await db.company.findUnique({ where: { id: companyId }, select: { complimentary: true } });
+  if (comp?.complimentary) return 0;
   const cost = await getFeatureCost(feature);
   const wallet = await getOrCreateWallet(companyId);
   const remaining = wallet.includedCredits - wallet.usedThisCycle + wallet.purchasedCredits;

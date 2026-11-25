@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
-  const company = await db.company.findUnique({ where: { id: user.companyId }, select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true } });
+  const company = await db.company.findUnique({ where: { id: user.companyId }, select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true, complimentary: true } });
   await createSession({ userId: user.id, companyId: user.companyId, role: user.role, ...accessClaim(company) });
   await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 

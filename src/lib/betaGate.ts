@@ -28,7 +28,7 @@ async function companyAccessExpired(companyId: string): Promise<boolean> {
   try {
     const company = await db.company.findUnique({
       where: { id: companyId },
-      select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true }
+      select: { subscriptionStatus: true, betaEnrolledAt: true, betaEndsAt: true, trialEndsAt: true, complimentary: true }
     });
     return accessExpired(accessInfo(company));
   } catch {

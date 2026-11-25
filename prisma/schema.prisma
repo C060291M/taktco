@@ -157,6 +157,7 @@ enum CampaignStatus {
 
 // A tenant. Every other table hangs off companyId.
 model Company {
+  complimentary Boolean @default(false)
   subcontractors Subcontractor[]
   jobSubcontracts JobSubcontract[]
   subcontractPayments SubcontractPayment[]

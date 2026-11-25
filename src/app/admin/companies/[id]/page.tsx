@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DeleteCompanyButton } from "@/features/admin/DeleteCompanyButton";
 import { BetaControls } from "@/features/admin/BetaControls";
 import { TrialControls } from "@/features/admin/TrialControls";
+import { ComplimentaryControls } from "@/features/admin/ComplimentaryControls";
 import { accessInfo, isPaidStatus, PHASE_LABELS } from "@/lib/accountAccess";
 
 export default async function AdminCompanyDetailPage({ params }: { params: { id: string } }) {
@@ -66,6 +67,11 @@ export default async function AdminCompanyDetailPage({ params }: { params: { id:
       </div>
 
       <div className="card p-5">
+        <h2 className="text-sm font-medium text-white mb-1">Complimentary account</h2>
+        <p className="text-xs text-graphite-400 mb-3">While ON, this company never has to pay, is never made read-only, and never runs out of AI credits.</p>
+        <ComplimentaryControls companyId={company.id} on={company.complimentary} />
+      </div>
+<div className="card p-5">
         <h2 className="text-sm font-medium text-white mb-3">Closed beta</h2>
         <BetaControls companyId={company.id} betaEndsAt={company.betaEndsAt ? company.betaEndsAt.toISOString() : null} />
       </div>

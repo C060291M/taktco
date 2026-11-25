@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const company = await db.company.findUnique({
     where: { id: params.id },
-    select: { id: true, betaEnrolledAt: true, trialEndsAt: true }
+    select: { id: true, betaEnrolledAt: true, trialEndsAt: true, complimentary: true }
   });
   if (!company) return NextResponse.json({ error: "Company not found." }, { status: 404 });
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
   }
 
-  const updated = await db.company.update({ where: { id: company.id }, data, select: { trialEndsAt: true } });
+  const updated = await db.company.update({ where: { id: company.id }, data, select: { trialEndsAt: true, complimentary: true } });
   await db.auditLog.create({
     data: { companyId: company.id, userId: ctx.user.id, action: `trial_${action}`, entityType: "company", entityId: company.id }
   });

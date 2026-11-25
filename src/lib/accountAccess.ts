@@ -15,7 +15,7 @@ export { BETA_READ_ONLY_MESSAGE };
 export const TRIAL_READ_ONLY_MESSAGE =
   "Your free trial has ended, so this account is now read-only. You can still view everything. To keep working, choose a plan in Settings > Billing. If you just subscribed, reload the page and try again.";
 
-export type AccountPhase = "PAID" | "BETA" | "TRIAL" | "UNRESTRICTED";
+export type AccountPhase = "PAID" | "BETA" | "TRIAL" | "UNRESTRICTED" | "COMPLIMENTARY";
 export type AccessKind = "beta" | "trial";
 
 export type AccessFields = {
@@ -23,6 +23,7 @@ export type AccessFields = {
   betaEnrolledAt?: Date | null;
   betaEndsAt?: Date | null;
   trialEndsAt?: Date | null;
+  complimentary?: boolean | null;
 };
 
 export type AccessInfo = { phase: AccountPhase; kind: AccessKind | null; endsAt: Date | null };
@@ -35,6 +36,7 @@ export function isPaidStatus(status: string | null | undefined): boolean {
 
 export function accessInfo(company: AccessFields | null | undefined): AccessInfo {
   if (!company) return { phase: "UNRESTRICTED", kind: null, endsAt: null };
+  if (company.complimentary) return { phase: "COMPLIMENTARY", kind: null, endsAt: null };
   if (isPaidStatus(company.subscriptionStatus)) return { phase: "PAID", kind: null, endsAt: null };
   if (company.betaEnrolledAt && company.betaEndsAt) return { phase: "BETA", kind: "beta", endsAt: company.betaEndsAt };
   if (company.trialEndsAt) return { phase: "TRIAL", kind: "trial", endsAt: company.trialEndsAt };
@@ -61,5 +63,6 @@ export const PHASE_LABELS: Record<AccountPhase, string> = {
   PAID: "Paid subscription",
   BETA: "Closed beta",
   TRIAL: "Free trial",
-  UNRESTRICTED: "Unrestricted (no beta or trial)"
+  UNRESTRICTED: "Unrestricted (no beta or trial)",
+  COMPLIMENTARY: "Complimentary (free, unlimited AI)"
 };
