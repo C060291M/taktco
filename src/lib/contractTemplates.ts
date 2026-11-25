@@ -1,10 +1,13 @@
+import { SUBCONTRACT_TEMPLATE } from "./subcontractTemplate";
+
 export const CONTRACT_TYPES: { value: string; label: string }[] = [
   { value: "SERVICE_AGREEMENT", label: "Service Agreement" },
   { value: "CONSTRUCTION_CONTRACT", label: "Construction Contract" },
   { value: "CHANGE_ORDER", label: "Change Order" },
   { value: "WARRANTY", label: "Warranty" },
   { value: "PAYMENT_AGREEMENT", label: "Payment Agreement" },
-  { value: "MAINTENANCE_AGREEMENT", label: "Maintenance Agreement" }
+  { value: "MAINTENANCE_AGREEMENT", label: "Maintenance Agreement" },
+  { value: "SUBCONTRACT", label: "Subcontract Agreement" }
 ];
 
 // Starting points only - every [BRACKETED] section and the rest of the text is
@@ -13,6 +16,8 @@ export const CONTRACT_TYPES: { value: string; label: string }[] = [
 // else is intentionally left for the business to fill in themselves, since scope,
 // pricing, and terms vary job to job and trade to trade.
 const TEMPLATES: Record<string, string> = {
+  SUBCONTRACT: SUBCONTRACT_TEMPLATE,
+
   SERVICE_AGREEMENT: `SERVICE AGREEMENT
 
 Between {{companyName}} ("Contractor") and {{customerName}} ("Client")

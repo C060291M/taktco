@@ -7,7 +7,7 @@ const schema = z
   .object({
     customerId: z.string(),
     jobId: z.string().optional(),
-    type: z.enum(["SERVICE_AGREEMENT", "CONSTRUCTION_CONTRACT", "CHANGE_ORDER", "WARRANTY", "PAYMENT_AGREEMENT", "MAINTENANCE_AGREEMENT"]),
+    type: z.enum(["SERVICE_AGREEMENT", "CONSTRUCTION_CONTRACT", "CHANGE_ORDER", "WARRANTY", "PAYMENT_AGREEMENT", "MAINTENANCE_AGREEMENT", "SUBCONTRACT"]),
     title: z.string().min(1),
     content: z.string().optional(),
     fileUrl: z.string().optional(),

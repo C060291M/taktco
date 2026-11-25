@@ -120,6 +120,7 @@ enum ContractType {
   WARRANTY
   PAYMENT_AGREEMENT
   MAINTENANCE_AGREEMENT
+  SUBCONTRACT
 }
 
 enum ContractStatus {
@@ -156,6 +157,9 @@ enum CampaignStatus {
 
 // A tenant. Every other table hangs off companyId.
 model Company {
+  subcontractors Subcontractor[]
+  jobSubcontracts JobSubcontract[]
+  subcontractPayments SubcontractPayment[]
   id                   String   @id @default(cuid())
   name                 String
   subdomain            String   @unique
@@ -493,6 +497,7 @@ model Estimate {
 }
 
 model Job {
+  jobSubcontracts JobSubcontract[]
   id              String    @id @default(cuid())
   companyId       String
   company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -619,6 +624,7 @@ model Payment {
 // invoice payment stub - TODO before going live: swap for a real e-signature
 // provider (e.g. HelloSign/DocuSign) if legally binding signatures are required.
 model Contract {
+  jobSubcontract JobSubcontract?
   id           String         @id @default(cuid())
   companyId    String
   company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -1721,4 +1727,50 @@ model WaitlistEntry {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+model Subcontractor {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  trade     String?
+  email     String?
+  phone     String?
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  jobSubcontracts JobSubcontract[]
+  @@index([companyId])
+}
+
+model JobSubcontract {
+  id              String        @id @default(cuid())
+  companyId       String
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jobId           String
+  job             Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  subcontractorId String
+  subcontractor   Subcontractor @relation(fields: [subcontractorId], references: [id])
+  scope           String        @default("")
+  agreedAmount    Decimal       @default(0) @db.Decimal(12, 2)
+  contractId      String?       @unique
+  contract        Contract?     @relation(fields: [contractId], references: [id])
+  createdAt       DateTime      @default(now())
+  payments        SubcontractPayment[]
+  @@index([companyId])
+  @@index([jobId])
+}
+
+model SubcontractPayment {
+  id               String         @id @default(cuid())
+  companyId        String
+  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jobSubcontractId String
+  jobSubcontract   JobSubcontract @relation(fields: [jobSubcontractId], references: [id], onDelete: Cascade)
+  amount           Decimal        @db.Decimal(12, 2)
+  paidAt           DateTime       @default(now())
+  method           String?
+  note             String?
+  createdAt        DateTime       @default(now())
+  @@index([companyId])
+  @@index([jobSubcontractId])
 }

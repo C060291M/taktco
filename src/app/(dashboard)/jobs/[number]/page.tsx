@@ -11,6 +11,8 @@ import { CrewAndStatus } from "@/features/jobs/CrewAndStatus";
 import { DeleteJobButton } from "@/features/jobs/DeleteJobButton";
 import { TechSignOff } from "@/features/jobs/TechSignOff";
 import { JobPhotoActions } from "@/features/jobs/JobPhotoActions";
+import { JobProfitBox } from "@/features/jobs/JobProfitBox";
+import { SubcontractorsPanel } from "@/features/jobs/SubcontractorsPanel";
 
 function money(n: number | { toString(): string }) {
   return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -34,7 +36,7 @@ export default async function JobDetailPage({ params }: { params: { number: stri
   const [job, teamMembers, dailyLogs] = await Promise.all([
     db.job.findFirst({
       where: { OR: [{ jobNumber: params.number }, { id: params.number }], companyId: ctx.company.id },
-      include: { customer: true, photos: true, invoices: true, estimate: true, changeOrders: true, punchListItems: true }
+      include: { customer: true, photos: true, invoices: { include: { payments: true } }, estimate: true, changeOrders: true, punchListItems: true }
     }),
     db.user.findMany({ where: { companyId: ctx.company.id }, select: { id: true, name: true } }),
     db.dailyLog.findMany({ where: { companyId: ctx.company.id, job: { OR: [{ jobNumber: params.number }, { id: params.number }] } }, include: { author: true }, orderBy: { date: "desc" } })
@@ -61,6 +63,26 @@ export default async function JobDetailPage({ params }: { params: { number: stri
   }
   if (isFieldTech && !job.assignedUserIds.includes(ctx.user.id)) notFound();
 
+  const subs = isFieldTech ? [] : await db.jobSubcontract.findMany({
+    where: { jobId: job.id, companyId: ctx.company.id },
+    include: { subcontractor: true, payments: { orderBy: { paidAt: "desc" } } },
+    orderBy: { createdAt: "asc" }
+  });
+  const allSubs = isFieldTech ? [] : await db.subcontractor.findMany({
+    where: { companyId: ctx.company.id, deletedAt: null },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true }
+  });
+  const approvedChangeOrders = job.changeOrders.filter((c) => c.status === "APPROVED").reduce((s, c) => s + Number(c.amountDelta), 0);
+  const liveInvoices = job.invoices.filter((i) => !i.deletedAt);
+  const invoicedTotal = liveInvoices.reduce((s, i) => s + Number(i.amount), 0);
+  const collectedTotal = liveInvoices
+    .flatMap((i) => i.payments)
+    .filter((p) => p.status === "succeeded" || p.status === "partially_refunded")
+    .reduce((s, p) => s + Number(p.amount) - Number(p.refundedAmount), 0);
+  const subCommitted = subs.reduce((s, x) => s + Number(x.agreedAmount), 0);
+  const subPaid = subs.reduce((s, x) => s + x.payments.reduce((a, p) => a + Number(p.amount), 0), 0);
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-start justify-between">
@@ -84,6 +106,34 @@ export default async function JobDetailPage({ params }: { params: { number: stri
             <p className="text-white font-medium">{money(job.actualCost)}</p>
           </div>
         </div>
+      )}
+
+      {!isFieldTech && (
+        <JobProfitBox
+          quoted={Number(job.quotedCost)}
+          approvedChangeOrders={approvedChangeOrders}
+          invoiced={invoicedTotal}
+          collected={collectedTotal}
+          subCommitted={subCommitted}
+          subPaid={subPaid}
+          otherCosts={Number(job.actualCost)}
+        />
+      )}
+
+      {!isFieldTech && (
+        <SubcontractorsPanel
+          jobId={job.id}
+          allSubs={allSubs}
+          subs={subs.map((s) => ({
+            id: s.id,
+            name: s.subcontractor.name,
+            trade: s.subcontractor.trade,
+            scope: s.scope,
+            agreedAmount: Number(s.agreedAmount),
+            contractId: s.contractId,
+            payments: s.payments.map((p) => ({ id: p.id, amount: Number(p.amount), paidAt: p.paidAt.toISOString(), method: p.method, note: p.note }))
+          }))}
+        />
       )}
 
       <TechSignOff
